@@ -1,0 +1,6 @@
+[submodule "vendor/hl2sdk-csgo"]
+	path = vendor/hl2sdk-csgo
+	url = https://github.com/pmrowla/hl2sdk-csgo
+[submodule "vendor/sourcemod"]
+	path = vendor/sourcemod
+	url = https://github.com/alliedmodders/sourcemod
