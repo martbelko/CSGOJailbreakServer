@@ -4,7 +4,9 @@ project "CSGOExtension"
 	cppdialect "C++14"
 	staticruntime "on"
 
-	targetname "jailbreak.ext"
+	targetname "jailbreak.ext.csgo"
+
+	exceptionhandling "Off"
 
 	files
 	{

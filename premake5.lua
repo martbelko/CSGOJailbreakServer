@@ -10,6 +10,7 @@ workspace "CSGOExtension"
 
 	filter {}
 
+	characterset "MBCS"
 	runtime "Release"
 	optimize "on"
 
