@@ -1,77 +1,54 @@
-#include "extension.h"
+#include "Extension.h"
 
-Sample g_Sample;		/**< Global singleton for extension's main interface */
+#include "NativeManager.h"
 
-SMEXT_LINK(&g_Sample);
-
-using ConCmd = int (*)(int, int);
-
-static int Callback(int client, int argc)
-{
-	rootconsole->ConsolePrint("CALLBACK");
-	return 0;
-}
-
-static cell_t OnRoundStartPre(IPluginContext* pContext, const cell_t* params)
-{
-	rootconsole->ConsolePrint("PRE");
-	return 0;
-}
-
-static cell_t OnRoundStartPost(IPluginContext* pContext, const cell_t* params)
-{
-	rootconsole->ConsolePrint("POST");
+JailbreakExtension g_Extension;
+SMEXT_LINK(&g_Extension);
 
 /*
-// 	IPluginFunction* f = pContext->GetFunctionByName("public_RegConsoleCmd");
-// 	f->PushString("sm_test");
-// 	f->PushCell(*(int*)&Callback);
-// 	f->PushString("WTF");
-// 	f->PushCell(0);
-// 	cell_t res;
-// 	f->Execute(&res);
+native_OnClientConnect,
+native_OnClientConnected,
+native_OnClientPutInServer,
+native_OnClientDisconnect,
+native_OnClientDisconnect_Post,
+native_OnClientCommand,
+native_OnClientCommandKeyValues,
+native_OnClientCommandKeyValues_Post,
+native_OnClientSettingsChanged,
+native_OnClientAuthorized,
+native_OnClientPreAdminCheck,
+native_OnClientPostAdminFilter,
+native_OnClientPostAdminCheck,
 */
-
-	return 0;
-}
-
-static cell_t CMDCallback(IPluginContext* pContext, const cell_t* params)
-{
-	char* cmd;
-	pContext->LocalToString(params[1], &cmd);
-	char* args;
-	pContext->LocalToString(params[2], &args);
-	std::string r = std::string(cmd) + std::string(args);
-	rootconsole->ConsolePrint("---------------");
-	rootconsole->ConsolePrint(r.c_str());
-	rootconsole->ConsolePrint("---------------");
-	return 0;
-}
-
-IPluginFunction* RegConsoleCmdFunction = nullptr;
-
-static cell_t OnPluginStart(IPluginContext* pContext, const cell_t* params)
-{
-	RegConsoleCmdFunction = pContext->GetFunctionByName("public_RegConsoleCmd");
-	RegConsoleCmdFunction->PushString("sm_test");
-	RegConsoleCmdFunction->PushString("Testing");
-	RegConsoleCmdFunction->PushCell(0);
-	cell_t res;
-	RegConsoleCmdFunction->Execute(&res);
-
-	return 0;
-}
 
 const sp_nativeinfo_t MyNatives[] =
 {
-	{ "native_OnRoundStartPre", OnRoundStartPre },
-	{ "native_OnRoundStartPost", OnRoundStartPost },
-	{ "native_CMDCallback", CMDCallback },
-	{ "native_OnPluginStart", OnPluginStart },
+	{ "native_OnRoundStartPre", NativeManager::OnRoundStartPre },
+	{ "native_OnRoundStartPost", NativeManager::OnRoundStartPost },
+	{ "native_CMDCallback", NativeManager::CMDCallback },
+	{ "native_OnPluginStart", NativeManager::OnPluginStart },
+	{ "native_OnPluginEnd", NativeManager::OnPluginEnd },
+	{ "native_OnMapStart", NativeManager::OnMapStart },
+	{ "native_OnMapEnd", NativeManager::OnMapEnd },
+	// Client.inc
+	{ "native_OnClientConnect", NativeManager::OnClientConnect },
+	{ "native_OnClientConnected", NativeManager::OnClientConnected },
+	{ "native_OnClientPutInServer", NativeManager::OnClientPutInServer },
+	{ "native_OnClientDisconnect", NativeManager::OnClientDisconnect },
+	{ "native_OnClientDisconnect_Post", NativeManager::OnClientDisconnectPost },
+	{ "native_OnClientCommand", NativeManager::OnClientCommand },
+	{ "native_OnClientCommandKeyValues", NativeManager::OnClientCommandKeyValues },
+	{ "native_OnClientCommandKeyValues_Post", NativeManager::OnClientCommandKeyValuesPost },
+	{ "native_OnClientSettingsChanged", NativeManager::OnClientSettingsChanged },
+	{ "native_OnClientAuthorized", NativeManager::OnClientAuthorized },
+	{ "native_OnClientPreAdminCheck", NativeManager::OnClientPreAdminCheck },
+	{ "native_OnClientPostAdminFilter", NativeManager::OnClientPostAdminFilter },
+	{ "native_OnClientPostAdminCheck", NativeManager::OnClientPostAdminCheck },
+	// NULL
 	{ NULL, NULL }
 };
 
-void Sample::SDK_OnAllLoaded()
+void JailbreakExtension::SDK_OnAllLoaded()
 {
 	sharesys->AddNatives(myself, MyNatives);
 }
