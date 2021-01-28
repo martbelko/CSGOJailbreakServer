@@ -4,3 +4,6 @@
 [submodule "vendor/sourcemod"]
 	path = vendor/sourcemod
 	url = https://github.com/alliedmodders/sourcemod
+[submodule "vendor/metamod"]
+	path = vendor/metamod
+	url = https://github.com/alliedmodders/metamod-source
