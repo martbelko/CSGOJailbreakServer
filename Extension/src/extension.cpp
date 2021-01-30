@@ -5,31 +5,25 @@
 JailbreakExtension g_Extension;
 SMEXT_LINK(&g_Extension);
 
-/*
-native_OnClientConnect,
-native_OnClientConnected,
-native_OnClientPutInServer,
-native_OnClientDisconnect,
-native_OnClientDisconnect_Post,
-native_OnClientCommand,
-native_OnClientCommandKeyValues,
-native_OnClientCommandKeyValues_Post,
-native_OnClientSettingsChanged,
-native_OnClientAuthorized,
-native_OnClientPreAdminCheck,
-native_OnClientPostAdminFilter,
-native_OnClientPostAdminCheck,
-*/
-
 const sp_nativeinfo_t MyNatives[] =
 {
 	{ "native_OnRoundStartPre", NativeManager::OnRoundStartPre },
 	{ "native_OnRoundStartPost", NativeManager::OnRoundStartPost },
-	{ "native_CMDCallback", NativeManager::CMDCallback },
+	{ "native_ConCmdCallback", NativeManager::ConCmdCallback },
+	{ "native_SrvCmdCallback", NativeManager::SrvCmdCallback },
+	{ "native_CmdListenerCallback", NativeManager::CmdListenerCallback },
 	{ "native_OnPluginStart", NativeManager::OnPluginStart },
 	{ "native_OnPluginEnd", NativeManager::OnPluginEnd },
 	{ "native_OnMapStart", NativeManager::OnMapStart },
 	{ "native_OnMapEnd", NativeManager::OnMapEnd },
+	// CSTRIKE.INC
+	{ "native_CS_OnBuyCommand", NativeManager::CS_OnBuyCommand },
+	{ "native_CS_OnCSWeaponDrop", NativeManager::CS_OnCSWeaponDrop },
+	{ "native_CS_OnGetWeaponPrice", NativeManager::CS_OnGetWeaponPrice },
+	{ "native_CS_OnTerminateRound", NativeManager::CS_OnTerminateRound },
+	// Console.inc
+	{ "native_OnClientSayCommand", NativeManager::OnClientSayCommand },
+	{ "native_OnClientSayCommand_Post", NativeManager::OnClientSayCommandPost },
 	// Client.inc
 	{ "native_OnClientConnect", NativeManager::OnClientConnect },
 	{ "native_OnClientConnected", NativeManager::OnClientConnected },

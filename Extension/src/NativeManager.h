@@ -2,6 +2,8 @@
 
 #include "smsdk_ext.h"
 
+#include "Defines.h"
+
 class NativeManager
 {
 public:
@@ -14,7 +16,19 @@ public:
 	static cell_t OnRoundStartPre(IPluginContext* pContext, const cell_t* params);
 	static cell_t OnRoundStartPost(IPluginContext* pContext, const cell_t* params);
 
-	static cell_t CMDCallback(IPluginContext* pContext, const cell_t* params);
+	static cell_t ConCmdCallback(IPluginContext* pContext, const cell_t* params);
+	static cell_t SrvCmdCallback(IPluginContext* pContext, const cell_t* params);
+	static cell_t CmdListenerCallback(IPluginContext* pContext, const cell_t* params);
+
+	// cstrike.inc
+	static int CS_OnBuyCommand(IPluginContext* pContext, const cell_t* params);
+	static int CS_OnCSWeaponDrop(IPluginContext* pContext, const cell_t* params);
+	static int CS_OnGetWeaponPrice(IPluginContext* pContext, const cell_t* params);
+	static int CS_OnTerminateRound(IPluginContext* pContext, const cell_t* params);
+
+	// Console.inc
+	static int OnClientSayCommand(IPluginContext* pContext, const cell_t* params);
+	static int OnClientSayCommandPost(IPluginContext* pContext, const cell_t* params);
 
 	// Client.inc
 	static int OnClientConnect(IPluginContext* pContext, const cell_t* params);

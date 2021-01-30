@@ -38,7 +38,7 @@ cell_t NativeManager::OnRoundStartPost(IPluginContext* pContext, const cell_t* p
 	return 0;
 }
 
-cell_t NativeManager::CMDCallback(IPluginContext* pContext, const cell_t* params)
+cell_t NativeManager::ConCmdCallback(IPluginContext* pContext, const cell_t* params)
 {
 	int client = params[1];
 	char* cmd;
@@ -46,7 +46,98 @@ cell_t NativeManager::CMDCallback(IPluginContext* pContext, const cell_t* params
 	char* args;
 	pContext->LocalToString(params[3], &args);
 
-	return MainPlugin::CMDCallback(client, cmd, args);
+	return MainPlugin::ConCmdCallback(client, cmd, args);
+}
+
+cell_t NativeManager::SrvCmdCallback(IPluginContext* pContext, const cell_t* params)
+{
+	char* cmd;
+	pContext->LocalToString(params[1], &cmd);
+	char* args;
+	pContext->LocalToString(params[2], &args);
+
+	return MainPlugin::SrvCmdCallback(cmd, args);
+}
+
+cell_t NativeManager::CmdListenerCallback(IPluginContext* pContext, const cell_t* params)
+{
+	int client = params[1];
+	char* cmd;
+	pContext->LocalToString(params[2], &cmd);
+	int argc = params[3];
+
+	return MainPlugin::CmdListenerCallback(client, cmd, argc);
+}
+
+/////////////////
+/* CSTIKE.INC */
+/////////////////
+
+int NativeManager::CS_OnBuyCommand(IPluginContext* pContext, const cell_t* params)
+{
+	int client = params[1];
+	char* weapon;
+	pContext->LocalToString(params[2], &weapon);
+	return MainPlugin::CS_OnBuyCommand(client, weapon);
+}
+
+int NativeManager::CS_OnCSWeaponDrop(IPluginContext* pContext, const cell_t* params)
+{
+	int client = params[1];
+	int weaponIndex = params[2];
+	return MainPlugin::CS_OnCSWeaponDrop(client, weaponIndex);
+}
+
+int NativeManager::CS_OnGetWeaponPrice(IPluginContext* pContext, const cell_t* params)
+{
+	int client = params[1];
+	char* weapon;
+	pContext->LocalToString(params[2], &weapon);
+	int* price;
+	pContext->LocalToPhysAddr(params[3], &price);
+
+	return MainPlugin::CS_OnGetWeaponPrice(client, weapon, *price);
+}
+
+int NativeManager::CS_OnTerminateRound(IPluginContext* pContext, const cell_t* params)
+{
+	int* delayAddr;
+	pContext->LocalToPhysAddr(params[1], &delayAddr);
+	float delay = sp_ctof(*delayAddr);
+
+	CSRoundEndReason reason;
+	pContext->LocalToPhysAddr(params[2], reinterpret_cast<int**>(&reason));
+
+	int res = MainPlugin::CS_OnTerminateRound(delay, reason);
+	*delayAddr = delay;
+	return res;
+}
+
+/////////////////
+/* CONSOLE.INC */
+/////////////////
+
+int NativeManager::OnClientSayCommand(IPluginContext* pContext, const cell_t* params)
+{
+	int client = params[1];
+	char* command;
+	pContext->LocalToString(params[2], &command);
+	char* args;
+	pContext->LocalToString(params[3], &args);
+
+	return MainPlugin::OnClientSayCommand(client, command, args);
+}
+
+int NativeManager::OnClientSayCommandPost(IPluginContext* pContext, const cell_t* params)
+{
+	int client = params[1];
+	char* command;
+	pContext->LocalToString(params[2], &command);
+	char* args;
+	pContext->LocalToString(params[3], &args);
+
+	MainPlugin::OnClientSayCommandPost(client, command, args);
+	return 0;
 }
 
 ////////////////
