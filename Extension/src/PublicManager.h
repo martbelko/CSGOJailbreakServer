@@ -5,6 +5,7 @@
 #include "Defines.h"
 
 #include <sstream>
+#include <unordered_map>
 
 #define VARIADIC_FUNC2(FUNC, FUNC_IMPL, T1) \
 	static void FUNC(T1 client) { PushArg(FUNC_IMPL, client); ExecFunc(FUNC_IMPL); } \
@@ -42,35 +43,153 @@
 	static void FUNC##Sub(const char* arg) { PushArg(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
 	public:
 
-/*
-public void public_CS_RespawnPlayer(int client);
-public void public_CS_SwitchTeam(int client, int team);
-public void public_CS_DropWeapon(int client, int weaponIndex, bool toss, bool blockhook);
-public void public_CS_TerminateRound(float delay, CSRoundEndReason reason, bool blockhook);
-public void public_CS_GetTranslatedWeaponAlias(const char[] alias, char[] weapon, int size);
-public int public_CS_GetWeaponPrice(int client, CSWeaponID id, bool defaultprice);
-public int public_CS_GetClientClanTag(int client, char[] buffer, int size);
-public void public_CS_SetClientClanTag(int client, const char[] tag);
-public int public_CS_GetTeamScore(int team);
-public void public_CS_SetTeamScore(int team, int value);
-public int public_CS_GetMVPCount(int client);
-public void public_CS_SetMVPCount(int client, int value);
-public int public_CS_GetClientContributionScore(int client);
-public void public_CS_SetClientContributionScore(int client, int value);
-public int public_CS_GetClientAssists(int client);
-public void public_CS_SetClientAssists(int client, int value);
-public CSWeaponID public_CS_AliasToWeaponID(const char[] alias);
-public int public_CS_WeaponIDToAlias(CSWeaponID weaponID, char[] destination, int len);
-public bool public_CS_IsValidWeaponID(CSWeaponID id);
-public void public_CS_UpdateClientModel(int client);
-public CSWeaponID public_CS_ItemDefIndexToID(int iDefIndex);
-public int public_CS_WeaponIDToItemDefIndex(CSWeaponID id);
-*/
+#define VARIADIC_FUNC5(FUNC, FUNC_IMPL, T1, T2, T3, T4) \
+	static void FUNC(T1 client, T2 message, T3 arg3, T4 arg4) { PushArg(FUNC_IMPL, client); PushArg(FUNC_IMPL, message); PushArg(FUNC_IMPL, arg3); PushArg(FUNC_IMPL, arg4); ExecFunc(FUNC_IMPL); } \
+	template<typename ... Args> \
+	static void FUNC(T1 client, T2 format, T3 arg3, T4 arg4, Args ... args) { PushArg(FUNC_IMPL, client); PushArg(FUNC_IMPL, format); PushArg(FUNC_IMPL, arg3); PushArg(FUNC_IMPL, arg4); FUNC##Sub(args...); } \
+	private: \
+	template<typename P1, typename ... Args> \
+	static void FUNC##Sub(P1 p1, Args ... args) { PushArgRef(FUNC_IMPL, p1); FUNC##Sub(args...); } \
+	static void FUNC##Sub(int& arg) { PushArgRef(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
+	static void FUNC##Sub(float& arg) { PushArgRef(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
+	static void FUNC##Sub(const char* arg) { PushArg(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
+	public:
+
+using SQLTxnSuccessFunc = void (*)(database_t db, int data, int numQueries, DBResultSet results[], int queryData[]);
+using SQLTxnFailureFunc = void(*)(database_t db, int data, int numQueries, const char* error, int failIndex, int queryData[]);
+using SQLTCallbackFunc = void(*)(Handle owner, Handle hndl, const char* error, int data);
+using EventHookCallback = Action(*)(EventHandle eventHandle, const char* name, bool dontBroadcast);
 
 class PublicManager
 {
 public:
 	static void InitOnPluginStart(IPluginContext* pContext);
+
+	// EVENTS.INC
+	static void HookEvent(EventHookCallback callback, const char* name, EventHookMode mode)
+	{
+		rootconsole->ConsolePrint("Hooking %s %d", name, mode);
+
+		if (mode == EventHookMode::EventHookMode_Pre)
+			s_EventHookCallbacksPre[name] = callback;
+		else if (mode == EventHookMode::EventHookMode_PostNoCopy)
+			s_EventHookCallbacksPostNoCopy[name] = callback;
+		else
+		{
+			s_EventHookCallbacksPost[name] = callback;
+			mode = EventHookMode::EventHookMode_Post;
+		}
+
+		ExecFunc(s_HookEventFunc, name, mode);
+	}
+	static bool HookEventEx(EventHookCallback callback, const char* name, EventHookMode mode)
+	{
+		if (mode == EventHookMode::EventHookMode_Pre)
+			s_EventHookCallbacksPre[name] = callback;
+		else if (mode == EventHookMode::EventHookMode_PostNoCopy)
+			s_EventHookCallbacksPostNoCopy[name] = callback;
+		else
+		{
+			s_EventHookCallbacksPost[name] = callback;
+			mode = EventHookMode::EventHookMode_Post;
+		}
+
+		return ExecFunc(s_HookEventExFunc, name, mode);
+	}
+	static void UnhookEvent(const char* name, EventHookMode mode) { ExecFunc(s_UnhookEventFunc, name, mode); }
+	static EventHandle CreateEvent(const char* name, bool force) { return ExecFunc(s_CreateEventFunc, name, force); }
+	static void FireEvent(Handle eventHandle, bool dontBroadcast) { ExecFunc(s_FireEventFunc, eventHandle, dontBroadcast); }
+	static void CancelCreatedEvent(Handle eventHandle) { ExecFunc(s_CancelCreatedEventFunc, eventHandle); }
+	static bool GetEventBool(Handle eventHandle, const char* key, bool defValue) { return ExecFunc(s_GetEventBoolFunc, eventHandle, key, defValue); }
+	static void SetEventBool(Handle eventHandle, const char* key, bool value) { ExecFunc(s_SetEventBoolFunc, eventHandle, key, value); }
+	static int GetEventInt(Handle eventHandle, const char* key, int defValue) { return ExecFunc(s_GetEventIntFunc, eventHandle, key, defValue); }
+	static void SetEventInt(Handle eventHandle, const char* key, int value) { ExecFunc(s_SetEventIntFunc, eventHandle, key, value); }
+	static float GetEventFloat(Handle eventHandle, const char* key, float defValue) { return ExecFunc(s_GetEventFloatFunc, eventHandle, key, defValue); }
+	static void SetEventFloat(Handle eventHandle, const char* key, float value) { ExecFunc(s_SetEventFloatFunc, eventHandle, key, value); }
+	static void GetEventString(Handle eventHandle, const char* key, char* value, int maxlength, const char* defValue) { ExecFunc(s_GetEventStringFunc, eventHandle, key, value, maxlength, defValue); }
+	static void SetEventString(Handle eventHandle, const char* key, const char* value) { ExecFunc(s_SetEventStringFunc, eventHandle, key, value); }
+	static void GetEventName(Handle eventHandle, char* name, int maxlength) { ExecFunc(s_GetEventNameFunc, eventHandle, name, maxlength); }
+	static void SetEventBroadcast(Handle eventHandle, bool dontBroadcast) { ExecFunc(s_SetEventBroadcastFunc, eventHandle, dontBroadcast); }
+
+	// DBI.INC
+	static database_t SQL_Connect(const char* confname, bool persistent, char* error, int maxlength) { return ExecFunc(s_SQL_ConnectFunc, confname, persistent, error, maxlength); }
+	static database_t SQL_ConnectCustom(Handle keyvalues, char* error, int maxlength, bool persistent) { return ExecFunc(s_SQL_ConnectCustomFunc, keyvalues, error, maxlength, persistent); }
+	static bool SQL_CheckConfig(const char* name) { return ExecFunc(s_SQL_CheckConfigFunc, name); }
+	static DBDriver SQL_GetDriver(const char* name) { return ExecFunc(s_SQL_GetDriverFunc, name); }
+	static DBDriver SQL_ReadDriver(Handle database, char* ident, int ident_length) { return ExecFunc(s_SQL_ReadDriverFunc, database, ident, ident_length); }
+	static void SQL_GetDriverIdent(Handle driver, char* ident, int maxlength) { ExecFunc(s_SQL_GetDriverIdentFunc, driver, ident, maxlength); }
+	static void SQL_GetDriverProduct(Handle driver, char* product, int maxlength) { ExecFunc(s_SQL_GetDriverProductFunc, driver, product, maxlength); }
+	static bool SQL_SetCharset(Handle database, const char* charset) { return ExecFunc(s_SQL_SetCharsetFunc, database, charset); }
+	static int SQL_GetAffectedRows(Handle hndl) { return ExecFunc(s_SQL_GetAffectedRowsFunc, hndl); }
+	static int SQL_GetInsertId(Handle hndl) { return ExecFunc(s_SQL_GetInsertIdFunc, hndl); }
+	static bool SQL_GetError(Handle hndl, char* error, int maxlength) { return ExecFunc(s_SQL_GetErrorFunc, hndl, error, maxlength); }
+	static bool SQL_EscapeString(Handle database, const char* string, char* buffer, int maxlength, int& written)
+	{
+		PushArg(s_SQL_EscapeStringFunc, database); PushArg(s_SQL_EscapeStringFunc, string);
+		PushArg(s_SQL_EscapeStringFunc, buffer); PushArg(s_SQL_EscapeStringFunc, maxlength);
+		PushArgRef(s_SQL_EscapeStringFunc, written);
+		return ExecAndReturn(s_SQL_EscapeStringFunc);
+	}
+	VARIADIC_FUNC5(SQL_FormatQuery, s_SQL_FormatQueryFunc, Handle, const char*, int, const char*)
+	static bool SQL_FastQuery(Handle database, const char* query, int len) { return ExecFunc(s_SQL_FastQueryFunc, database, query, len); }
+	static DBResultSet SQL_Query(Handle database, const char* query, int len) { return ExecFunc(s_SQL_QueryFunc, database, query, len); }
+	static DBStatement SQL_PrepareQuery(Handle database, const char* query, char* error, int maxlength) { return ExecFunc(s_SQL_PrepareQueryFunc, database, query, error, maxlength); }
+	static bool SQL_FetchMoreResults(Handle query) { return ExecFunc(s_SQL_FetchMoreResultsFunc, query); }
+	static bool SQL_HasResultSet(Handle query) { return ExecFunc(s_SQL_HasResultSetFunc, query); }
+	static int SQL_GetRowCount(Handle query) { return ExecFunc(s_SQL_GetRowCountFunc, query); }
+	static int SQL_GetFieldCount(Handle query) { return ExecFunc(s_SQL_GetFieldCountFunc, query); }
+	static void SQL_FieldNumToName(Handle query, int field, char* name, int maxlength) { ExecFunc(s_SQL_FieldNumToNameFunc, query, field, name, maxlength); }
+	static bool SQL_FieldNameToNum(Handle query, const char* name, int& field)
+	{
+		PushArg(s_SQL_FieldNameToNumFunc, query); PushArg(s_SQL_FieldNameToNumFunc, name); PushArgRef(s_SQL_FieldNameToNumFunc, field);
+		return ExecAndReturn(s_SQL_FieldNameToNumFunc);
+	}
+	static bool SQL_FetchRow(Handle query) { return ExecFunc(s_SQL_FetchRowFunc, query); }
+	static bool SQL_MoreRows(Handle query) { return ExecFunc(s_SQL_MoreRowsFunc, query); }
+	static bool SQL_Rewind(Handle query) { return ExecFunc(s_SQL_RewindFunc, query); }
+	static int SQL_FetchString(Handle query, int field, char* buffer, int maxlength, DBResult& result)
+	{
+		PushArg(s_SQL_FetchStringFunc, query); PushArg(s_SQL_FetchStringFunc, field); PushArg(s_SQL_FetchStringFunc, buffer);
+		PushArg(s_SQL_FetchStringFunc, maxlength); PushArgRef(s_SQL_FetchStringFunc, reinterpret_cast<int&>(result));
+		return ExecFunc(s_SQL_FetchStringFunc, query, field, buffer, maxlength, result);
+	}
+	static float SQL_FetchFloat(Handle query, int field, DBResult& result)
+	{
+		PushArg(s_SQL_FetchFloatFunc, query); PushArg(s_SQL_FetchFloatFunc, field); PushArgRef(s_SQL_FetchFloatFunc, reinterpret_cast<int&>(result));
+		return ExecAndReturn(s_SQL_FetchFloatFunc);
+	}
+	static int SQL_FetchInt(Handle query, int field, DBResult& result)
+	{
+		PushArg(s_SQL_FetchIntFunc, query); PushArg(s_SQL_FetchIntFunc, field); PushArgRef(s_SQL_FetchIntFunc, reinterpret_cast<int&>(result));
+		return ExecAndReturn(s_SQL_FetchIntFunc);
+	}
+	static bool SQL_IsFieldNull(Handle query, int field) { return ExecFunc(s_SQL_IsFieldNullFunc, query, field); }
+	static int SQL_FetchSize(Handle query, int field) { return ExecFunc(s_SQL_FetchSizeFunc, query, field); }
+	static void SQL_BindParamInt(Handle statement, int param, int number, bool isSigned) { ExecFunc(s_SQL_BindParamStringFunc, statement, param, number, isSigned); }
+	static void SQL_BindParamFloat(Handle statement, int param, float value) { ExecFunc(s_SQL_BindParamFloatFunc, statement, param, value); }
+	static void SQL_BindParamString(Handle statement, int param, const char* value, bool copy) { ExecFunc(s_SQL_BindParamStringFunc, statement, param, value, copy); }
+	static bool SQL_Execute(Handle statement) { return ExecFunc(s_SQL_ExecuteFunc, statement); }
+	static void SQL_LockDatabase(Handle database) { ExecFunc(s_SQL_LockDatabaseFunc, database); }
+	static void SQL_UnlockDatabase(Handle database) { ExecFunc(s_SQL_UnlockDatabaseFunc, database); }
+	static void SQL_TConnect(SQLTCallbackFunc callback, const char* name, int data)
+	{
+		static int index = 0;
+		s_SQLTConnectCallbacksData[index] = data;
+		s_SQLTConnectCallbacks[index] = callback;
+		ExecFunc(s_SQL_TConnectFunc, name, index);
+		++index;
+	}
+	static void SQL_TQuery(SQLTCallbackFunc callback, Handle database, const char* query, int data, DBPriority prio)
+	{
+		static int index = 0;
+		s_SQLTQueryCallbacksData[index] = data;
+		s_SQLTQueryCallbacks[index] = callback;
+		ExecFunc(s_SQL_TQueryFunc, database, query, data, prio);
+		++index;
+	}
+	static transaction_t SQL_CreateTransaction() { return ExecFunc(s_SQL_CreateTransactionFunc); }
+	static int SQL_AddQuery(transaction_t txn, const char* query, int data) { return ExecFunc(s_SQL_AddQueryFunc, txn, query, data); }
+	static void SQL_ExecuteTransaction(Handle db, transaction_t txn, int data, DBPriority priority) { ExecFunc(s_SQL_ExecuteTransactionFunc, db, txn, data, priority); }
 
 	// CSTIKE.INC
 	static void CS_RespawnPlayer(int client);
@@ -104,7 +223,7 @@ public:
 	VARIADIC_FUNC3(ClientCommand, s_ClientCommandFunc, int, const char*);
 	VARIADIC_FUNC3(FakeClientCommand, s_FakeClientCommandFunc, int, const char*);
 	VARIADIC_FUNC3(FakeClientCommandEx, s_FakeClientCommandExFunc, int, const char*);
-	//static void FakeClientCommandKeyValues(int client, KeyValues kv);
+	static void FakeClientCommandKeyValues(int client, KeyValuesHandle kv) { ExecFunc(s_FakeClientCommandKeyValuesFunc, client, kv); }
 	VARIADIC_FUNC2(PrintToServer, s_PrintToServerFunc, const char*);
 	VARIADIC_FUNC3(PrintToConsole, s_PrintToConsoleFunc, int, const char*)
 	VARIADIC_FUNC3(ReplyToCommand, s_ReplyToCommandFunc, int, const char*)
@@ -245,7 +364,81 @@ private:
 		return ExecAndReturn(func);
 	}
 private:
+	friend class NativeManager;
+
+	// EVENTS.INC
+	static std::unordered_map<std::string, EventHookCallback> s_EventHookCallbacksPre;
+	static std::unordered_map<std::string, EventHookCallback> s_EventHookCallbacksPost;
+	static std::unordered_map<std::string, EventHookCallback> s_EventHookCallbacksPostNoCopy;
+
+	// DBI.INC
+	static std::unordered_map<int, SQLTCallbackFunc> s_SQLTConnectCallbacks;
+	static std::unordered_map<int, int> s_SQLTConnectCallbacksData;
+	static std::unordered_map<int, SQLTCallbackFunc> s_SQLTQueryCallbacks;
+	static std::unordered_map<int, int> s_SQLTQueryCallbacksData;
+private:
 	static int s_MaxClients;
+
+	// EVENTS.INC
+	static IPluginFunction* s_HookEventFunc;
+	static IPluginFunction* s_HookEventExFunc;
+	static IPluginFunction* s_UnhookEventFunc;
+	static IPluginFunction* s_CreateEventFunc;
+	static IPluginFunction* s_FireEventFunc;
+	static IPluginFunction* s_CancelCreatedEventFunc;
+	static IPluginFunction* s_GetEventBoolFunc;
+	static IPluginFunction* s_SetEventBoolFunc;
+	static IPluginFunction* s_GetEventIntFunc;
+	static IPluginFunction* s_SetEventIntFunc;
+	static IPluginFunction* s_GetEventFloatFunc;
+	static IPluginFunction* s_SetEventFloatFunc;
+	static IPluginFunction* s_GetEventStringFunc;
+	static IPluginFunction* s_SetEventStringFunc;
+	static IPluginFunction* s_GetEventNameFunc;
+	static IPluginFunction* s_SetEventBroadcastFunc;
+
+	// DBI.INC
+	static IPluginFunction* s_SQL_ConnectFunc;
+	static IPluginFunction* s_SQL_ConnectCustomFunc;
+	static IPluginFunction* s_SQL_CheckConfigFunc;
+	static IPluginFunction* s_SQL_GetDriverFunc;
+	static IPluginFunction* s_SQL_ReadDriverFunc;
+	static IPluginFunction* s_SQL_GetDriverIdentFunc;
+	static IPluginFunction* s_SQL_GetDriverProductFunc;
+	static IPluginFunction* s_SQL_SetCharsetFunc;
+	static IPluginFunction* s_SQL_GetAffectedRowsFunc;
+	static IPluginFunction* s_SQL_GetInsertIdFunc;
+	static IPluginFunction* s_SQL_GetErrorFunc;
+	static IPluginFunction* s_SQL_EscapeStringFunc;
+	static IPluginFunction* s_SQL_FormatQueryFunc;
+	static IPluginFunction* s_SQL_FastQueryFunc;
+	static IPluginFunction* s_SQL_QueryFunc;
+	static IPluginFunction* s_SQL_PrepareQueryFunc;
+	static IPluginFunction* s_SQL_FetchMoreResultsFunc;
+	static IPluginFunction* s_SQL_HasResultSetFunc;
+	static IPluginFunction* s_SQL_GetRowCountFunc;
+	static IPluginFunction* s_SQL_GetFieldCountFunc;
+	static IPluginFunction* s_SQL_FieldNumToNameFunc;
+	static IPluginFunction* s_SQL_FieldNameToNumFunc;
+	static IPluginFunction* s_SQL_FetchRowFunc;
+	static IPluginFunction* s_SQL_MoreRowsFunc;
+	static IPluginFunction* s_SQL_RewindFunc;
+	static IPluginFunction* s_SQL_FetchStringFunc;
+	static IPluginFunction* s_SQL_FetchFloatFunc;
+	static IPluginFunction* s_SQL_FetchIntFunc;
+	static IPluginFunction* s_SQL_IsFieldNullFunc;
+	static IPluginFunction* s_SQL_FetchSizeFunc;
+	static IPluginFunction* s_SQL_BindParamIntFunc;
+	static IPluginFunction* s_SQL_BindParamFloatFunc;
+	static IPluginFunction* s_SQL_BindParamStringFunc;
+	static IPluginFunction* s_SQL_ExecuteFunc;
+	static IPluginFunction* s_SQL_LockDatabaseFunc;
+	static IPluginFunction* s_SQL_UnlockDatabaseFunc;
+	static IPluginFunction* s_SQL_TConnectFunc;
+	static IPluginFunction* s_SQL_TQueryFunc;
+	static IPluginFunction* s_SQL_CreateTransactionFunc;
+	static IPluginFunction* s_SQL_AddQueryFunc;
+	static IPluginFunction* s_SQL_ExecuteTransactionFunc;
 
 	// CSTRIKE.INC
 	static IPluginFunction* s_CS_RespawnPlayerFunc;

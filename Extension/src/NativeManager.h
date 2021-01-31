@@ -13,12 +13,20 @@ public:
 	static cell_t OnMapStart(IPluginContext* pContext, const cell_t* params);
 	static cell_t OnMapEnd(IPluginContext* pContext, const cell_t* params);
 
-	static cell_t OnRoundStartPre(IPluginContext* pContext, const cell_t* params);
-	static cell_t OnRoundStartPost(IPluginContext* pContext, const cell_t* params);
-
 	static cell_t ConCmdCallback(IPluginContext* pContext, const cell_t* params);
 	static cell_t SrvCmdCallback(IPluginContext* pContext, const cell_t* params);
 	static cell_t CmdListenerCallback(IPluginContext* pContext, const cell_t* params);
+
+	// EVENTS.INC
+	static int EventHookCallbackPre(IPluginContext* pContext, const cell_t* params);
+	static int EventHookCallbackPost(IPluginContext* pContext, const cell_t* params);
+	static int EventHookCallbackPostNoCopy(IPluginContext* pContext, const cell_t* params);
+
+	// DBI.INC
+	static int SQLTxnSuccessCallback(IPluginContext* pContext, const cell_t* params);
+	static int SQLTxnFailureCallback(IPluginContext* pContext, const cell_t* params);
+	static int SQLTCallbackConnect(IPluginContext* pContext, const cell_t* params);
+	static int SQLTCallbackQuery(IPluginContext* pContext, const cell_t* params);
 
 	// cstrike.inc
 	static int CS_OnBuyCommand(IPluginContext* pContext, const cell_t* params);

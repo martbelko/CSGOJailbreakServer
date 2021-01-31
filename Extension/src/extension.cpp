@@ -7,8 +7,6 @@ SMEXT_LINK(&g_Extension);
 
 const sp_nativeinfo_t MyNatives[] =
 {
-	{ "native_OnRoundStartPre", NativeManager::OnRoundStartPre },
-	{ "native_OnRoundStartPost", NativeManager::OnRoundStartPost },
 	{ "native_ConCmdCallback", NativeManager::ConCmdCallback },
 	{ "native_SrvCmdCallback", NativeManager::SrvCmdCallback },
 	{ "native_CmdListenerCallback", NativeManager::CmdListenerCallback },
@@ -16,6 +14,15 @@ const sp_nativeinfo_t MyNatives[] =
 	{ "native_OnPluginEnd", NativeManager::OnPluginEnd },
 	{ "native_OnMapStart", NativeManager::OnMapStart },
 	{ "native_OnMapEnd", NativeManager::OnMapEnd },
+	// EVENTS.INC
+	{ "native_EventHookCallbackPre", NativeManager::EventHookCallbackPre },
+	{ "native_EventHookCallbackPost", NativeManager::EventHookCallbackPost },
+	{ "native_EventHookCallbackPostNoCopy", NativeManager::EventHookCallbackPostNoCopy },
+	// DBI.INC
+	{ "native_SQLTxnSuccessCallback", NativeManager::SQLTxnSuccessCallback },
+	{ "native_SQLTxnFailureCallback", NativeManager::SQLTxnFailureCallback },
+	{ "native_SQLTCallbackConnect", NativeManager::SQLTCallbackConnect },
+	{ "native_SQLTCallbackQuery", NativeManager::SQLTCallbackQuery },
 	// CSTRIKE.INC
 	{ "native_CS_OnBuyCommand", NativeManager::CS_OnBuyCommand },
 	{ "native_CS_OnCSWeaponDrop", NativeManager::CS_OnCSWeaponDrop },

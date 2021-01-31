@@ -10,12 +10,18 @@ public:
 	static void OnPluginStart();
 	static void OnPluginEnd();
 
-	static void OnRoundStartPre();
-	static void OnRoundStartPost();
-
 	static Action ConCmdCallback(int client, char* command, char* args);
 	static Action SrvCmdCallback(char* command, char* args);
 	static Action CmdListenerCallback(int client, char* command, int argc);
+
+	// EVENTS.INC
+	static Action OnEventHookPre(EventHandle eventHandle, const char* name, bool dontBroadcast);
+	static Action OnEventHookPost(EventHandle eventHandle, const char* name, bool dontBroadcast);
+
+	// DBI.INC
+	static void OnSQLTConnectCallbackBanlist(Handle owner, Handle hndl, const char* error, int data);
+	static void OnSQLTConnectCallbackDefault(Handle owner, Handle hndl, const char* error, int data);
+	static void OnSQLTQueryCallback(Handle owner, Handle hndl, const char* error, int data); // TODO: Unused
 
 	// CSTRIKE.INC
 	static Action CS_OnBuyCommand(int client, const char* weapon);

@@ -4,10 +4,15 @@
 native Action native_ConCmdCallback(int client, char[] command, char[] args);
 native Action native_SrvCmdCallback(char[] command, char[] args);
 native Action native_CmdListenerCallback(int client, const char[] command, int argc);
+native void native_SQLTxnSuccessCallback(Database db, int data, int numQueries, DBResultSet[] results, int[] queryData);
+native void native_SQLTxnFailureCallback(Database db, int data, int numQueries, const char[] error, int failIndex, int[] queryData);
+native void native_SQLTCallbackConnect(Handle owner, Handle hndl, const char[] error, int data);
+native void native_SQLTCallbackQuery(Handle owner, Handle hndl, const char[] error, int data);
+native Action native_EventHookCallbackPre(Event event, const char[] name, bool dontBroadcast);
+native Action native_EventHookCallbackPost(Event event, const char[] name, bool dontBroadcast);
+native Action native_EventHookCallbackPostNoCopy(Event event, const char[] name, bool dontBroadcast);
 
-// Not knows for nooow
-native int native_OnRoundStartPre();
-native int native_OnRoundStartPost();
+// Not known for now
 native int native_OnPluginStart();
 native int native_OnPluginEnd();
 native int native_OnMapStart();
@@ -42,9 +47,6 @@ native int native_OnClientPostAdminCheck(int client);
 // TODO
 public void OnPluginStart()
 {
-	HookEvent("round_start", OnRoundStartPre, EventHookMode_Pre);
-	HookEvent("round_start", OnRoundStartPost, EventHookMode_Post);
-	
 	native_OnPluginStart();
 }
 
@@ -69,7 +71,13 @@ public Action SrvCmdCallback(int argc)
 	native_SrvCmdCallback(cmd, args);
 }
 public Action CmdListenerCallback(int client, const char[] command, int argc) { return native_CmdListenerCallback(client, command, argc); }
-
+public void SQLTxnSuccessCallback(Database db, any data, int numQueries, DBResultSet[] results, any[] queryData) { native_SQLTxnSuccessCallback(db, data, numQueries, results, queryData); }
+public void SQLTxnFailureCallback(Database db, any data, int numQueries, const char[] error, int failIndex, any[] queryData) { native_SQLTxnFailureCallback(db, data, numQueries, error, failIndex, queryData); }
+public void SQLTCallbackConnectFunc(Handle owner, Handle hndl, const char[] error, int data) { native_SQLTCallbackConnect(owner, hndl, error, data); }
+public void SQLTCallbackQueryFunc(Handle owner, Handle hndl, const char[] error, int data) { native_SQLTCallbackQuery(owner, hndl, error, data); }
+public Action EventHookCallbackPre(Event event, const char[] name, bool dontBroadcast) { return native_EventHookCallbackPre(event, name, dontBroadcast); }
+public Action EventHookCallbackPost(Event event, const char[] name, bool dontBroadcast) { return native_EventHookCallbackPost(event, name, dontBroadcast); }
+public Action EventHookCallbackPostNoCopy(Event event, const char[] name, bool dontBroadcast) { return native_EventHookCallbackPostNoCopy(event, name, dontBroadcast); }
 
 // TODO
 public void OnPluginEnd() { native_OnPluginEnd(); }
@@ -77,17 +85,89 @@ public void OnPluginEnd() { native_OnPluginEnd(); }
 public void OnMapStart() { native_OnMapStart(); }
 public void OnMapEnd() { native_OnMapEnd(); }
 
-public Action OnRoundStartPre(Handle event, const char[] name, bool dontBroadcast)  { native_OnRoundStartPre(); }
-public Action OnRoundStartPost(Handle event, const char[] name, bool dontBroadcast) { native_OnRoundStartPost(); }
-
-
-
-
-/*public void public_PrintToChat(int client, const char[] message, any ...)
+// EVENTS.INC
+public void public_HookEvent(const char[] name, EventHookMode mode)
 {
-	char buffer[512];
-	VFormat(buffer, sizeof(buffer), format, 3);
-	PrintToChat(client, buffer);
+	if (mode == EventHookMode_Pre) { HookEvent(name, EventHookCallbackPre, EventHookMode_Pre); }
+	else if (mode == EventHookMode_PostNoCopy) { HookEvent(name, EventHookCallbackPostNoCopy, EventHookMode_PostNoCopy); }
+	else { HookEvent(name, EventHookCallbackPost, EventHookMode_Post); }
+}
+public bool public_HookEventEx(const char[] name, EventHookMode mode)
+{
+	if (mode == EventHookMode_Pre) { return HookEventEx(name, EventHookCallbackPre, EventHookMode_Pre); }
+	else if (mode == EventHookMode_PostNoCopy) { return HookEventEx(name, EventHookCallbackPost, EventHookMode_PostNoCopy); }
+	return HookEventEx(name, EventHookCallbackPostNoCopy, EventHookMode_Post);
+}
+public void public_UnhookEvent(const char[] name, EventHookMode mode)
+{
+	if (mode == EventHookMode_Pre) { UnhookEvent(name, EventHookCallbackPre, EventHookMode_Pre); }
+	else if (mode == EventHookMode_Post) { UnhookEvent(name, EventHookCallbackPostNoCopy, EventHookMode_Post); }
+	else { UnhookEvent(name, EventHookCallbackPost, EventHookMode_PostNoCopy); }
+}
+public Event public_CreateEvent(const char[] name, bool force) { return CreateEvent(name, force); }
+public void public_FireEvent(Handle event, bool dontBroadcast) { FireEvent(event, dontBroadcast); }
+public void public_CancelCreatedEvent(Handle event) { CancelCreatedEvent(event); }
+public bool public_GetEventBool(Handle event, const char[] key, bool defValue) { return GetEventBool(event, key, defValue); }
+public void public_SetEventBool(Handle event, const char[] key, bool value) { SetEventBool(event, key, value); }
+public int public_GetEventInt(Handle event, const char[] key, int defValue) { return GetEventInt(event, key, defValue); }
+public void public_SetEventInt(Handle event, const char[] key, int value) { SetEventInt(event, key, value); }
+public float public_GetEventFloat(Handle event, const char[] key, float defValue) { return GetEventFloat(event, key, defValue); }
+public void public_SetEventFloat(Handle event, const char[] key, float value) { SetEventFloat(event, key, value); }
+public void public_GetEventString(Handle event, const char[] key, char[] value, int maxlength, const char[] defvalue) { GetEventString(event, key, value, maxlength, defvalue); }
+public void public_SetEventString(Handle event, const char[] key, const char[] value) { SetEventString(event, key, value); }
+public void public_GetEventName(Handle event, char[] name, int maxlength) { GetEventName(event, name, maxlength); }
+public void public_SetEventBroadcast(Handle event, bool dontBroadcast) { SetEventBroadcast(event, dontBroadcast); }
+
+/* DBI.INC */
+// DBI.INC - Public
+public Database public_SQL_Connect(const char[] confname, bool persistent, char[] error, int maxlength) { return SQL_Connect(confname, persistent, error, maxlength); }
+public Database public_SQL_ConnectCustom(Handle keyvalues, char[] error, int maxlength, bool persistent) { return SQL_ConnectCustom(keyvalues, error, maxlength, persistent); }
+public bool public_SQL_CheckConfig(const char[] name) { return SQL_CheckConfig(name); }
+public DBDriver public_SQL_GetDriver(const char[] name) { return SQL_GetDriver(name); }
+public DBDriver public_SQL_ReadDriver(Handle database, char[] ident, int ident_length) { return SQL_ReadDriver(database, ident, ident_length); }
+public void public_SQL_GetDriverIdent(Handle driver, char[] ident, int maxlength) { SQL_GetDriverIdent(driver, ident, maxlength); }
+public void public_SQL_GetDriverProduct(Handle driver, char[] product, int maxlength) { SQL_GetDriverProduct(driver, product, maxlength); }
+public bool public_SQL_SetCharset(Handle database, const char[] charset) { return SQL_SetCharset(database, charset); }
+public int public_SQL_GetAffectedRows(Handle hndl) { return SQL_GetAffectedRows(hndl); }
+public int public_SQL_GetInsertId(Handle hndl) { return SQL_GetInsertId(hndl); }
+public bool public_SQL_GetError(Handle hndl, char[] error, int maxlength) { return SQL_GetError(hndl, error, maxlength); }
+public bool public_SQL_EscapeString(Handle database, const char[] string, char[] buffer, int maxlength, int &written) { return SQL_EscapeString(database, string, buffer, maxlength, written); }
+public int public_SQL_FormatQuery(Handle database, const char[] buffer, int maxlength, const char[] format, any...)
+	{ char formatted[512]; VFormat(formatted, sizeof(formatted), format, 5); return SQL_FormatQuery(database, buffer, maxlength, formatted); }
+public bool public_SQL_FastQuery(Handle database, const char[] query, int len) { return SQL_FastQuery(database, query, len); }
+public DBResultSet public_SQL_Query(Handle database, const char[] query, int len) { return SQL_Query(database, query, len); }
+public DBStatement public_SQL_PrepareQuery(Handle database, const char[] query, char[] error, int maxlength) { return SQL_PrepareQuery(database, query, error, maxlength); }
+public bool public_SQL_FetchMoreResults(Handle query) { return SQL_FetchMoreResults(query); }
+public bool public_SQL_HasResultSet(Handle query) { return SQL_HasResultSet(query); }
+public int public_SQL_GetRowCount(Handle query) { return SQL_GetRowCount(query); }
+public int public_SQL_GetFieldCount(Handle query) { return SQL_GetFieldCount(query); }
+public void public_SQL_FieldNumToName(Handle query, int field, char[] name, int maxlength) { SQL_FieldNumToName(query, field, name, maxlength); }
+public bool public_SQL_FieldNameToNum(Handle query, const char[] name, int &field) { return SQL_FieldNameToNum(query, name, field); }
+public bool public_SQL_FetchRow(Handle query) { return SQL_FetchRow(query); }
+public bool public_SQL_MoreRows(Handle query) { return SQL_MoreRows(query); }
+public bool public_SQL_Rewind(Handle query) { return SQL_Rewind(query); }
+public int public_SQL_FetchString(Handle query, int field, char[] buffer, int maxlength, DBResult &result) { return SQL_FetchString(query, field, buffer, maxlength, result); }
+public float public_SQL_FetchFloat(Handle query, int field, DBResult &result) { return SQL_FetchFloat(query, field, result); }
+public int public_SQL_FetchInt(Handle query, int field, DBResult &result) { return SQL_FetchInt(query, field, result); }
+public bool public_SQL_IsFieldNull(Handle query, int field) { return SQL_IsFieldNull(query, field); }
+public int public_SQL_FetchSize(Handle query, int field) { return SQL_FetchSize(query, field); }
+public void public_SQL_BindParamInt(Handle statement, int param, int number, bool signed) { SQL_BindParamInt(statement, param, number, signed); }
+public void public_SQL_BindParamFloat(Handle statement, int param, float value) { SQL_BindParamFloat(statement, param, value); }
+public void public_SQL_BindParamString(Handle statement, int param, const char[] value, bool copy) { SQL_BindParamString(statement, param, value, copy); }
+public bool public_SQL_Execute(Handle statement) { return SQL_Execute(statement); }
+public void public_SQL_LockDatabase(Handle database) { SQL_LockDatabase(database); }
+public void public_SQL_UnlockDatabase(Handle database) { SQL_UnlockDatabase(database); }
+public bool public_SQL_IsSameConnection(Handle hndl1, Handle hndl2) { return SQL_IsSameConnection(hndl1, hndl2); }
+public void public_SQL_TConnect(const char[] name, int data) { SQL_TConnect(SQLTCallbackConnectFunc, name, data); }
+public void public_SQL_TQuery(Handle database, const char[] query, int data, DBPriority prio) { SQL_TQuery(database, SQLTCallbackQueryFunc, query, data, prio); }
+public Transaction public_SQL_CreateTransaction() { return SQL_CreateTransaction(); }
+public int public_SQL_AddQuery(Transaction txn, const char[] query, int data) { return SQL_AddQuery(txn, query, data); }
+public void public_SQL_ExecuteTransaction(Handle db, Transaction txn, int data, DBPriority priority)
+	{ SQL_ExecuteTransaction(db, txn, SQLTxnSuccessCallback, SQLTxnFailureCallback, data, priority); }
+
+/*stock Database SQL_DefConnect(char[] error, int maxlength, bool persistent=true)
+{
+	return SQL_Connect("default", persistent, error, maxlength);
 }*/
 
 /* CSTRIKE.INC */

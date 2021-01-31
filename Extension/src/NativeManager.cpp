@@ -26,18 +26,6 @@ cell_t NativeManager::OnMapEnd(IPluginContext* pContext, const cell_t* params)
 	return 0;
 }
 
-cell_t NativeManager::OnRoundStartPre(IPluginContext* pContext, const cell_t* params)
-{
-	MainPlugin::OnRoundStartPre();
-	return 0;
-}
-
-cell_t NativeManager::OnRoundStartPost(IPluginContext* pContext, const cell_t* params)
-{
-	MainPlugin::OnRoundStartPost();
-	return 0;
-}
-
 cell_t NativeManager::ConCmdCallback(IPluginContext* pContext, const cell_t* params)
 {
 	int client = params[1];
@@ -67,6 +55,83 @@ cell_t NativeManager::CmdListenerCallback(IPluginContext* pContext, const cell_t
 	int argc = params[3];
 
 	return MainPlugin::CmdListenerCallback(client, cmd, argc);
+}
+
+int NativeManager::EventHookCallbackPre(IPluginContext* pContext, const cell_t* params)
+{
+	EventHandle eventHandle = params[1];
+	char* name;
+	pContext->LocalToString(params[2], &name);
+	bool dontBroadcast = params[3];
+
+	EventHookCallback callbackFunc = PublicManager::s_EventHookCallbacksPre[name];
+	return callbackFunc(eventHandle, name, dontBroadcast);
+}
+
+int NativeManager::EventHookCallbackPost(IPluginContext* pContext, const cell_t* params)
+{
+	EventHandle eventHandle = params[1];
+	char* name;
+	pContext->LocalToString(params[2], &name);
+	bool dontBroadcast = params[3];
+
+	EventHookCallback callbackFunc = PublicManager::s_EventHookCallbacksPost[name];
+	return callbackFunc(eventHandle, name, dontBroadcast);
+}
+
+int NativeManager::EventHookCallbackPostNoCopy(IPluginContext* pContext, const cell_t* params)
+{
+	EventHandle eventHandle = params[1];
+	char* name;
+	pContext->LocalToString(params[2], &name);
+	bool dontBroadcast = params[3];
+
+	EventHookCallback callbackFunc = PublicManager::s_EventHookCallbacksPostNoCopy[name];
+	return callbackFunc(eventHandle, name, dontBroadcast);
+}
+
+int NativeManager::SQLTxnSuccessCallback(IPluginContext* pContext, const cell_t* params)
+{
+	return 0;
+}
+
+int NativeManager::SQLTxnFailureCallback(IPluginContext* pContext, const cell_t* params)
+{
+	return 0;
+}
+
+int NativeManager::SQLTCallbackConnect(IPluginContext* pContext, const cell_t* params)
+{
+	Handle owner = params[1];
+	Handle hndl = params[2];
+	char* error;
+	pContext->LocalToString(params[3], &error);
+	int index = params[4]; // Index from PublicManager
+
+	auto& dataMap = PublicManager::s_SQLTConnectCallbacksData;
+	auto& callbackMap = PublicManager::s_SQLTConnectCallbacks;
+	int data = dataMap[index];
+	auto func = callbackMap[index];
+
+	func(owner, hndl, error, data);
+	return 0;
+}
+
+int NativeManager::SQLTCallbackQuery(IPluginContext* pContext, const cell_t* params)
+{
+	Handle owner = params[1];
+	Handle hndl = params[2];
+	char* error;
+	pContext->LocalToString(params[3], &error);
+	int index = params[4]; // Index from PublicManager
+
+	auto& dataMap = PublicManager::s_SQLTQueryCallbacksData;
+	auto& callbackMap = PublicManager::s_SQLTQueryCallbacks;
+	int data = dataMap[index];
+	auto func = callbackMap[index];
+
+	func(owner, hndl, error, data);
+	return 0;
 }
 
 /////////////////

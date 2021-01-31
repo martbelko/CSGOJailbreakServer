@@ -2,25 +2,24 @@
 
 #include "PublicManager.h"
 
+int DB;
+
 void MainPlugin::OnPluginStart()
 {
 	rootconsole->ConsolePrint("Plugin Start");
+
+	PublicManager::HookEvent(MainPlugin::OnEventHookPre, "round_start", EventHookMode::EventHookMode_Pre);
+	PublicManager::HookEvent(MainPlugin::OnEventHookPost, "round_start", EventHookMode::EventHookMode_Post);
+
 	PublicManager::RegConsoleCmd("sm_test", "Testing...", 0);
+
+	/*PublicManager::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackBanlist, "banlist", 0);
+	PublicManager::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackDefault, "default", 0);*/
 }
 
 void MainPlugin::OnPluginEnd()
 {
 	rootconsole->ConsolePrint("Plugin End");
-}
-
-void MainPlugin::OnRoundStartPre()
-{
-	rootconsole->ConsolePrint("Round Start Pre");
-}
-
-void MainPlugin::OnRoundStartPost()
-{
-	rootconsole->ConsolePrint("Round Start Post");
 }
 
 Action MainPlugin::ConCmdCallback(int client, char* command, char* args)
@@ -58,6 +57,41 @@ Action MainPlugin::SrvCmdCallback(char* command, char* args)
 Action MainPlugin::CmdListenerCallback(int client, char* command, int argc)
 {
 	return Plugin_Handled;
+}
+
+Action MainPlugin::OnEventHookPre(EventHandle eventHandle, const char* name, bool dontBroadcast)
+{
+	rootconsole->ConsolePrint("Event PRE: %s", name);
+	return Plugin_Continue;
+}
+
+Action MainPlugin::OnEventHookPost(EventHandle eventHandle, const char* name, bool dontBroadcast)
+{
+	rootconsole->ConsolePrint("Event PRE: %s", name);
+	return Plugin_Continue;
+}
+
+void MainPlugin::OnSQLTConnectCallbackBanlist(Handle owner, Handle hndl, const char* error, int data)
+{
+	rootconsole->ConsolePrint("Connected to BanList %d", hndl);
+	if (hndl == INVALID_HANDLE)
+		PublicManager::PrintToServer("Failed to connect to Banlist database: ERROR: %s", (const char*)error);
+	else
+		PublicManager::PrintToServer("Connection to Banlist successful");
+}
+
+void MainPlugin::OnSQLTConnectCallbackDefault(Handle owner, Handle hndl, const char* error, int data)
+{
+	rootconsole->ConsolePrint("Connected to Default %d", hndl);
+	if (hndl == INVALID_HANDLE)
+		PublicManager::PrintToServer("Failed to connect to Default database: ERROR: %s", (const char*)error);
+	else
+		PublicManager::PrintToServer("Connection to Default successful");
+}
+
+void MainPlugin::OnSQLTQueryCallback(Handle owner, Handle hndl, const char* error, int data)
+{
+
 }
 
 Action MainPlugin::CS_OnBuyCommand(int client, const char* weapon)

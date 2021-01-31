@@ -29,7 +29,20 @@
 #define AUTHMETHOD_IP               "ip"        /**< IP based authentication */
 #define AUTHMETHOD_NAME             "name"      /**< Name based authentication */
 
+#define INVALID_HANDLE 0
+
 using Handle = int;
+using EventHandle = int;
+
+/**
+ * Event hook modes determining how hooking should be handled
+ */
+enum EventHookMode
+{
+	EventHookMode_Pre,                  //< Hook callback fired before event is fired */
+	EventHookMode_Post,                 //< Hook callback fired after event is fired */
+	EventHookMode_PostNoCopy            //< Hook callback fired after event is fired, but event data won't be copied */
+};
 
 /*
 enum OverrideType
@@ -326,3 +339,41 @@ enum CSWeaponID
 	CSWeapon_KNIFE_SKELETON = 525,
 	CSWeapon_MAX_WEAPONS //THIS MUST BE LAST, EASY WAY TO CREATE LOOPS. When looping, do CS_IsValidWeaponID(i), to check.
 };
+
+/**
+ * Describes a database field fetch status.
+ */
+enum DBResult
+{
+	DBVal_Error = 0,        /**< Column number/field is invalid. */
+	DBVal_TypeMismatch = 1, /**< You cannot retrieve this data with this type. */
+	DBVal_Null = 2,         /**< Field has no data (NULL) */
+	DBVal_Data = 3          /**< Field has data */
+};
+
+/**
+ * Describes binding types.
+ */
+enum DBBindType
+{
+	DBBind_Int = 0,         /**< Bind an integer. */
+	DBBind_Float = 1,       /**< Bind a float. */
+	DBBind_String = 2       /**< Bind a string. */
+};
+
+/**
+ * Threading priority level.
+ */
+enum DBPriority
+{
+	DBPrio_High = 0,        /**< High priority. */
+	DBPrio_Normal = 1,      /**< Normal priority. */
+	DBPrio_Low = 2          /**< Low priority. */
+};
+
+using database_t = int;
+using transaction_t = int;
+using DBResultSet = int;
+using DBDriver = int;
+using DBStatement = int;
+using KeyValuesHandle = int;

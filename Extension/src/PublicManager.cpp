@@ -2,6 +2,67 @@
 
 int PublicManager::s_MaxClients = 0;
 
+// EVENTS.INC
+IPluginFunction* PublicManager::s_HookEventFunc;
+IPluginFunction* PublicManager::s_HookEventExFunc;
+IPluginFunction* PublicManager::s_UnhookEventFunc;
+IPluginFunction* PublicManager::s_CreateEventFunc;
+IPluginFunction* PublicManager::s_FireEventFunc;
+IPluginFunction* PublicManager::s_CancelCreatedEventFunc;
+IPluginFunction* PublicManager::s_GetEventBoolFunc;
+IPluginFunction* PublicManager::s_SetEventBoolFunc;
+IPluginFunction* PublicManager::s_GetEventIntFunc;
+IPluginFunction* PublicManager::s_SetEventIntFunc;
+IPluginFunction* PublicManager::s_GetEventFloatFunc;
+IPluginFunction* PublicManager::s_SetEventFloatFunc;
+IPluginFunction* PublicManager::s_GetEventStringFunc;
+IPluginFunction* PublicManager::s_SetEventStringFunc;
+IPluginFunction* PublicManager::s_GetEventNameFunc;
+IPluginFunction* PublicManager::s_SetEventBroadcastFunc;
+
+// DBI.INC
+IPluginFunction* PublicManager::s_SQL_ConnectFunc;
+IPluginFunction* PublicManager::s_SQL_ConnectCustomFunc;
+IPluginFunction* PublicManager::s_SQL_CheckConfigFunc;
+IPluginFunction* PublicManager::s_SQL_GetDriverFunc;
+IPluginFunction* PublicManager::s_SQL_ReadDriverFunc;
+IPluginFunction* PublicManager::s_SQL_GetDriverIdentFunc;
+IPluginFunction* PublicManager::s_SQL_GetDriverProductFunc;
+IPluginFunction* PublicManager::s_SQL_SetCharsetFunc;
+IPluginFunction* PublicManager::s_SQL_GetAffectedRowsFunc;
+IPluginFunction* PublicManager::s_SQL_GetInsertIdFunc;
+IPluginFunction* PublicManager::s_SQL_GetErrorFunc;
+IPluginFunction* PublicManager::s_SQL_EscapeStringFunc;
+IPluginFunction* PublicManager::s_SQL_FormatQueryFunc;
+IPluginFunction* PublicManager::s_SQL_FastQueryFunc;
+IPluginFunction* PublicManager::s_SQL_QueryFunc;
+IPluginFunction* PublicManager::s_SQL_PrepareQueryFunc;
+IPluginFunction* PublicManager::s_SQL_FetchMoreResultsFunc;
+IPluginFunction* PublicManager::s_SQL_HasResultSetFunc;
+IPluginFunction* PublicManager::s_SQL_GetRowCountFunc;
+IPluginFunction* PublicManager::s_SQL_GetFieldCountFunc;
+IPluginFunction* PublicManager::s_SQL_FieldNumToNameFunc;
+IPluginFunction* PublicManager::s_SQL_FieldNameToNumFunc;
+IPluginFunction* PublicManager::s_SQL_FetchRowFunc;
+IPluginFunction* PublicManager::s_SQL_MoreRowsFunc;
+IPluginFunction* PublicManager::s_SQL_RewindFunc;
+IPluginFunction* PublicManager::s_SQL_FetchStringFunc;
+IPluginFunction* PublicManager::s_SQL_FetchFloatFunc;
+IPluginFunction* PublicManager::s_SQL_FetchIntFunc;
+IPluginFunction* PublicManager::s_SQL_IsFieldNullFunc;
+IPluginFunction* PublicManager::s_SQL_FetchSizeFunc;
+IPluginFunction* PublicManager::s_SQL_BindParamIntFunc;
+IPluginFunction* PublicManager::s_SQL_BindParamFloatFunc;
+IPluginFunction* PublicManager::s_SQL_BindParamStringFunc;
+IPluginFunction* PublicManager::s_SQL_ExecuteFunc;
+IPluginFunction* PublicManager::s_SQL_LockDatabaseFunc;
+IPluginFunction* PublicManager::s_SQL_UnlockDatabaseFunc;
+IPluginFunction* PublicManager::s_SQL_TConnectFunc;
+IPluginFunction* PublicManager::s_SQL_TQueryFunc;
+IPluginFunction* PublicManager::s_SQL_CreateTransactionFunc;
+IPluginFunction* PublicManager::s_SQL_AddQueryFunc;
+IPluginFunction* PublicManager::s_SQL_ExecuteTransactionFunc;
+
 // CSTRIKE.INC
 IPluginFunction* PublicManager::s_CS_RespawnPlayerFunc;
 IPluginFunction* PublicManager::s_CS_SwitchTeamFunc;
@@ -120,6 +181,15 @@ IPluginFunction* PublicManager::s_ChangeClientTeamFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientSerialFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientFromSerialFunc = nullptr;
 
+std::unordered_map<std::string, EventHookCallback> PublicManager::s_EventHookCallbacksPre;
+std::unordered_map<std::string, EventHookCallback> PublicManager::s_EventHookCallbacksPost;
+std::unordered_map<std::string, EventHookCallback> PublicManager::s_EventHookCallbacksPostNoCopy;
+
+std::unordered_map<int, SQLTCallbackFunc> PublicManager::s_SQLTConnectCallbacks;
+std::unordered_map<int, int> PublicManager::s_SQLTConnectCallbacksData;
+std::unordered_map<int, SQLTCallbackFunc> PublicManager::s_SQLTQueryCallbacks;
+std::unordered_map<int, int> PublicManager::s_SQLTQueryCallbacksData;
+
 #define STR(a) #a
 #define LOAD_PTR(NAME) s_##NAME##Func = pContext->GetFunctionByName(STR(public_##NAME))
 
@@ -127,6 +197,67 @@ void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 {
 	IPluginFunction* GetMaxClientsFunc = pContext->GetFunctionByName("public_GetMaxClients");
 	GetMaxClientsFunc->Execute(&s_MaxClients);
+
+	// EVENTS.INC
+	LOAD_PTR(HookEvent);
+	LOAD_PTR(HookEventEx);
+	LOAD_PTR(UnhookEvent);
+	LOAD_PTR(CreateEvent);
+	LOAD_PTR(FireEvent);
+	LOAD_PTR(CancelCreatedEvent);
+	LOAD_PTR(GetEventBool);
+	LOAD_PTR(SetEventBool);
+	LOAD_PTR(GetEventInt);
+	LOAD_PTR(SetEventInt);
+	LOAD_PTR(GetEventFloat);
+	LOAD_PTR(SetEventFloat);
+	LOAD_PTR(GetEventString);
+	LOAD_PTR(SetEventString);
+	LOAD_PTR(GetEventName);
+	LOAD_PTR(SetEventBroadcast);
+
+	// DBI.INC
+	LOAD_PTR(SQL_Connect);
+	LOAD_PTR(SQL_ConnectCustom);
+	LOAD_PTR(SQL_CheckConfig);
+	LOAD_PTR(SQL_GetDriver);
+	LOAD_PTR(SQL_ReadDriver);
+	LOAD_PTR(SQL_GetDriverIdent);
+	LOAD_PTR(SQL_GetDriverProduct);
+	LOAD_PTR(SQL_SetCharset);
+	LOAD_PTR(SQL_GetAffectedRows);
+	LOAD_PTR(SQL_GetInsertId);
+	LOAD_PTR(SQL_GetError);
+	LOAD_PTR(SQL_EscapeString);
+	LOAD_PTR(SQL_FormatQuery);
+	LOAD_PTR(SQL_FastQuery);
+	LOAD_PTR(SQL_Query);
+	LOAD_PTR(SQL_PrepareQuery);
+	LOAD_PTR(SQL_FetchMoreResults);
+	LOAD_PTR(SQL_HasResultSet);
+	LOAD_PTR(SQL_GetRowCount);
+	LOAD_PTR(SQL_GetFieldCount);
+	LOAD_PTR(SQL_FieldNumToName);
+	LOAD_PTR(SQL_FieldNameToNum);
+	LOAD_PTR(SQL_FetchRow);
+	LOAD_PTR(SQL_MoreRows);
+	LOAD_PTR(SQL_Rewind);
+	LOAD_PTR(SQL_FetchString);
+	LOAD_PTR(SQL_FetchFloat);
+	LOAD_PTR(SQL_FetchInt);
+	LOAD_PTR(SQL_IsFieldNull);
+	LOAD_PTR(SQL_FetchSize);
+	LOAD_PTR(SQL_BindParamInt);
+	LOAD_PTR(SQL_BindParamFloat);
+	LOAD_PTR(SQL_BindParamString);
+	LOAD_PTR(SQL_Execute);
+	LOAD_PTR(SQL_LockDatabase);
+	LOAD_PTR(SQL_UnlockDatabase);
+	LOAD_PTR(SQL_TConnect);
+	LOAD_PTR(SQL_TQuery);
+	LOAD_PTR(SQL_CreateTransaction);
+	LOAD_PTR(SQL_AddQuery);
+	LOAD_PTR(SQL_ExecuteTransaction);
 
 	// CSTRIKE.INC
 	LOAD_PTR(CS_RespawnPlayer);
@@ -160,7 +291,7 @@ void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 	LOAD_PTR(ClientCommand);
 	LOAD_PTR(FakeClientCommand);
 	LOAD_PTR(FakeClientCommandEx);
-	//LOAD_PTR(FakeClientCommandKeyValue); TODO:
+	LOAD_PTR(FakeClientCommandKeyValues);
 	LOAD_PTR(PrintToServer);
 	LOAD_PTR(PrintToConsole);
 	LOAD_PTR(ReplyToCommand);
