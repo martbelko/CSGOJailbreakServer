@@ -2,6 +2,59 @@
 
 int PublicManager::s_MaxClients = 0;
 
+// MENUS.INC
+IPluginFunction* PublicManager::s_CreateMenuFunc;
+IPluginFunction* PublicManager::s_DisplayMenuFunc;
+IPluginFunction* PublicManager::s_DisplayMenuAtItemFunc;
+IPluginFunction* PublicManager::s_AddMenuItemFunc;
+IPluginFunction* PublicManager::s_InsertMenuItemFunc;
+IPluginFunction* PublicManager::s_RemoveMenuItemFunc;
+IPluginFunction* PublicManager::s_RemoveAllMenuItemsFunc;
+IPluginFunction* PublicManager::s_GetMenuItemFunc;
+IPluginFunction* PublicManager::s_MenuShufflePerClientFunc;
+IPluginFunction* PublicManager::s_MenuSetClientMappingFunc;
+IPluginFunction* PublicManager::s_GetMenuSelectionPositionFunc;
+IPluginFunction* PublicManager::s_GetMenuItemCountFunc;
+IPluginFunction* PublicManager::s_SetMenuPaginationFunc;
+IPluginFunction* PublicManager::s_GetMenuPaginationFunc;
+IPluginFunction* PublicManager::s_GetMenuStyleFunc;
+IPluginFunction* PublicManager::s_SetMenuTitleFunc;
+IPluginFunction* PublicManager::s_GetMenuTitleFunc;
+IPluginFunction* PublicManager::s_CreatePanelFromMenuFunc;
+IPluginFunction* PublicManager::s_GetMenuExitButtonFunc;
+IPluginFunction* PublicManager::s_SetMenuExitButtonFunc;
+IPluginFunction* PublicManager::s_GetMenuExitBackButtonFunc;
+IPluginFunction* PublicManager::s_SetMenuExitBackButtonFunc;
+IPluginFunction* PublicManager::s_SetMenuNoVoteButtonFunc;
+IPluginFunction* PublicManager::s_CancelMenuFunc;
+IPluginFunction* PublicManager::s_GetMenuOptionFlagsFunc;
+IPluginFunction* PublicManager::s_SetMenuOptionFlagsFunc;
+IPluginFunction* PublicManager::s_IsVoteInProgressFunc;
+IPluginFunction* PublicManager::s_CancelVoteFunc;
+IPluginFunction* PublicManager::s_VoteMenuFunc;
+IPluginFunction* PublicManager::s_SetVoteResultCallbackFunc;
+IPluginFunction* PublicManager::s_CheckVoteDelayFunc;
+IPluginFunction* PublicManager::s_IsClientInVotePoolFunc;
+IPluginFunction* PublicManager::s_RedrawClientVoteMenuFunc;
+IPluginFunction* PublicManager::s_GetMenuStyleHandleFunc;
+IPluginFunction* PublicManager::s_CreatePanelFunc;
+IPluginFunction* PublicManager::s_CreateMenuExFunc;
+IPluginFunction* PublicManager::s_GetClientMenuFunc;
+IPluginFunction* PublicManager::s_CancelClientMenuFunc;
+IPluginFunction* PublicManager::s_GetMaxPageItemsFunc;
+IPluginFunction* PublicManager::s_GetPanelStyleFunc;
+IPluginFunction* PublicManager::s_SetPanelTitleFunc;
+IPluginFunction* PublicManager::s_DrawPanelItemFunc;
+IPluginFunction* PublicManager::s_DrawPanelTextFunc;
+IPluginFunction* PublicManager::s_CanPanelDrawFlagsFunc;
+IPluginFunction* PublicManager::s_SetPanelKeysFunc;
+IPluginFunction* PublicManager::s_SendPanelToClientFunc;
+IPluginFunction* PublicManager::s_GetPanelTextRemainingFunc;
+IPluginFunction* PublicManager::s_GetPanelCurrentKeyFunc;
+IPluginFunction* PublicManager::s_SetPanelCurrentKeyFunc;
+IPluginFunction* PublicManager::s_RedrawMenuItemFunc;
+IPluginFunction* PublicManager::s_InternalShowMenuFunc;
+
 // EVENTS.INC
 IPluginFunction* PublicManager::s_HookEventFunc;
 IPluginFunction* PublicManager::s_HookEventExFunc;
@@ -57,6 +110,7 @@ IPluginFunction* PublicManager::s_SQL_BindParamStringFunc;
 IPluginFunction* PublicManager::s_SQL_ExecuteFunc;
 IPluginFunction* PublicManager::s_SQL_LockDatabaseFunc;
 IPluginFunction* PublicManager::s_SQL_UnlockDatabaseFunc;
+IPluginFunction* PublicManager::s_SQL_IsSameConnectionFunc;
 IPluginFunction* PublicManager::s_SQL_TConnectFunc;
 IPluginFunction* PublicManager::s_SQL_TQueryFunc;
 IPluginFunction* PublicManager::s_SQL_CreateTransactionFunc;
@@ -181,6 +235,9 @@ IPluginFunction* PublicManager::s_ChangeClientTeamFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientSerialFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientFromSerialFunc = nullptr;
 
+std::unordered_map<Handle, MenuHandler> PublicManager::s_MenuHandlers;
+std::unordered_map<Handle, VoteHandler> PublicManager::s_VoteHandlers;
+
 std::unordered_map<std::string, EventHookCallback> PublicManager::s_EventHookCallbacksPre;
 std::unordered_map<std::string, EventHookCallback> PublicManager::s_EventHookCallbacksPost;
 std::unordered_map<std::string, EventHookCallback> PublicManager::s_EventHookCallbacksPostNoCopy;
@@ -197,6 +254,59 @@ void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 {
 	IPluginFunction* GetMaxClientsFunc = pContext->GetFunctionByName("public_GetMaxClients");
 	GetMaxClientsFunc->Execute(&s_MaxClients);
+
+	// MENUS.INC
+	LOAD_PTR(CreateMenu);
+	LOAD_PTR(DisplayMenu);
+	LOAD_PTR(DisplayMenuAtItem);
+	LOAD_PTR(AddMenuItem);
+	LOAD_PTR(InsertMenuItem);
+	LOAD_PTR(RemoveMenuItem);
+	LOAD_PTR(RemoveAllMenuItems);
+	LOAD_PTR(GetMenuItem);
+	LOAD_PTR(MenuShufflePerClient);
+	LOAD_PTR(MenuSetClientMapping);
+	LOAD_PTR(GetMenuSelectionPosition);
+	LOAD_PTR(GetMenuItemCount);
+	LOAD_PTR(SetMenuPagination);
+	LOAD_PTR(GetMenuPagination);
+	LOAD_PTR(GetMenuStyle);
+	LOAD_PTR(SetMenuTitle);
+	LOAD_PTR(GetMenuTitle);
+	LOAD_PTR(CreatePanelFromMenu);
+	LOAD_PTR(GetMenuExitButton);
+	LOAD_PTR(SetMenuExitButton);
+	LOAD_PTR(GetMenuExitBackButton);
+	LOAD_PTR(SetMenuExitBackButton);
+	LOAD_PTR(SetMenuNoVoteButton);
+	LOAD_PTR(CancelMenu);
+	LOAD_PTR(GetMenuOptionFlags);
+	LOAD_PTR(SetMenuOptionFlags);
+	LOAD_PTR(IsVoteInProgress);
+	LOAD_PTR(CancelVote);
+	LOAD_PTR(VoteMenu);
+	LOAD_PTR(SetVoteResultCallback);
+	LOAD_PTR(CheckVoteDelay);
+	LOAD_PTR(IsClientInVotePool);
+	LOAD_PTR(RedrawClientVoteMenu);
+	LOAD_PTR(GetMenuStyleHandle);
+	LOAD_PTR(CreatePanel);
+	LOAD_PTR(CreateMenuEx);
+	LOAD_PTR(GetClientMenu);
+	LOAD_PTR(CancelClientMenu);
+	LOAD_PTR(GetMaxPageItems);
+	LOAD_PTR(GetPanelStyle);
+	LOAD_PTR(SetPanelTitle);
+	LOAD_PTR(DrawPanelItem);
+	LOAD_PTR(DrawPanelText);
+	LOAD_PTR(CanPanelDrawFlags);
+	LOAD_PTR(SetPanelKeys);
+	LOAD_PTR(SendPanelToClient);
+	LOAD_PTR(GetPanelTextRemaining);
+	LOAD_PTR(GetPanelCurrentKey);
+	LOAD_PTR(SetPanelCurrentKey);
+	LOAD_PTR(RedrawMenuItem);
+	LOAD_PTR(InternalShowMenu);
 
 	// EVENTS.INC
 	LOAD_PTR(HookEvent);
@@ -253,6 +363,7 @@ void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 	LOAD_PTR(SQL_Execute);
 	LOAD_PTR(SQL_LockDatabase);
 	LOAD_PTR(SQL_UnlockDatabase);
+	LOAD_PTR(SQL_IsSameConnection);
 	LOAD_PTR(SQL_TConnect);
 	LOAD_PTR(SQL_TQuery);
 	LOAD_PTR(SQL_CreateTransaction);

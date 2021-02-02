@@ -8,9 +8,9 @@
 #include <unordered_map>
 
 #define VARIADIC_FUNC2(FUNC, FUNC_IMPL, T1) \
-	static void FUNC(T1 client) { PushArg(FUNC_IMPL, client); ExecFunc(FUNC_IMPL); } \
+	static void FUNC(T1 arg1) { PushArg(FUNC_IMPL, arg1); ExecFunc(FUNC_IMPL); } \
 	template<typename ... Args> \
-	static void FUNC(T1 client, Args ... args) { PushArg(FUNC_IMPL, client); FUNC##Sub(args...); } \
+	static void FUNC(T1 arg1, Args ... args) { PushArg(FUNC_IMPL, arg1); FUNC##Sub(args...); } \
 	private: \
 	template<typename P1, typename ... Args> \
 	static void FUNC##Sub(P1 p1, Args ... args) { PushArgRef(FUNC_IMPL, p1); FUNC##Sub(args...); } \
@@ -20,9 +20,9 @@
 	public:
 
 #define VARIADIC_FUNC3(FUNC, FUNC_IMPL, T1, T2) \
-	static void FUNC(T1 client, T2 message) { PushArg(FUNC_IMPL, client); PushArg(FUNC_IMPL, message); ExecFunc(FUNC_IMPL); } \
+	static void FUNC(T1 arg1, T2 arg2) { PushArg(FUNC_IMPL, arg1); PushArg(FUNC_IMPL, arg2); ExecFunc(FUNC_IMPL); } \
 	template<typename ... Args> \
-	static void FUNC(T1 client, T2 format, Args ... args) { PushArg(FUNC_IMPL, client); PushArg(FUNC_IMPL, format); FUNC##Sub(args...); } \
+	static void FUNC(T1 arg1, T2 arg2, Args ... args) { PushArg(FUNC_IMPL, arg1); PushArg(FUNC_IMPL, arg2); FUNC##Sub(args...); } \
 	private: \
 	template<typename P1, typename ... Args> \
 	static void FUNC##Sub(P1 p1, Args ... args) { PushArgRef(FUNC_IMPL, p1); FUNC##Sub(args...); } \
@@ -32,9 +32,9 @@
 	public:
 
 #define VARIADIC_FUNC4(FUNC, FUNC_IMPL, T1, T2, T3) \
-	static void FUNC(T1 client, T2 message, T3 arg3) { PushArg(FUNC_IMPL, client); PushArg(FUNC_IMPL, message); PushArg(FUNC_IMPL, arg3); ExecFunc(FUNC_IMPL); } \
+	static void FUNC(T1 arg1, T2 arg2, T3 arg3) { PushArg(FUNC_IMPL, arg1); PushArg(FUNC_IMPL, arg2); PushArg(FUNC_IMPL, arg3); ExecFunc(FUNC_IMPL); } \
 	template<typename ... Args> \
-	static void FUNC(T1 client, T2 format, T3 arg3, Args ... args) { PushArg(FUNC_IMPL, client); PushArg(FUNC_IMPL, format); PushArg(FUNC_IMPL, arg3); FUNC##Sub(args...); } \
+	static void FUNC(T1 arg1, T2 arg2, T3 arg3, Args ... args) { PushArg(FUNC_IMPL, arg1); PushArg(FUNC_IMPL, arg2); PushArg(FUNC_IMPL, arg3); FUNC##Sub(args...); } \
 	private: \
 	template<typename P1, typename ... Args> \
 	static void FUNC##Sub(P1 p1, Args ... args) { PushArgRef(FUNC_IMPL, p1); FUNC##Sub(args...); } \
@@ -59,11 +59,16 @@ using SQLTxnSuccessFunc = void (*)(database_t db, int data, int numQueries, DBRe
 using SQLTxnFailureFunc = void(*)(database_t db, int data, int numQueries, const char* error, int failIndex, int queryData[]);
 using SQLTCallbackFunc = void(*)(Handle owner, Handle hndl, const char* error, int data);
 using EventHookCallback = Action(*)(EventHandle eventHandle, const char* name, bool dontBroadcast);
+using MenuHandler = int(*)(MenuHandle menu, MenuAction action, int param1, int param2);
+using VoteHandler = void(*)(MenuHandle menu, int numVotes, int numClients, const int** clientInfo, int numItems, const int** itemInfo);
 
 class PublicManager
 {
 public:
 	static void InitOnPluginStart(IPluginContext* pContext);
+
+	// MENUS.INC
+	#include "API/MenusAPI.h"
 
 	// EVENTS.INC
 	static void HookEvent(EventHookCallback callback, const char* name, EventHookMode mode)
@@ -112,121 +117,23 @@ public:
 	static void SetEventBroadcast(Handle eventHandle, bool dontBroadcast) { ExecFunc(s_SetEventBroadcastFunc, eventHandle, dontBroadcast); }
 
 	// DBI.INC
-	static database_t SQL_Connect(const char* confname, bool persistent, char* error, int maxlength) { return ExecFunc(s_SQL_ConnectFunc, confname, persistent, error, maxlength); }
-	static database_t SQL_ConnectCustom(Handle keyvalues, char* error, int maxlength, bool persistent) { return ExecFunc(s_SQL_ConnectCustomFunc, keyvalues, error, maxlength, persistent); }
-	static bool SQL_CheckConfig(const char* name) { return ExecFunc(s_SQL_CheckConfigFunc, name); }
-	static DBDriver SQL_GetDriver(const char* name) { return ExecFunc(s_SQL_GetDriverFunc, name); }
-	static DBDriver SQL_ReadDriver(Handle database, char* ident, int ident_length) { return ExecFunc(s_SQL_ReadDriverFunc, database, ident, ident_length); }
-	static void SQL_GetDriverIdent(Handle driver, char* ident, int maxlength) { ExecFunc(s_SQL_GetDriverIdentFunc, driver, ident, maxlength); }
-	static void SQL_GetDriverProduct(Handle driver, char* product, int maxlength) { ExecFunc(s_SQL_GetDriverProductFunc, driver, product, maxlength); }
-	static bool SQL_SetCharset(Handle database, const char* charset) { return ExecFunc(s_SQL_SetCharsetFunc, database, charset); }
-	static int SQL_GetAffectedRows(Handle hndl) { return ExecFunc(s_SQL_GetAffectedRowsFunc, hndl); }
-	static int SQL_GetInsertId(Handle hndl) { return ExecFunc(s_SQL_GetInsertIdFunc, hndl); }
-	static bool SQL_GetError(Handle hndl, char* error, int maxlength) { return ExecFunc(s_SQL_GetErrorFunc, hndl, error, maxlength); }
-	static bool SQL_EscapeString(Handle database, const char* string, char* buffer, int maxlength, int& written)
-	{
-		PushArg(s_SQL_EscapeStringFunc, database); PushArg(s_SQL_EscapeStringFunc, string);
-		PushArg(s_SQL_EscapeStringFunc, buffer); PushArg(s_SQL_EscapeStringFunc, maxlength);
-		PushArgRef(s_SQL_EscapeStringFunc, written);
-		return ExecAndReturn(s_SQL_EscapeStringFunc);
-	}
-	VARIADIC_FUNC5(SQL_FormatQuery, s_SQL_FormatQueryFunc, Handle, const char*, int, const char*)
-	static bool SQL_FastQuery(Handle database, const char* query, int len) { return ExecFunc(s_SQL_FastQueryFunc, database, query, len); }
-	static DBResultSet SQL_Query(Handle database, const char* query, int len) { return ExecFunc(s_SQL_QueryFunc, database, query, len); }
-	static DBStatement SQL_PrepareQuery(Handle database, const char* query, char* error, int maxlength) { return ExecFunc(s_SQL_PrepareQueryFunc, database, query, error, maxlength); }
-	static bool SQL_FetchMoreResults(Handle query) { return ExecFunc(s_SQL_FetchMoreResultsFunc, query); }
-	static bool SQL_HasResultSet(Handle query) { return ExecFunc(s_SQL_HasResultSetFunc, query); }
-	static int SQL_GetRowCount(Handle query) { return ExecFunc(s_SQL_GetRowCountFunc, query); }
-	static int SQL_GetFieldCount(Handle query) { return ExecFunc(s_SQL_GetFieldCountFunc, query); }
-	static void SQL_FieldNumToName(Handle query, int field, char* name, int maxlength) { ExecFunc(s_SQL_FieldNumToNameFunc, query, field, name, maxlength); }
-	static bool SQL_FieldNameToNum(Handle query, const char* name, int& field)
-	{
-		PushArg(s_SQL_FieldNameToNumFunc, query); PushArg(s_SQL_FieldNameToNumFunc, name); PushArgRef(s_SQL_FieldNameToNumFunc, field);
-		return ExecAndReturn(s_SQL_FieldNameToNumFunc);
-	}
-	static bool SQL_FetchRow(Handle query) { return ExecFunc(s_SQL_FetchRowFunc, query); }
-	static bool SQL_MoreRows(Handle query) { return ExecFunc(s_SQL_MoreRowsFunc, query); }
-	static bool SQL_Rewind(Handle query) { return ExecFunc(s_SQL_RewindFunc, query); }
-	static int SQL_FetchString(Handle query, int field, char* buffer, int maxlength, DBResult& result)
-	{
-		PushArg(s_SQL_FetchStringFunc, query); PushArg(s_SQL_FetchStringFunc, field); PushArg(s_SQL_FetchStringFunc, buffer);
-		PushArg(s_SQL_FetchStringFunc, maxlength); PushArgRef(s_SQL_FetchStringFunc, reinterpret_cast<int&>(result));
-		return ExecFunc(s_SQL_FetchStringFunc, query, field, buffer, maxlength, result);
-	}
-	static float SQL_FetchFloat(Handle query, int field, DBResult& result)
-	{
-		PushArg(s_SQL_FetchFloatFunc, query); PushArg(s_SQL_FetchFloatFunc, field); PushArgRef(s_SQL_FetchFloatFunc, reinterpret_cast<int&>(result));
-		return ExecAndReturn(s_SQL_FetchFloatFunc);
-	}
-	static int SQL_FetchInt(Handle query, int field, DBResult& result)
-	{
-		PushArg(s_SQL_FetchIntFunc, query); PushArg(s_SQL_FetchIntFunc, field); PushArgRef(s_SQL_FetchIntFunc, reinterpret_cast<int&>(result));
-		return ExecAndReturn(s_SQL_FetchIntFunc);
-	}
-	static bool SQL_IsFieldNull(Handle query, int field) { return ExecFunc(s_SQL_IsFieldNullFunc, query, field); }
-	static int SQL_FetchSize(Handle query, int field) { return ExecFunc(s_SQL_FetchSizeFunc, query, field); }
-	static void SQL_BindParamInt(Handle statement, int param, int number, bool isSigned) { ExecFunc(s_SQL_BindParamStringFunc, statement, param, number, isSigned); }
-	static void SQL_BindParamFloat(Handle statement, int param, float value) { ExecFunc(s_SQL_BindParamFloatFunc, statement, param, value); }
-	static void SQL_BindParamString(Handle statement, int param, const char* value, bool copy) { ExecFunc(s_SQL_BindParamStringFunc, statement, param, value, copy); }
-	static bool SQL_Execute(Handle statement) { return ExecFunc(s_SQL_ExecuteFunc, statement); }
-	static void SQL_LockDatabase(Handle database) { ExecFunc(s_SQL_LockDatabaseFunc, database); }
-	static void SQL_UnlockDatabase(Handle database) { ExecFunc(s_SQL_UnlockDatabaseFunc, database); }
-	static void SQL_TConnect(SQLTCallbackFunc callback, const char* name, int data)
-	{
-		static int index = 0;
-		s_SQLTConnectCallbacksData[index] = data;
-		s_SQLTConnectCallbacks[index] = callback;
-		ExecFunc(s_SQL_TConnectFunc, name, index);
-		++index;
-	}
-	static void SQL_TQuery(SQLTCallbackFunc callback, Handle database, const char* query, int data, DBPriority prio)
-	{
-		static int index = 0;
-		s_SQLTQueryCallbacksData[index] = data;
-		s_SQLTQueryCallbacks[index] = callback;
-		ExecFunc(s_SQL_TQueryFunc, database, query, data, prio);
-		++index;
-	}
-	static transaction_t SQL_CreateTransaction() { return ExecFunc(s_SQL_CreateTransactionFunc); }
-	static int SQL_AddQuery(transaction_t txn, const char* query, int data) { return ExecFunc(s_SQL_AddQueryFunc, txn, query, data); }
-	static void SQL_ExecuteTransaction(Handle db, transaction_t txn, int data, DBPriority priority) { ExecFunc(s_SQL_ExecuteTransactionFunc, db, txn, data, priority); }
+	#include "API/DbiAPI.h"
 
 	// CSTIKE.INC
-	static void CS_RespawnPlayer(int client);
-	static void CS_SwitchTeam(int client, int team);
-	static void CS_DropWeapon(int client, int weaponIndex, bool toss, bool blockhook);
-	static void CS_TerminateRound(float delay, CSRoundEndReason reason, bool blockhook);
-	static void CS_GetTranslatedWeaponAlias(const char* alias, char* weapon, int size);
-	static int CS_GetWeaponPrice(int client, CSWeaponID id, bool defaultprice);
-	static int CS_GetClientClanTag(int client, char* buffer, int size);
-	static void CS_SetClientClanTag(int client, const char* tag);
-	static int CS_GetTeamScore(int team);
-	static void CS_SetTeamScore(int team, int value);
-	static int CS_GetMVPCount(int client);
-	static void CS_SetMVPCount(int client, int value);
-	static int CS_GetClientContributionScore(int client);
-	static void CS_SetClientContributionScore(int client, int value);
-	static int CS_GetClientAssists(int client);
-	static void CS_SetClientAssists(int client, int value);
-	static CSWeaponID CS_AliasToWeaponID(const char* alias);
-	static int CS_WeaponIDToAlias(CSWeaponID weaponID, char* destination, int len);
-	static bool CS_IsValidWeaponID(CSWeaponID id);
-	static void CS_UpdateClientModel(int client);
-	static CSWeaponID CS_ItemDefIndexToID(int iDefIndex);
-	static int CS_WeaponIDToItemDefIndex(CSWeaponID id);
+	#include "API/CStrikeAPI.h"
 
 	// CONSOLE.INC
-	VARIADIC_FUNC2(ServerCommand, s_ServerCommandFunc, const char*)
+	VARIADIC_FUNC2(ServerCommand, s_ServerCommandFunc, const char*);
 	VARIADIC_FUNC4(ServerCommandEx, s_ServerCommandExFunc, char*, int, const char*);
-	VARIADIC_FUNC2(InsertServerCommand, s_InsertServerCommandFunc, const char*)
+	VARIADIC_FUNC2(InsertServerCommand, s_InsertServerCommandFunc, const char*);
 	static void ServerExecute();
 	VARIADIC_FUNC3(ClientCommand, s_ClientCommandFunc, int, const char*);
 	VARIADIC_FUNC3(FakeClientCommand, s_FakeClientCommandFunc, int, const char*);
 	VARIADIC_FUNC3(FakeClientCommandEx, s_FakeClientCommandExFunc, int, const char*);
 	static void FakeClientCommandKeyValues(int client, KeyValuesHandle kv) { ExecFunc(s_FakeClientCommandKeyValuesFunc, client, kv); }
 	VARIADIC_FUNC2(PrintToServer, s_PrintToServerFunc, const char*);
-	VARIADIC_FUNC3(PrintToConsole, s_PrintToConsoleFunc, int, const char*)
-	VARIADIC_FUNC3(ReplyToCommand, s_ReplyToCommandFunc, int, const char*)
+	VARIADIC_FUNC3(PrintToConsole, s_PrintToConsoleFunc, int, const char*);
+	VARIADIC_FUNC3(ReplyToCommand, s_ReplyToCommandFunc, int, const char*);
 	static ReplySource GetCmdReplySource();
 	static ReplySource SetCmdReplySource(ReplySource source);
 	static bool IsChatTrigger();
@@ -314,6 +221,7 @@ private:
 	static void PushArg(IPluginFunction* func, float arg) { func->PushFloat(arg); }
 	static void PushArg(IPluginFunction* func, const char* arg) { func->PushString(arg); }
 	static void PushArg(IPluginFunction* func, float arg[3]) { func->PushArray((int*)arg, 3, 1); }
+	static void PushArg(IPluginFunction* func, int arg[], unsigned int len) { func->PushArray(arg, len); }
 
 	static void PushArgRef(IPluginFunction* func, int& arg) { func->PushCellByRef(&arg); }
 	static void PushArgRef(IPluginFunction* func, float& arg) { func->PushFloatByRef(&arg); }
@@ -363,8 +271,20 @@ private:
 		PushArg(func, t4); PushArg(func, t5);
 		return ExecAndReturn(func);
 	}
+
+	template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
+	static int ExecFunc(IPluginFunction* func, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
+	{
+		PushArg(func, t1); PushArg(func, t2); PushArg(func, t3); PushArg(func, t4);
+		PushArg(func, t5); PushArg(func, t6); PushArg(func, t7); PushArg(func, t8);
+		return ExecAndReturn(func);
+	}
 private:
 	friend class NativeManager;
+
+	// MENUS.INC
+	static std::unordered_map<Handle, MenuHandler> s_MenuHandlers;
+	static std::unordered_map<Handle, VoteHandler> s_VoteHandlers;
 
 	// EVENTS.INC
 	static std::unordered_map<std::string, EventHookCallback> s_EventHookCallbacksPre;
@@ -378,6 +298,59 @@ private:
 	static std::unordered_map<int, int> s_SQLTQueryCallbacksData;
 private:
 	static int s_MaxClients;
+
+	// MENUS.INC
+	static IPluginFunction* s_CreateMenuFunc;
+	static IPluginFunction* s_DisplayMenuFunc;
+	static IPluginFunction* s_DisplayMenuAtItemFunc;
+	static IPluginFunction* s_AddMenuItemFunc;
+	static IPluginFunction* s_InsertMenuItemFunc;
+	static IPluginFunction* s_RemoveMenuItemFunc;
+	static IPluginFunction* s_RemoveAllMenuItemsFunc;
+	static IPluginFunction* s_GetMenuItemFunc;
+	static IPluginFunction* s_MenuShufflePerClientFunc;
+	static IPluginFunction* s_MenuSetClientMappingFunc;
+	static IPluginFunction* s_GetMenuSelectionPositionFunc;
+	static IPluginFunction* s_GetMenuItemCountFunc;
+	static IPluginFunction* s_SetMenuPaginationFunc;
+	static IPluginFunction* s_GetMenuPaginationFunc;
+	static IPluginFunction* s_GetMenuStyleFunc;
+	static IPluginFunction* s_SetMenuTitleFunc;
+	static IPluginFunction* s_GetMenuTitleFunc;
+	static IPluginFunction* s_CreatePanelFromMenuFunc;
+	static IPluginFunction* s_GetMenuExitButtonFunc;
+	static IPluginFunction* s_SetMenuExitButtonFunc;
+	static IPluginFunction* s_GetMenuExitBackButtonFunc;
+	static IPluginFunction* s_SetMenuExitBackButtonFunc;
+	static IPluginFunction* s_SetMenuNoVoteButtonFunc;
+	static IPluginFunction* s_CancelMenuFunc;
+	static IPluginFunction* s_GetMenuOptionFlagsFunc;
+	static IPluginFunction* s_SetMenuOptionFlagsFunc;
+	static IPluginFunction* s_IsVoteInProgressFunc;
+	static IPluginFunction* s_CancelVoteFunc;
+	static IPluginFunction* s_VoteMenuFunc;
+	static IPluginFunction* s_SetVoteResultCallbackFunc;
+	static IPluginFunction* s_CheckVoteDelayFunc;
+	static IPluginFunction* s_IsClientInVotePoolFunc;
+	static IPluginFunction* s_RedrawClientVoteMenuFunc;
+	static IPluginFunction* s_GetMenuStyleHandleFunc;
+	static IPluginFunction* s_CreatePanelFunc;
+	static IPluginFunction* s_CreateMenuExFunc;
+	static IPluginFunction* s_GetClientMenuFunc;
+	static IPluginFunction* s_CancelClientMenuFunc;
+	static IPluginFunction* s_GetMaxPageItemsFunc;
+	static IPluginFunction* s_GetPanelStyleFunc;
+	static IPluginFunction* s_SetPanelTitleFunc;
+	static IPluginFunction* s_DrawPanelItemFunc;
+	static IPluginFunction* s_DrawPanelTextFunc;
+	static IPluginFunction* s_CanPanelDrawFlagsFunc;
+	static IPluginFunction* s_SetPanelKeysFunc;
+	static IPluginFunction* s_SendPanelToClientFunc;
+	static IPluginFunction* s_GetPanelTextRemainingFunc;
+	static IPluginFunction* s_GetPanelCurrentKeyFunc;
+	static IPluginFunction* s_SetPanelCurrentKeyFunc;
+	static IPluginFunction* s_RedrawMenuItemFunc;
+	static IPluginFunction* s_InternalShowMenuFunc;
 
 	// EVENTS.INC
 	static IPluginFunction* s_HookEventFunc;
@@ -434,6 +407,7 @@ private:
 	static IPluginFunction* s_SQL_ExecuteFunc;
 	static IPluginFunction* s_SQL_LockDatabaseFunc;
 	static IPluginFunction* s_SQL_UnlockDatabaseFunc;
+	static IPluginFunction* s_SQL_IsSameConnectionFunc;
 	static IPluginFunction* s_SQL_TConnectFunc;
 	static IPluginFunction* s_SQL_TQueryFunc;
 	static IPluginFunction* s_SQL_CreateTransactionFunc;

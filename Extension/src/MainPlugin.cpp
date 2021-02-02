@@ -2,8 +2,6 @@
 
 #include "PublicManager.h"
 
-int DB;
-
 void MainPlugin::OnPluginStart()
 {
 	rootconsole->ConsolePrint("Plugin Start");
@@ -24,7 +22,7 @@ void MainPlugin::OnPluginEnd()
 
 Action MainPlugin::ConCmdCallback(int client, char* command, char* args)
 {
-	std::string r = "%d %d %d %N %s %s %f %f";
+	/*std::string r = "%d %d %d %N %s %s %f %f";
 	int x = 5;
 	int y = 6;
 	int z = 8;
@@ -44,7 +42,15 @@ Action MainPlugin::ConCmdCallback(int client, char* command, char* args)
 	PublicManager::ReplyToCommand(client, "LOL YOU NOOB %d", 10);
 	PublicManager::FakeClientCommand(client + 1, "say WTF %s", "ALL");
 	PublicManager::FakeClientCommand(client + 1, "say_team WTF %s", "TEAM");
-	PublicManager::CS_RespawnPlayer(client + 1);
+	PublicManager::CS_RespawnPlayer(client + 1);*/
+
+	MenuHandle menu = PublicManager::CreateMenu(TestMenuHandler, MENU_ACTIONS_DEFAULT);
+	PublicManager::SetMenuTitle(menu, "Menu Title here");
+	PublicManager::AddMenuItem(menu, "1", "Choice1", ITEMDRAW_DEFAULT);
+	PublicManager::AddMenuItem(menu, "2", "Choice2", ITEMDRAW_DEFAULT);
+	PublicManager::AddMenuItem(menu, "3", "Choice3", ITEMDRAW_DEFAULT);
+	PublicManager::SetMenuExitButton(menu, false);
+	PublicManager::DisplayMenu(menu, client + 1, 20);
 
 	return Plugin_Handled;
 }
@@ -67,7 +73,7 @@ Action MainPlugin::OnEventHookPre(EventHandle eventHandle, const char* name, boo
 
 Action MainPlugin::OnEventHookPost(EventHandle eventHandle, const char* name, bool dontBroadcast)
 {
-	rootconsole->ConsolePrint("Event PRE: %s", name);
+	rootconsole->ConsolePrint("Event POST: %s", name);
 	return Plugin_Continue;
 }
 
@@ -158,12 +164,12 @@ Action MainPlugin::OnClientCommand(int client, int args)
 	return Plugin_Continue;
 }
 
-Action MainPlugin::OnClientCommandKeyValues(int client, int kv)
+Action MainPlugin::OnClientCommandKeyValues(int client, KeyValuesHandle kv)
 {
 	return Plugin_Continue;
 }
 
-void MainPlugin::OnClientCommandKeyValuesPost(int client, int kv)
+void MainPlugin::OnClientCommandKeyValuesPost(int client, KeyValuesHandle kv)
 {
 
 }

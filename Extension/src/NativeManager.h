@@ -17,6 +17,10 @@ public:
 	static cell_t SrvCmdCallback(IPluginContext* pContext, const cell_t* params);
 	static cell_t CmdListenerCallback(IPluginContext* pContext, const cell_t* params);
 
+	// MENU.INC
+	static int MenuHandlerCallback(IPluginContext* pContext, const cell_t* params);
+	static int VoteHandlerCallback(IPluginContext* pContext, const cell_t* params);
+
 	// EVENTS.INC
 	static int EventHookCallbackPre(IPluginContext* pContext, const cell_t* params);
 	static int EventHookCallbackPost(IPluginContext* pContext, const cell_t* params);

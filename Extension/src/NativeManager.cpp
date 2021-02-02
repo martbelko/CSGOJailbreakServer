@@ -57,6 +57,33 @@ cell_t NativeManager::CmdListenerCallback(IPluginContext* pContext, const cell_t
 	return MainPlugin::CmdListenerCallback(client, cmd, argc);
 }
 
+int NativeManager::MenuHandlerCallback(IPluginContext* pContext, const cell_t* params)
+{
+	MenuHandle menu = params[1];
+	MenuAction action = static_cast<MenuAction>(params[2]);
+	int param1 = params[3];
+	int param2 = params[4];
+
+	MenuHandler handler = PublicManager::s_MenuHandlers[menu];
+	return handler(menu, action, param1, param2);
+}
+
+int NativeManager::VoteHandlerCallback(IPluginContext* pContext, const cell_t* params)
+{
+	MenuHandle menu = params[1];
+	int numVotes = params[2];
+	int numClients = params[3];
+	const int** clientInfo;
+	pContext->LocalToPhysAddr(params[4], reinterpret_cast<int**>(&clientInfo));
+	int numItems = params[5];
+	const int** itemInfo;
+	pContext->LocalToPhysAddr(params[6], reinterpret_cast<int**>(&itemInfo));
+
+	VoteHandler handler = PublicManager::s_VoteHandlers[menu];
+	handler(menu, numVotes, numClients, clientInfo, numItems, itemInfo);
+	return 0;
+}
+
 int NativeManager::EventHookCallbackPre(IPluginContext* pContext, const cell_t* params)
 {
 	EventHandle eventHandle = params[1];
@@ -256,14 +283,14 @@ int NativeManager::OnClientCommand(IPluginContext* pContext, const cell_t* param
 int NativeManager::OnClientCommandKeyValues(IPluginContext* pContext, const cell_t* params)
 {
 	int client = params[1];
-	int kv = params[2];
+	KeyValuesHandle kv = params[2];
 	return MainPlugin::OnClientCommandKeyValues(client, kv);
 }
 
 int NativeManager::OnClientCommandKeyValuesPost(IPluginContext* pContext, const cell_t* params)
 {
 	int client = params[1];
-	int kv = params[2];
+	KeyValuesHandle kv = params[2];
 	MainPlugin::OnClientCommandKeyValuesPost(client, kv);
 	return 0;
 }

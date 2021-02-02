@@ -14,6 +14,9 @@ const sp_nativeinfo_t MyNatives[] =
 	{ "native_OnPluginEnd", NativeManager::OnPluginEnd },
 	{ "native_OnMapStart", NativeManager::OnMapStart },
 	{ "native_OnMapEnd", NativeManager::OnMapEnd },
+	// MENUS.INC
+	{ "native_MenuHandlerCallback", NativeManager::MenuHandlerCallback },
+	{ "native_VoteHandlerCallback", NativeManager::VoteHandlerCallback },
 	// EVENTS.INC
 	{ "native_EventHookCallbackPre", NativeManager::EventHookCallbackPre },
 	{ "native_EventHookCallbackPost", NativeManager::EventHookCallbackPost },

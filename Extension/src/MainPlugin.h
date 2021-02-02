@@ -14,6 +14,13 @@ public:
 	static Action SrvCmdCallback(char* command, char* args);
 	static Action CmdListenerCallback(int client, char* command, int argc);
 
+	// MENUS.INC
+	static int TestMenuHandler(MenuHandle menu, MenuAction action, int param1, int param2)
+	{
+		rootconsole->ConsolePrint("Here LOL");
+		return 0;
+	}
+
 	// EVENTS.INC
 	static Action OnEventHookPre(EventHandle eventHandle, const char* name, bool dontBroadcast);
 	static Action OnEventHookPost(EventHandle eventHandle, const char* name, bool dontBroadcast);
@@ -40,8 +47,8 @@ public:
 	static void OnClientDisconnect(int client);
 	static void OnClientDisconnectPost(int client);
 	static Action OnClientCommand(int client, int args);
-	static Action OnClientCommandKeyValues(int client, int kv); // TODO: KeyValues?
-	static void OnClientCommandKeyValuesPost(int client, int kv); // TODO: KeyValues?
+	static Action OnClientCommandKeyValues(int client, KeyValuesHandle kv); // TODO: KeyValues?
+	static void OnClientCommandKeyValuesPost(int client, KeyValuesHandle kv); // TODO: KeyValues?
 	static void OnClientSettingsChanged(int client);
 	static void OnClientAuthorized(int client, const char* auth);
 	static Action  OnClientPreAdminCheck(int client);
