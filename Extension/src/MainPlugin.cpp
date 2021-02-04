@@ -11,6 +11,11 @@ void MainPlugin::OnPluginStart()
 
 	PublicManager::RegConsoleCmd("sm_test", "Testing...", 0);
 
+	PublicManager::SDKHook(1, SDKHookType::SDKHook_SpawnPost, MainPlugin::SDKHookCallback1);
+	for (int i = 1; i <= PublicManager::GetMaxClients(); ++i)
+		if (PublicManager::IsClientInGame(i))
+			OnClientPutInServer(i);
+
 	/*PublicManager::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackBanlist, "banlist", 0);
 	PublicManager::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackDefault, "default", 0);*/
 }
@@ -44,6 +49,11 @@ Action MainPlugin::ConCmdCallback(int client, char* command, char* args)
 	PublicManager::FakeClientCommand(client + 1, "say_team WTF %s", "TEAM");
 	PublicManager::CS_RespawnPlayer(client + 1);*/
 
+	PublicManager::SetClientName(client + 1, "LOOLUNOOB");
+	PublicManager::ForcePlayerSuicide(client + 2);
+	PublicManager::IgniteEntity(client + 1, 5.0f);
+	PublicManager::SlapPlayer(client + 1, 20);
+
 	MenuHandle menu = PublicManager::CreateMenu(TestMenuHandler, MENU_ACTIONS_DEFAULT);
 	PublicManager::SetMenuTitle(menu, "Menu Title here");
 	PublicManager::AddMenuItem(menu, "1", "Choice1", ITEMDRAW_DEFAULT);
@@ -63,6 +73,32 @@ Action MainPlugin::SrvCmdCallback(char* command, char* args)
 Action MainPlugin::CmdListenerCallback(int client, char* command, int argc)
 {
 	return Plugin_Handled;
+}
+
+void MainPlugin::OnEntityCreated(int entity, const char* classname)
+{
+
+}
+
+void MainPlugin::OnEntitySpawned(int entity, const char* classname)
+{
+
+}
+
+void MainPlugin::OnEntityDestroyed(int entity)
+{
+
+}
+
+Action MainPlugin::OnGetGameDescription(char gameDesc[64])
+{
+	rootconsole->ConsolePrint("Game Desc: %s", gameDesc);
+	return Plugin_Continue;
+}
+
+Action MainPlugin::OnLevelInit(const char* mapName, char mapEntities[2097152])
+{
+	return Plugin_Continue;
 }
 
 Action MainPlugin::OnEventHookPre(EventHandle eventHandle, const char* name, bool dontBroadcast)
@@ -140,11 +176,6 @@ bool MainPlugin::OnClientConnect(int client, char* rejectmsg, int maxlen)
 }
 
 void MainPlugin::OnClientConnected(int client)
-{
-
-}
-
-void MainPlugin::OnClientPutInServer(int client)
 {
 
 }

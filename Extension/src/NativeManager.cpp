@@ -57,6 +57,276 @@ cell_t NativeManager::CmdListenerCallback(IPluginContext* pContext, const cell_t
 	return MainPlugin::CmdListenerCallback(client, cmd, argc);
 }
 
+int NativeManager::OnEntityCreated(IPluginContext* pContext, const cell_t* params)
+{
+	int entity = params[1];
+	char* className;
+	pContext->LocalToString(params[2], &className);
+	MainPlugin::OnEntityCreated(entity, className);
+	return 0;
+}
+
+int NativeManager::OnEntitySpawned(IPluginContext* pContext, const cell_t* params)
+{
+	int entity = params[1];
+	char* className;
+	pContext->LocalToString(params[2], &className);
+	MainPlugin::OnEntitySpawned(entity, className);
+	return 0;
+}
+
+int NativeManager::OnEntityDestroyed(IPluginContext* pContext, const cell_t* params)
+{
+	int entity = params[1];
+	MainPlugin::OnEntityDestroyed(entity);
+	return 0;
+}
+
+int NativeManager::OnGetGameDescription(IPluginContext* pContext, const cell_t* params)
+{
+	char* gameDesc;
+	pContext->LocalToString(params[1], &gameDesc);
+	return MainPlugin::OnGetGameDescription(gameDesc);
+}
+
+int NativeManager::OnLevelInit(IPluginContext* pContext, const cell_t* params)
+{
+	char* mapName;
+	pContext->LocalToString(params[1], &mapName);
+	char* mapEntities;
+	pContext->LocalToString(params[2], &mapEntities);
+	return MainPlugin::OnLevelInit(mapName, mapEntities);
+}
+
+int NativeManager::SDKHooksCallback1(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int client = params[1];
+	SDKHooksCallback1Func callback = static_cast<SDKHooksCallback1Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	callback(client);
+	return 0;
+}
+
+int NativeManager::SDKHooksCallback2(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int entity = params[1];
+	SDKHooksCallback2Func callback = static_cast<SDKHooksCallback2Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	return callback(entity);
+}
+
+int NativeManager::SDKHooksCallback3(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int entity = params[1];
+	int other = params[2];
+	SDKHooksCallback3Func callback = static_cast<SDKHooksCallback3Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	return callback(entity, other);
+}
+
+int NativeManager::SDKHooksCallback4(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int entity = params[1];
+	int other = params[2];
+	SDKHooksCallback4Func callback = static_cast<SDKHooksCallback4Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	callback(entity, other);
+	return 0;
+}
+
+int NativeManager::SDKHooksCallback5(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int entity = params[1];
+	int* maxHealthAddr;
+	pContext->LocalToPhysAddr(params[2], &maxHealthAddr);
+
+	SDKHooksCallback5Func callback = static_cast<SDKHooksCallback5Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	return callback(entity, *maxHealthAddr);
+}
+
+int NativeManager::SDKHooksCallback6(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int victim = params[1];
+
+	int* attackerAddr;
+	pContext->LocalToPhysAddr(params[2], &attackerAddr);
+
+	int* inflictorAddr;
+	pContext->LocalToPhysAddr(params[3], &inflictorAddr);
+
+	int* damageAddr;
+	pContext->LocalToPhysAddr(params[4], &damageAddr);
+	float damage = sp_ctof(*damageAddr);
+
+	int* damageTypeAddr;
+	pContext->LocalToPhysAddr(params[5], &damageTypeAddr);
+
+	int* weaponAddr;
+	pContext->LocalToPhysAddr(params[6], &weaponAddr);
+
+	int* damageForceAddr;
+	pContext->LocalToPhysAddr(params[7], &damageForceAddr);
+	float damageForce[3] = { sp_ctof(damageForceAddr[0]), sp_ctof(damageForceAddr[1]), sp_ctof(damageForceAddr[2]) };
+
+	int* damagePositionAddr;
+	pContext->LocalToPhysAddr(params[8], &damagePositionAddr);
+	float damagePosition[3] = { sp_ctof(damagePositionAddr[0]), sp_ctof(damagePositionAddr[1]), sp_ctof(damagePositionAddr[2]) };
+
+	int damageCustom = params[9];
+
+	SDKHooksCallback6Func callback = static_cast<SDKHooksCallback6Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	Action res = callback(victim, *attackerAddr, *inflictorAddr, damage, *damageTypeAddr, *weaponAddr, damageForce, damagePosition, damageCustom);
+
+	damagePositionAddr[0] = sp_ftoc(damagePosition[0]);
+	damagePositionAddr[1] = sp_ftoc(damagePosition[1]);
+	damagePositionAddr[2] = sp_ftoc(damagePosition[2]);
+
+	damageForceAddr[0] = sp_ftoc(damageForce[0]);
+	damageForceAddr[1] = sp_ftoc(damageForce[1]);
+	damageForceAddr[2] = sp_ftoc(damageForce[2]);
+
+	*damageAddr = sp_ftoc(damage);
+
+	return res;
+}
+
+int NativeManager::SDKHooksCallback7(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int victim = params[1];
+
+	int attacker = params[2];
+
+	int inflictor = params[3];
+
+	float damage = sp_ctof(params[4]);
+
+	int damageType = params[5];
+
+	int weapon = params[6];
+
+	int* damageForceAddr;
+	pContext->LocalToPhysAddr(params[7], &damageForceAddr);
+	float damageForce[3] = { sp_ctof(damageForceAddr[0]), sp_ctof(damageForceAddr[1]), sp_ctof(damageForceAddr[2]) };
+
+	int* damagePositionAddr;
+	pContext->LocalToPhysAddr(params[8], &damagePositionAddr);
+	float damagePosition[3] = { sp_ctof(damagePositionAddr[0]), sp_ctof(damagePositionAddr[1]), sp_ctof(damagePositionAddr[2]) };
+
+	int damageCustom = params[9];
+
+	SDKHooksCallback7Func callback = static_cast<SDKHooksCallback7Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	callback(victim, attacker, inflictor, damage, damageType, weapon, damageForce, damagePosition, damageCustom);
+	return 0;
+}
+
+int NativeManager::SDKHooksCallback8(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int client = params[1];
+	int shots = params[2];
+	char* weaponName;
+	pContext->LocalToString(params[3], &weaponName);
+
+	SDKHooksCallback8Func callback = static_cast<SDKHooksCallback8Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	callback(client, shots, weaponName);
+	return 0;
+}
+
+int NativeManager::SDKHooksCallback9(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int victim = params[1];
+
+	int* attackerAddr;
+	pContext->LocalToPhysAddr(params[2], &attackerAddr);
+
+	int* inflictorAddr;
+	pContext->LocalToPhysAddr(params[3], &inflictorAddr);
+
+	int* damageAddr;
+	pContext->LocalToPhysAddr(params[4], &damageAddr);
+	float damage = sp_ctof(*damageAddr);
+
+	int* damageTypeAddr;
+	pContext->LocalToPhysAddr(params[5], &damageTypeAddr);
+
+	int* ammoTypeAddr;
+	pContext->LocalToPhysAddr(params[6], &ammoTypeAddr);
+
+	int hitbox = params[7];
+
+	int hitgroup = params[8];
+
+	rootconsole->ConsolePrint("Trying to take damage %f", damage);
+	SDKHooksCallback9Func callback = static_cast<SDKHooksCallback9Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	Action res = callback(victim, *attackerAddr, *inflictorAddr, damage, *damageTypeAddr, *ammoTypeAddr, hitbox, hitgroup);
+	rootconsole->ConsolePrint("Trying to take new damage %f", damage);
+
+	*damageAddr = sp_ftoc(damage);
+
+	return res;
+}
+
+int NativeManager::SDKHooksCallback10(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int victim = params[1];
+	int attacker = params[2];
+	int inflictor = params[3];
+	float damage = sp_ctof(params[4]);
+	int damageType = params[5];
+	int ammoType = params[6];
+	int hitbox = params[7];
+	int hitgroup = params[8];
+
+	SDKHooksCallback10Func callback = static_cast<SDKHooksCallback10Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	callback(victim, attacker, inflictor, damage, damageType, ammoType, hitbox, hitgroup);
+	return 0;
+}
+
+int NativeManager::SDKHooksCallback11(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int entity = params[1];
+	int collisionGroup = params[2];
+	int contentsMask = params[3];
+	bool originalResult = params[4];
+	SDKHooksCallback11Func callback = static_cast<SDKHooksCallback11Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	return callback(entity, collisionGroup, contentsMask, originalResult);
+}
+
+int NativeManager::SDKHooksCallback12(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int entity = params[1];
+	int activator = params[2];
+	int caller = params[3];
+	UseType useType = static_cast<UseType>(params[4]);
+	float value = sp_ctof(params[5]);
+	SDKHooksCallback12Func callback = static_cast<SDKHooksCallback12Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	return callback(entity, activator, caller, useType, value);
+}
+
+int NativeManager::SDKHooksCallback13(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int entity = params[1];
+	int activator = params[2];
+	int caller = params[3];
+	UseType useType = static_cast<UseType>(params[4]);
+	float value = sp_ctof(params[5]);
+	SDKHooksCallback13Func callback = static_cast<SDKHooksCallback13Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	callback(entity, activator, caller, useType, value);
+	return 0;
+}
+
+int NativeManager::SDKHooksCallback14(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int weapon = params[1];
+	int successful = params[2];
+	SDKHooksCallback14Func callback = static_cast<SDKHooksCallback14Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	callback(weapon, successful);
+	return 0;
+}
+
+int NativeManager::SDKHooksCallback15(SDKHookType type, IPluginContext* pContext, const cell_t* params)
+{
+	int client = params[1];
+	bool origRet = params[2];
+	SDKHooksCallback15Func callback = static_cast<SDKHooksCallback15Func>(PublicManager::s_SDKHooksCallbacks[std::make_pair(params[1], type)]);
+	return callback(client, origRet);
+}
+
 int NativeManager::MenuHandlerCallback(IPluginContext* pContext, const cell_t* params)
 {
 	MenuHandle menu = params[1];

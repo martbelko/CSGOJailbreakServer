@@ -55,6 +55,80 @@
 	static void FUNC##Sub(const char* arg) { PushArg(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
 	public:
 
+// PreThink/Post - client
+// PostThink/Post - client
+// GroundEntChanged - entity
+// SpawnPost - entity
+// Think/Post - entity
+// VPhysicsUpdate/Post - entity
+using SDKHooksCallback1Func = void(*)(int client);
+
+// Spawn - entity
+// Reload - weapon
+using SDKHooksCallback2Func = Action(*)(int entity);
+
+// EndTouch - entity, other
+// StartTouch - entity, other
+// Touch - entity, other
+// Blocked - entity, other
+// SetTransmit - entity, client
+// WeaponCanSwitchTo - client, weapon
+// WeaponCanUse - client, weapon
+// WeaponDrop - client, weapon
+// WeaponEquip - client, weapon
+// WeaponSwitch - client, weapon
+using SDKHooksCallback3Func = Action(*)(int entity, int other);
+
+// EndTouchPost - entity, other
+// StartTouchPost - entity, other
+// TouchPost - entity, other
+// BlockedPost - entity, other
+// WeaponCanSwitchToPost - client, weapon
+// WeaponCanUsePost - client, weapon
+// WeaponDropPost - client, weapon
+// WeaponEquipPost - client, weapon
+// WeaponSwitchPost - client, weapon
+using SDKHooksCallback4Func = void(*)(int entity, int other);
+
+// GetMaxHealth (ep2v and later)
+using SDKHooksCallback5Func = Action(*)(int entity, int& maxhealth);
+
+// OnTakeDamage
+// OnTakeDamageAlive
+// Note: The weapon parameter is not used by all games and damage sources.
+// Note: Force application is dependent on game and damage type(s)
+// SDKHooks 2.1+  (can check for support at runtime using GetFeatureStatus on SDKHook_DmgCustomInOTD capability.
+// DON'T attempt to access 'damagecustom' var if feature status != available
+using SDKHooksCallback6Func = Action(*)(int victim, int& attacker, int& inflictor, float& damage, int& damagetype, int& weapon, float damageForce[3], float damagePosition[3], int damagecustom);
+
+// OnTakeDamagePost
+// OnTakeDamageAlivePost
+using SDKHooksCallback7Func = void(*)(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3], int damagecustom);
+
+// FireBulletsPost
+using SDKHooksCallback8Func = void(*)(int client, int shots, const char* weaponname);
+
+// TraceAttack
+using SDKHooksCallback9Func = Action(*)(int victim, int& attacker, int& inflictor, float& damage, int& damagetype, int& ammotype, int hitbox, int hitgroup);
+
+// TraceAttackPost
+using SDKHooksCallback10Func = void(*)(int victim, int attacker, int inflictor, float damage, int damagetype, int ammotype, int hitbox, int hitgroup);
+
+// ShouldCollide
+using SDKHooksCallback11Func = bool(*)(int entity, int collisiongroup, int contentsmask, bool originalResult);
+
+// Use
+using SDKHooksCallback12Func = Action(*)(int entity, int activator, int caller, UseType type, float value);
+
+// UsePost
+using SDKHooksCallback13Func = void(*)(int entity, int activator, int caller, UseType type, float value);
+
+// Reload post
+using SDKHooksCallback14Func = void(*)(int weapon, bool bSuccessful);
+
+// CanBeAutobalanced
+using SDKHooksCallback15Func = bool(*)(int client, bool origRet);
+
 using SQLTxnSuccessFunc = void (*)(database_t db, int data, int numQueries, DBResultSet results[], int queryData[]);
 using SQLTxnFailureFunc = void(*)(database_t db, int data, int numQueries, const char* error, int failIndex, int queryData[]);
 using SQLTCallbackFunc = void(*)(Handle owner, Handle hndl, const char* error, int data);
@@ -62,59 +136,33 @@ using EventHookCallback = Action(*)(EventHandle eventHandle, const char* name, b
 using MenuHandler = int(*)(MenuHandle menu, MenuAction action, int param1, int param2);
 using VoteHandler = void(*)(MenuHandle menu, int numVotes, int numClients, const int** clientInfo, int numItems, const int** itemInfo);
 
+struct pair_hash
+{
+	template <class T1, class T2>
+	std::size_t operator()(const std::pair<T1, T2>& p) const
+	{
+		auto h1 = std::hash<T1>{}(p.first);
+		auto h2 = std::hash<T2>{}(p.second);
+		return h1 ^ h2;
+	}
+};
+
 class PublicManager
 {
 public:
 	static void InitOnPluginStart(IPluginContext* pContext);
 
+	// SDKTOOLS_FUNCTIONS.INC
+	#include "API/SDKToolsFunctions.h"
+
+	// SDKHOOKS.INC
+	#include "API/SDKHooksAPI.h"
+
 	// MENUS.INC
 	#include "API/MenusAPI.h"
 
 	// EVENTS.INC
-	static void HookEvent(EventHookCallback callback, const char* name, EventHookMode mode)
-	{
-		rootconsole->ConsolePrint("Hooking %s %d", name, mode);
-
-		if (mode == EventHookMode::EventHookMode_Pre)
-			s_EventHookCallbacksPre[name] = callback;
-		else if (mode == EventHookMode::EventHookMode_PostNoCopy)
-			s_EventHookCallbacksPostNoCopy[name] = callback;
-		else
-		{
-			s_EventHookCallbacksPost[name] = callback;
-			mode = EventHookMode::EventHookMode_Post;
-		}
-
-		ExecFunc(s_HookEventFunc, name, mode);
-	}
-	static bool HookEventEx(EventHookCallback callback, const char* name, EventHookMode mode)
-	{
-		if (mode == EventHookMode::EventHookMode_Pre)
-			s_EventHookCallbacksPre[name] = callback;
-		else if (mode == EventHookMode::EventHookMode_PostNoCopy)
-			s_EventHookCallbacksPostNoCopy[name] = callback;
-		else
-		{
-			s_EventHookCallbacksPost[name] = callback;
-			mode = EventHookMode::EventHookMode_Post;
-		}
-
-		return ExecFunc(s_HookEventExFunc, name, mode);
-	}
-	static void UnhookEvent(const char* name, EventHookMode mode) { ExecFunc(s_UnhookEventFunc, name, mode); }
-	static EventHandle CreateEvent(const char* name, bool force) { return ExecFunc(s_CreateEventFunc, name, force); }
-	static void FireEvent(Handle eventHandle, bool dontBroadcast) { ExecFunc(s_FireEventFunc, eventHandle, dontBroadcast); }
-	static void CancelCreatedEvent(Handle eventHandle) { ExecFunc(s_CancelCreatedEventFunc, eventHandle); }
-	static bool GetEventBool(Handle eventHandle, const char* key, bool defValue) { return ExecFunc(s_GetEventBoolFunc, eventHandle, key, defValue); }
-	static void SetEventBool(Handle eventHandle, const char* key, bool value) { ExecFunc(s_SetEventBoolFunc, eventHandle, key, value); }
-	static int GetEventInt(Handle eventHandle, const char* key, int defValue) { return ExecFunc(s_GetEventIntFunc, eventHandle, key, defValue); }
-	static void SetEventInt(Handle eventHandle, const char* key, int value) { ExecFunc(s_SetEventIntFunc, eventHandle, key, value); }
-	static float GetEventFloat(Handle eventHandle, const char* key, float defValue) { return ExecFunc(s_GetEventFloatFunc, eventHandle, key, defValue); }
-	static void SetEventFloat(Handle eventHandle, const char* key, float value) { ExecFunc(s_SetEventFloatFunc, eventHandle, key, value); }
-	static void GetEventString(Handle eventHandle, const char* key, char* value, int maxlength, const char* defValue) { ExecFunc(s_GetEventStringFunc, eventHandle, key, value, maxlength, defValue); }
-	static void SetEventString(Handle eventHandle, const char* key, const char* value) { ExecFunc(s_SetEventStringFunc, eventHandle, key, value); }
-	static void GetEventName(Handle eventHandle, char* name, int maxlength) { ExecFunc(s_GetEventNameFunc, eventHandle, name, maxlength); }
-	static void SetEventBroadcast(Handle eventHandle, bool dontBroadcast) { ExecFunc(s_SetEventBroadcastFunc, eventHandle, dontBroadcast); }
+	#include "API/EventsAPI.h"
 
 	// DBI.INC
 	#include "API/DbiAPI.h"
@@ -123,104 +171,16 @@ public:
 	#include "API/CStrikeAPI.h"
 
 	// CONSOLE.INC
-	VARIADIC_FUNC2(ServerCommand, s_ServerCommandFunc, const char*);
-	VARIADIC_FUNC4(ServerCommandEx, s_ServerCommandExFunc, char*, int, const char*);
-	VARIADIC_FUNC2(InsertServerCommand, s_InsertServerCommandFunc, const char*);
-	static void ServerExecute();
-	VARIADIC_FUNC3(ClientCommand, s_ClientCommandFunc, int, const char*);
-	VARIADIC_FUNC3(FakeClientCommand, s_FakeClientCommandFunc, int, const char*);
-	VARIADIC_FUNC3(FakeClientCommandEx, s_FakeClientCommandExFunc, int, const char*);
-	static void FakeClientCommandKeyValues(int client, KeyValuesHandle kv) { ExecFunc(s_FakeClientCommandKeyValuesFunc, client, kv); }
-	VARIADIC_FUNC2(PrintToServer, s_PrintToServerFunc, const char*);
-	VARIADIC_FUNC3(PrintToConsole, s_PrintToConsoleFunc, int, const char*);
-	VARIADIC_FUNC3(ReplyToCommand, s_ReplyToCommandFunc, int, const char*);
-	static ReplySource GetCmdReplySource();
-	static ReplySource SetCmdReplySource(ReplySource source);
-	static bool IsChatTrigger();
-	VARIADIC_FUNC4(ShowActivity2, s_ShowActivity2Func, int, const char*, const char*);
-	VARIADIC_FUNC3(ShowActivity, s_ShowActivityFunc, int, const char*);
-	VARIADIC_FUNC4(ShowActivityEx, s_ShowActivityExFunc, int, const char*, const char*);
-	static bool FormatActivitySource(int client, int target, const char* namebuf, int maxlength);
-	static void RegServerCmd(const char* cmd, const char* description, int flags);
-	static void RegConsoleCmd(const char* cmd, const char* description, int flags);
-	static void RegAdminCmd(const char* cmd, int adminflags, const char* description, const char* group, int flags);
-	static int GetCmdArgs();
-	static int GetCmdArg(int argnum, char* buffer, int maxlength);
-	static int GetCmdArgString(char* buffer, int maxlength);
-	static Handle GetCommandIterator();
-	static bool ReadCommandIterator(Handle iter, char* name, int nameLen, int& eflags, char* desc, int descLen);
-	static bool CheckCommandAccess(int client, const char* command, int flags, bool override_only);
-	static bool CheckAccess(AdminId id, const char* command, int flags, bool override_only);
-	static int GetCommandFlags(const char* name);
-	static bool SetCommandFlags(const char* name, int flags);
-	static Handle FindFirstConCommand(char* buffer, int max_size, bool& isCommand, int& flags, char* description, int descrmax_size);
-	static bool FindNextConCommand(Handle search, char* buffer, int max_size, bool& isCommand, int& flags, char* description, int descrmax_size);
-	static void AddServerTag(const char* tag);
-	static void RemoveServerTag(const char* tag);
-	static bool AddCommandListener(const char* command);
-	static void RemoveCommandListener(const char* command);
+	#include "API/ConsoleAPI.h"
 
 	// CLIENT.INC
-	static int GetMaxClients() { return s_MaxClients; }
-	static int GetMaxHumanPlayers();
-	static int GetClientCount(bool inGameOnly);
-	static bool GetClientName(int client, char* name, int maxlen);
-	static bool GetClientIP(int client, char* ip, int maxlen, bool remport);
-	static bool GetClientAuthId(int client, AuthIdType authType, char* auth, int maxlen, bool validate);
-	static int GetSteamAccountID(int client, bool validate);
-	static int GetClientUserId(int client);
-	static bool IsClientConnected(int client);
-	static bool IsClientInGame(int client);
-	static bool IsClientInKickQueue(int client);
-	static bool IsClientAuthorized(int client);
-	static bool IsFakeClient(int client);
-	static bool IsClientSourceTV(int client);
-	static bool IsClientReplay(int client);
-	static bool IsClientObserver(int client);
-	static bool IsPlayerAlive(int client);
-	static bool GetClientInfo(int client, const char* key, char* value, int maxlen);
-	static int GetClientTeam(int client);
-	static void SetUserAdmin(int client, AdminId id, bool temp);
-	static AdminId GetUserAdmin(int client);
-	static void AddUserFlags(int client, AdminFlag flag); // TODO: AdminFlag ... flags
-	static void RemoveUserFlags(int client, AdminFlag flag); // TODO: AdminFlag ... flags
-	static void SetUserFlagBits(int client, int flags);
-	static int GetUserFlagBits(int client);
-	static bool CanUserTarget(int client, int target);
-	static bool RunAdminCacheChecks(int client);
-	static void NotifyPostAdminCheck(int client);
-	static int CreateFakeClient(const char* name);
-	static void SetFakeClientConVar(int client, const char* cvar, const char* value);
-	static int GetClientHealth(int client);
-	static void GetClientModel(int client, char* model, int maxlen);
-	static void GetClientWeapon(int client, char* weapon, int maxlen);
-	static void GetClientMaxs(int client, float vec[3]);
-	static void GetClientMins(int client, float vec[3]);
-	static void GetClientAbsAngles(int client, float ang[3]);
-	static void GetClientAbsOrigin(int client, float vec[3]);
-	static int GetClientArmor(int client);
-	static int GetClientDeaths(int client);
-	static int GetClientFrags(int client);
-	static int GetClientDataRate(int client);
-	static bool IsClientTimingOut(int client);
-	static float GetClientTime(int client);
-	static float GetClientLatency(int client, NetFlow flow);
-	static float GetClientAvgLatency(int client, NetFlow flow);
-	static float GetClientAvgLoss(int client, NetFlow flow);
-	static float GetClientAvgChoke(int client, NetFlow flow);
-	static float GetClientAvgData(int client, NetFlow flow);
-	static float GetClientAvgPackets(int client, NetFlow flow);
-	static int GetClientOfUserId(int userid);
-	static void KickClient(int client, const char* message);
-	static void KickClientEx(int client, const char* message);
-	static void ChangeClientTeam(int client, int team);
-	static int GetClientSerial(int client);
-	static int GetClientFromSerial(int serial);
+	#include "API/ClientAPI.h"
 private:
 	static void PushArg(IPluginFunction* func, int arg) { func->PushCell(arg); }
 	static void PushArg(IPluginFunction* func, float arg) { func->PushFloat(arg); }
 	static void PushArg(IPluginFunction* func, const char* arg) { func->PushString(arg); }
 	static void PushArg(IPluginFunction* func, float arg[3]) { func->PushArray((int*)arg, 3, 1); }
+	static void PushArg(IPluginFunction* func, const float arg[3]) { func->PushArray((int*)arg, 3, 1); }
 	static void PushArg(IPluginFunction* func, int arg[], unsigned int len) { func->PushArray(arg, len); }
 
 	static void PushArgRef(IPluginFunction* func, int& arg) { func->PushCellByRef(&arg); }
@@ -282,6 +242,9 @@ private:
 private:
 	friend class NativeManager;
 
+	// SDKHOOKS.INC
+	static std::unordered_map<std::pair<int, SDKHookType>, void*, pair_hash> s_SDKHooksCallbacks;
+
 	// MENUS.INC
 	static std::unordered_map<Handle, MenuHandler> s_MenuHandlers;
 	static std::unordered_map<Handle, VoteHandler> s_VoteHandlers;
@@ -298,6 +261,46 @@ private:
 	static std::unordered_map<int, int> s_SQLTQueryCallbacksData;
 private:
 	static int s_MaxClients;
+
+	// SDKTOOLS_FUNCTIONS.INC
+	static IPluginFunction* s_RemovePlayerItemFunc;
+	static IPluginFunction* s_GivePlayerItemFunc;
+	static IPluginFunction* s_GetPlayerWeaponSlotFunc;
+	static IPluginFunction* s_IgniteEntityFunc;
+	static IPluginFunction* s_ExtinguishEntityFunc;
+	static IPluginFunction* s_TeleportEntityFunc;
+	static IPluginFunction* s_ForcePlayerSuicideFunc;
+	static IPluginFunction* s_SlapPlayerFunc;
+	static IPluginFunction* s_FindEntityByClassnameFunc;
+	static IPluginFunction* s_GetClientEyeAnglesFunc;
+	static IPluginFunction* s_CreateEntityByNameFunc;
+	static IPluginFunction* s_DispatchSpawnFunc;
+	static IPluginFunction* s_DispatchKeyValueFunc;
+	static IPluginFunction* s_DispatchKeyValueFloatFunc;
+	static IPluginFunction* s_DispatchKeyValueVectorFunc;
+	static IPluginFunction* s_GetClientAimTargetFunc;
+	static IPluginFunction* s_GetTeamCountFunc;
+	static IPluginFunction* s_GetTeamNameFunc;
+	static IPluginFunction* s_GetTeamScoreFunc;
+	static IPluginFunction* s_SetTeamScoreFunc;
+	static IPluginFunction* s_GetTeamClientCountFunc;
+	static IPluginFunction* s_GetTeamEntityFunc;
+	static IPluginFunction* s_SetEntityModelFunc;
+	static IPluginFunction* s_GetPlayerDecalFileFunc;
+	static IPluginFunction* s_GetPlayerJingleFileFunc;
+	static IPluginFunction* s_GetServerNetStatsFunc;
+	static IPluginFunction* s_EquipPlayerWeaponFunc;
+	static IPluginFunction* s_ActivateEntityFunc;
+	static IPluginFunction* s_SetClientInfoFunc;
+	static IPluginFunction* s_SetClientNameFunc;
+	static IPluginFunction* s_GivePlayerAmmoFunc;
+
+	// SDKHOOKS.INC
+	static IPluginFunction* s_SDKHookFunc;
+	static IPluginFunction* s_SDKHookExFunc;
+	static IPluginFunction* s_SDKUnhookFunc;
+	static IPluginFunction* s_SDKHooks_TakeDamageFunc;
+	static IPluginFunction* s_SDKHooks_DropWeaponFunc;
 
 	// MENUS.INC
 	static IPluginFunction* s_CreateMenuFunc;

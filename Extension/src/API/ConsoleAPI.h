@@ -1,0 +1,37 @@
+public:
+	VARIADIC_FUNC2(ServerCommand, s_ServerCommandFunc, const char*);
+	VARIADIC_FUNC4(ServerCommandEx, s_ServerCommandExFunc, char*, int, const char*);
+	VARIADIC_FUNC2(InsertServerCommand, s_InsertServerCommandFunc, const char*);
+	static void ServerExecute();
+	VARIADIC_FUNC3(ClientCommand, s_ClientCommandFunc, int, const char*);
+	VARIADIC_FUNC3(FakeClientCommand, s_FakeClientCommandFunc, int, const char*);
+	VARIADIC_FUNC3(FakeClientCommandEx, s_FakeClientCommandExFunc, int, const char*);
+	static void FakeClientCommandKeyValues(int client, KeyValuesHandle kv) { ExecFunc(s_FakeClientCommandKeyValuesFunc, client, kv); }
+	VARIADIC_FUNC2(PrintToServer, s_PrintToServerFunc, const char*);
+	VARIADIC_FUNC3(PrintToConsole, s_PrintToConsoleFunc, int, const char*);
+	VARIADIC_FUNC3(ReplyToCommand, s_ReplyToCommandFunc, int, const char*);
+	static ReplySource GetCmdReplySource();
+	static ReplySource SetCmdReplySource(ReplySource source);
+	static bool IsChatTrigger();
+	VARIADIC_FUNC4(ShowActivity2, s_ShowActivity2Func, int, const char*, const char*);
+	VARIADIC_FUNC3(ShowActivity, s_ShowActivityFunc, int, const char*);
+	VARIADIC_FUNC4(ShowActivityEx, s_ShowActivityExFunc, int, const char*, const char*);
+	static bool FormatActivitySource(int client, int target, const char* namebuf, int maxlength);
+	static void RegServerCmd(const char* cmd, const char* description, int flags);
+	static void RegConsoleCmd(const char* cmd, const char* description, int flags);
+	static void RegAdminCmd(const char* cmd, int adminflags, const char* description, const char* group, int flags);
+	static int GetCmdArgs();
+	static int GetCmdArg(int argnum, char* buffer, int maxlength);
+	static int GetCmdArgString(char* buffer, int maxlength);
+	static Handle GetCommandIterator();
+	static bool ReadCommandIterator(Handle iter, char* name, int nameLen, int& eflags, char* desc, int descLen);
+	static bool CheckCommandAccess(int client, const char* command, int flags, bool override_only);
+	static bool CheckAccess(AdminId id, const char* command, int flags, bool override_only);
+	static int GetCommandFlags(const char* name);
+	static bool SetCommandFlags(const char* name, int flags);
+	static Handle FindFirstConCommand(char* buffer, int max_size, bool& isCommand, int& flags, char* description, int descrmax_size);
+	static bool FindNextConCommand(Handle search, char* buffer, int max_size, bool& isCommand, int& flags, char* description, int descrmax_size);
+	static void AddServerTag(const char* tag);
+	static void RemoveServerTag(const char* tag);
+	static bool AddCommandListener(const char* command);
+	static void RemoveCommandListener(const char* command);

@@ -1,4 +1,54 @@
 #include <cstrike>
+#include <sdkhooks>
+#include <sdktools_functions>
+
+// SDKHooks helpers
+static SDKHookCB s_SDKHookCallbacks[44];
+// SDKHooks Native Callbacks
+native void native_SDKHooksPreThink(int client);
+native void native_SDKHooksPreThinkPost(int client);
+native void native_SDKHooksPostThink(int client);
+native void native_SDKHooksPostThinkPost(int client);
+native void native_SDKHooksGroundEntChanged(int client);
+native void native_SDKHooksSpawnPost(int entity);
+native void native_SDKHooksThink(int entity);
+native void native_SDKHooksThinkPost(int entity);
+native void native_SDKHooksVPhysicsUpdate(int entity);
+native void native_SDKHooksVPhysicsUpdatePost(int entity);
+native Action native_SDKHooksSpawn(int entity);
+native Action native_SDKHooksReload(int weapon);
+native Action native_SDKHooksEndTouch(int entity, int other);
+native Action native_SDKHooksStartTouch(int entity, int other);
+native Action native_SDKHooksTouch(int entity, int other);
+native Action native_SDKHooksBlocked(int entity, int other);
+native Action native_SDKHooksSetTransmit(int entity, int client);
+native Action native_SDKHooksWeaponCanSwitchTo(int client, int weapon);
+native Action native_SDKHooksWeaponCanUse(int client, int weapon);
+native Action native_SDKHooksWeaponDrop(int client, int weapon);
+native Action native_SDKHooksWeaponEquip(int client, int weapon);
+native Action native_SDKHooksWeaponSwitch(int client, int weapon);
+native void native_SDKHooksEndTouchPost(int entity, int other);
+native void native_SDKHooksStartTouchPost(int entity, int other);
+native void native_SDKHooksTouchPost(int entity, int other);
+native void native_SDKHooksBlockedPost(int entity, int other);
+native void native_SDKHooksWeaponCanSwitchToPost(int client, int weapon);
+native void native_SDKHooksWeaponCanUsePost(int client, int weapon);
+native void native_SDKHooksWeaponDropPost(int client, int weapon);
+native void native_SDKHooksWeaponEquipPost(int client, int weapon);
+native void native_SDKHooksWeaponSwitchPost(int client, int weapon);
+native Action native_SDKHooksGetMaxHealth(int entity, int& maxhealth);
+native Action native_SDKHooksOnTakeDamage(int victim, int& attacker, int& inflictor, float& damage, int& damagetype, int& weapon, float damageForce[3], float damagePosition[3], int damagecustom);
+native Action native_SDKHooksOnTakeDamageAlive(int victim, int& attacker, int& inflictor, float& damage, int& damagetype, int& weapon, float damageForce[3], float damagePosition[3], int damagecustom);
+native void native_SDKHooksOnTakeDamagePost(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3], int damagecustom);
+native void native_SDKHooksOnTakeDamageAlivePost(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3], int damagecustom);
+native void native_SDKHooksFireBulletsPost(int client, int shots, const char[] weaponname);
+native Action native_SDKHooksTraceAttack(int victim, int& attacker, int& inflictor, float& damage, int& damagetype, int& ammotype, int hitbox, int hitgroup);
+native void native_SDKHooksTraceAttackPost(int victim, int attacker, int inflictor, float damage, int damagetype, int ammotype, int hitbox, int hitgroup);
+native bool native_SDKHooksShouldCollide(int entity, int collisiongroup, int contentsmask, bool originalResult);
+native Action native_SDKHooksUse(int entity, int activator, int caller, UseType type, float value);
+native void native_SDKHooksUsePost(int entity, int activator, int caller, UseType type, float value);
+native void native_SDKHooksReloadPost(int weapon, bool bSuccessful);
+native bool native_SDKHooksCanBeAutobalanced(int client, bool origRet);
 
 // Native Callbacks
 native Action native_ConCmdCallback(int client, char[] command, char[] args);
@@ -11,12 +61,22 @@ native void native_SQLTCallbackQuery(Handle owner, Handle hndl, const char[] err
 native Action native_EventHookCallbackPre(Event event, const char[] name, bool dontBroadcast);
 native Action native_EventHookCallbackPost(Event event, const char[] name, bool dontBroadcast);
 native Action native_EventHookCallbackPostNoCopy(Event event, const char[] name, bool dontBroadcast);
+native int native_MenuHandlerCallback(Menu menu, MenuAction action, int param1, int param2);
+native void native_VoteHandlerCallback(Menu menu, int num_votes, int num_clients, const int[][] client_info, int num_items, const int[][] item_info);
 
+// TODO
 // Not known for now
 native int native_OnPluginStart();
 native int native_OnPluginEnd();
 native int native_OnMapStart();
 native int native_OnMapEnd();
+
+// SDKHOOKS.INC - Natives declaration
+native void native_OnEntityCreated(int entity, const char[] classname);
+native void native_OnEntitySpawned(int entity, const char[] classname);
+native void native_OnEntityDestroyed(int entity);
+native Action native_OnGetGameDescription(char gameDesc[64]);
+native Action native_OnLevelInit(const char[] mapName, char mapEntities[2097152]);
 
 // cstrike.inc - Natives declaration
 native Action native_CS_OnBuyCommand(int client, const char[] weapon);
@@ -47,11 +107,144 @@ native int native_OnClientPostAdminCheck(int client);
 // TODO
 public void OnPluginStart()
 {
+	s_SDKHookCallbacks[SDKHook_EndTouch] = SDKHooksEndTouch;
+	s_SDKHookCallbacks[SDKHook_FireBulletsPost] = SDKHooksFireBulletsPost;
+	s_SDKHookCallbacks[SDKHook_OnTakeDamage] = SDKHooksOnTakeDamage;
+	s_SDKHookCallbacks[SDKHook_OnTakeDamagePost] = SDKHooksOnTakeDamagePost;
+	s_SDKHookCallbacks[SDKHook_PreThink] = SDKHooksPreThink;
+	s_SDKHookCallbacks[SDKHook_PostThink] = SDKHooksPostThink;
+	s_SDKHookCallbacks[SDKHook_SetTransmit] = SDKHooksSetTransmit;
+	s_SDKHookCallbacks[SDKHook_Spawn] = SDKHooksSpawn;
+	s_SDKHookCallbacks[SDKHook_StartTouch] = SDKHooksStartTouch;
+	s_SDKHookCallbacks[SDKHook_Think] = SDKHooksThink;
+	s_SDKHookCallbacks[SDKHook_Touch] = SDKHooksTouch;
+	s_SDKHookCallbacks[SDKHook_TraceAttack] = SDKHooksTraceAttack;
+	s_SDKHookCallbacks[SDKHook_TraceAttackPost] = SDKHooksTraceAttackPost;
+	s_SDKHookCallbacks[SDKHook_WeaponCanSwitchTo] = SDKHooksWeaponCanSwitchTo;
+	s_SDKHookCallbacks[SDKHook_WeaponCanUse] = SDKHooksWeaponCanUse;
+	s_SDKHookCallbacks[SDKHook_WeaponDrop] = SDKHooksWeaponDrop;
+	s_SDKHookCallbacks[SDKHook_WeaponEquip] = SDKHooksWeaponEquip;
+	s_SDKHookCallbacks[SDKHook_WeaponSwitch] = SDKHooksWeaponSwitch;
+	s_SDKHookCallbacks[SDKHook_ShouldCollide] = SDKHooksShouldCollide;
+	s_SDKHookCallbacks[SDKHook_PreThinkPost] = SDKHooksPreThinkPost;
+	s_SDKHookCallbacks[SDKHook_PostThinkPost] = SDKHooksPostThinkPost;
+	s_SDKHookCallbacks[SDKHook_ThinkPost] = SDKHooksThinkPost;
+	s_SDKHookCallbacks[SDKHook_EndTouchPost] = SDKHooksEndTouchPost;
+	s_SDKHookCallbacks[SDKHook_GroundEntChangedPost] = SDKHooksGroundEntChanged;
+	s_SDKHookCallbacks[SDKHook_SpawnPost] = SDKHooksSpawnPost;
+	s_SDKHookCallbacks[SDKHook_StartTouchPost] = SDKHooksStartTouchPost;
+	s_SDKHookCallbacks[SDKHook_TouchPost] = SDKHooksTouchPost;
+	s_SDKHookCallbacks[SDKHook_VPhysicsUpdate] = SDKHooksVPhysicsUpdate;
+	s_SDKHookCallbacks[SDKHook_VPhysicsUpdatePost] = SDKHooksVPhysicsUpdatePost;
+	s_SDKHookCallbacks[SDKHook_WeaponCanSwitchToPost] = SDKHooksWeaponCanSwitchToPost;
+	s_SDKHookCallbacks[SDKHook_WeaponCanUsePost] = SDKHooksWeaponCanUsePost;
+	s_SDKHookCallbacks[SDKHook_WeaponDropPost] = SDKHooksWeaponDropPost;
+	s_SDKHookCallbacks[SDKHook_WeaponEquipPost] = SDKHooksWeaponEquipPost;
+	s_SDKHookCallbacks[SDKHook_WeaponSwitchPost] = SDKHooksWeaponSwitchPost;
+	s_SDKHookCallbacks[SDKHook_Use] = SDKHooksUse;
+	s_SDKHookCallbacks[SDKHook_UsePost] = SDKHooksUsePost;
+	s_SDKHookCallbacks[SDKHook_Reload] = SDKHooksReload;
+	s_SDKHookCallbacks[SDKHook_ReloadPost] = SDKHooksReloadPost;
+	s_SDKHookCallbacks[SDKHook_GetMaxHealth] = SDKHooksGetMaxHealth;
+	s_SDKHookCallbacks[SDKHook_Blocked] = SDKHooksBlocked;
+	s_SDKHookCallbacks[SDKHook_BlockedPost] = SDKHooksBlockedPost;
+	s_SDKHookCallbacks[SDKHook_OnTakeDamageAlive] = SDKHooksOnTakeDamageAlive;
+	s_SDKHookCallbacks[SDKHook_OnTakeDamageAlivePost] = SDKHooksOnTakeDamageAlivePost;
+	s_SDKHookCallbacks[SDKHook_CanBeAutobalanced] = SDKHooksCanBeAutobalanced;
+	
 	native_OnPluginStart();
 }
 
 
-
+// SDKHooks Callbacks
+public void SDKHooksPreThink(int client)
+	{ native_SDKHooksPreThink(client); }
+public void SDKHooksPreThinkPost(int client)
+	{ native_SDKHooksPreThinkPost(client); }
+public void SDKHooksPostThink(int client)
+	{ native_SDKHooksPostThink(client); }
+public void SDKHooksPostThinkPost(int client)
+	{ native_SDKHooksPostThinkPost(client); }
+public void SDKHooksGroundEntChanged(int client)
+	{ native_SDKHooksGroundEntChanged(client); }
+public void SDKHooksSpawnPost(int entity)
+	{ native_SDKHooksSpawnPost(entity); }
+public void SDKHooksThink(int entity)
+	{ native_SDKHooksThink(entity); }
+public void SDKHooksThinkPost(int entity)
+	{ native_SDKHooksThinkPost(entity); }
+public void SDKHooksVPhysicsUpdate(int entity)
+	{ native_SDKHooksVPhysicsUpdate(entity); }
+public void SDKHooksVPhysicsUpdatePost(int entity)
+	{ native_SDKHooksVPhysicsUpdatePost(entity); }
+public Action SDKHooksSpawn(int entity)
+	{ return native_SDKHooksSpawn(entity); }
+public Action SDKHooksReload(int weapon)
+	{ return native_SDKHooksReload(weapon); }
+public Action SDKHooksEndTouch(int entity, int other)
+	{ return native_SDKHooksEndTouch(entity, other); }
+public Action SDKHooksStartTouch(int entity, int other)
+	{ return native_SDKHooksStartTouch(entity, other); }
+public Action SDKHooksTouch(int entity, int other)
+	{ return native_SDKHooksTouch(entity, other); }
+public Action SDKHooksBlocked(int entity, int other)
+	{ return native_SDKHooksBlocked(entity, other); }
+public Action SDKHooksSetTransmit(int entity, int client)
+	{ return native_SDKHooksSetTransmit(entity, client); }
+public Action SDKHooksWeaponCanSwitchTo(int client, int weapon)
+	{ return native_SDKHooksWeaponCanSwitchTo(client, weapon); }
+public Action SDKHooksWeaponCanUse(int client, int weapon)
+	{ return native_SDKHooksWeaponCanUse(client, weapon); }
+public Action SDKHooksWeaponDrop(int client, int weapon)
+	{ return native_SDKHooksWeaponDrop(client, weapon); }
+public Action SDKHooksWeaponEquip(int client, int weapon)
+	{ return native_SDKHooksWeaponEquip(client, weapon); }
+public Action SDKHooksWeaponSwitch(int client, int weapon)
+	{ return native_SDKHooksWeaponSwitch(client, weapon); }
+public void SDKHooksEndTouchPost(int entity, int other)
+	{ native_SDKHooksEndTouchPost(entity, other); }
+public void SDKHooksStartTouchPost(int entity, int other)
+	{ native_SDKHooksStartTouchPost(entity, other); }
+public void SDKHooksTouchPost(int entity, int other)
+	{ native_SDKHooksTouchPost(entity, other); }
+public void SDKHooksBlockedPost(int entity, int other)
+	{ native_SDKHooksBlockedPost(entity, other); }
+public void SDKHooksWeaponCanSwitchToPost(int client, int weapon)
+	{ native_SDKHooksWeaponCanSwitchToPost(client, weapon); }
+public void SDKHooksWeaponCanUsePost(int client, int weapon)
+	{ native_SDKHooksWeaponCanUsePost(client, weapon); }
+public void SDKHooksWeaponDropPost(int client, int weapon)
+	{ native_SDKHooksWeaponDropPost(client, weapon); }
+public void SDKHooksWeaponEquipPost(int client, int weapon)
+	{ native_SDKHooksWeaponEquipPost(client, weapon); }
+public void SDKHooksWeaponSwitchPost(int client, int weapon)
+	{ native_SDKHooksWeaponSwitchPost(client, weapon); }
+public Action SDKHooksGetMaxHealth(int entity, int& maxhealth)
+	{ return native_SDKHooksGetMaxHealth(entity, maxhealth); }
+public Action SDKHooksOnTakeDamage(int victim, int& attacker, int& inflictor, float& damage, int& damagetype, int& weapon, float damageForce[3], float damagePosition[3], int damagecustom)
+	{ return native_SDKHooksOnTakeDamage(victim, attacker, inflictor, damage, damagetype, weapon, damageForce, damagePosition, damagecustom); }
+public Action SDKHooksOnTakeDamageAlive(int victim, int& attacker, int& inflictor, float& damage, int& damagetype, int& weapon, float damageForce[3], float damagePosition[3], int damagecustom)
+	{ return native_SDKHooksOnTakeDamageAlive(victim, attacker, inflictor, damage, damagetype, weapon, damageForce, damagePosition, damagecustom); }
+public void SDKHooksOnTakeDamagePost(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3], int damagecustom)
+	{ native_SDKHooksOnTakeDamagePost(victim, attacker, inflictor, damage, damagetype, weapon, damageForce, damagePosition, damagecustom); }
+public void SDKHooksOnTakeDamageAlivePost(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3], int damagecustom)
+	{ native_SDKHooksOnTakeDamageAlivePost(victim, attacker, inflictor, damage, damagetype, weapon, damageForce, damagePosition, damagecustom); }
+public void SDKHooksFireBulletsPost(int client, int shots, const char[] weaponname)
+	{ native_SDKHooksFireBulletsPost(client, shots, weaponname); }
+public Action SDKHooksTraceAttack(int victim, int& attacker, int& inflictor, float& damage, int& damagetype, int& ammotype, int hitbox, int hitgroup)
+	{ return native_SDKHooksTraceAttack(victim, attacker, inflictor, damage, damagetype, ammotype, hitbox, hitgroup); }
+public void SDKHooksTraceAttackPost(int victim, int attacker, int inflictor, float damage, int damagetype, int ammotype, int hitbox, int hitgroup)
+	{ native_SDKHooksTraceAttackPost(victim, attacker, inflictor, damage, damagetype, ammotype, hitbox, hitgroup); }
+public bool SDKHooksShouldCollide(int entity, int collisiongroup, int contentsmask, bool originalResult)
+	{ return native_SDKHooksShouldCollide(entity, collisiongroup, contentsmask, originalResult); }
+public Action SDKHooksUse(int entity, int activator, int caller, UseType type, float value)
+	{ return native_SDKHooksUse(entity, activator, caller, type, value); }
+public void SDKHooksUsePost(int entity, int activator, int caller, UseType type, float value)
+	{ native_SDKHooksUsePost(entity, activator, caller, type, value); }
+public void SDKHooksReloadPost(int weapon, bool bSuccessful)
+	{ native_SDKHooksReloadPost(weapon, bSuccessful); }
+public bool SDKHooksCanBeAutobalanced(int client, bool origRet)
+	{ return native_SDKHooksCanBeAutobalanced(client, origRet); }
 
 // Callbacks
 public Action ConCmdCallback(int client, int argc)
@@ -78,6 +271,9 @@ public void SQLTCallbackQueryFunc(Handle owner, Handle hndl, const char[] error,
 public Action EventHookCallbackPre(Event event, const char[] name, bool dontBroadcast) { return native_EventHookCallbackPre(event, name, dontBroadcast); }
 public Action EventHookCallbackPost(Event event, const char[] name, bool dontBroadcast) { return native_EventHookCallbackPost(event, name, dontBroadcast); }
 public Action EventHookCallbackPostNoCopy(Event event, const char[] name, bool dontBroadcast) { return native_EventHookCallbackPostNoCopy(event, name, dontBroadcast); }
+public int MenuHandlerCallback(Menu menu, MenuAction action, int param1, int param2) { return native_MenuHandlerCallback(menu, action, param1, param2); }
+public void VoteHandlerCallback(Menu menu, int num_votes, int num_clients, const int[][] client_info, int num_items, const int[][] item_info)
+	{ native_VoteHandlerCallback(menu, num_votes, num_clients, client_info, num_items, item_info); }
 
 // TODO
 public void OnPluginEnd() { native_OnPluginEnd(); }
@@ -85,7 +281,191 @@ public void OnPluginEnd() { native_OnPluginEnd(); }
 public void OnMapStart() { native_OnMapStart(); }
 public void OnMapEnd() { native_OnMapEnd(); }
 
-// EVENTS.INC
+// ENTITY.INC
+public int public_GetMaxEntities() { return GetMaxEntities(); }
+public int public_GetEntityCount() { return GetEntityCount(); }
+public bool public_IsValidEntity(int entity) { return IsValidEntity(enntity); }
+public bool public_IsValidEdict(int edict) { return IsValidEdict(edict); }
+public bool public_IsEntNetworkable(int entity) { return IsEntNetworkable(entity); }
+public int public_CreateEdict() { return CreateEdict(); }
+public void public_RemoveEdict(int edict) { RemoveEdict(edict); }
+public void public_RemoveEntity(int entity) { RemoveEntity(entity); }
+public int public_GetEdictFlags(int edict) { return GetEdictFlags(edict); }
+public void public_SetEdictFlags(int edict, int flags) { SetEdictFlags(edict, flags); }
+public bool public_GetEdictClassname(int edict, char[] clsname, int maxlength) { return GetEditClassname(edict, clsname, maxlength); }
+public bool public_GetEntityNetClass(int edict, char[] clsname, int maxlength) { return GetEntityNetClass(edict, clsname, maxlength); }
+public void public_ChangeEdictState(int edict, int offset) { ChangeEdictState(edict, offset); }
+public int public_GetEntData(int entity, int offset, int size) { return GetEntData(entity, offset, size); }
+public void public_SetEntData(int entity, int offset, any value, int size, bool changeState) { SetEntData(entity, offset, value, size, changeState); }
+public float public_GetEntDataFloat(int entity, int offset) { return GetEntDataFloat(entity, offset); }
+public void public_SetEntDataFloat(int entity, int offset, float value, bool changeState) { SetEntDataFloat(entity, offset, value, changeState); }
+public int public_GetEntDataEnt2(int entity, int offset) { return GetEntDataEnt2(entity, offset); }
+public void public_SetEntDataEnt2(int entity, int offset, int other, bool changeState) { SetEntDataEnt2(entity, offset, other, changeState); }
+public void public_GetEntDataVector(int entity, int offset, float vec[3]) { GetEntDataVector(entity, offset, vec); }
+public void public_SetEntDataVector(int entity, int offset, const float vec[3], bool changeState) { SetEntDataVector(entity, offset, vec, changeState); }
+public int public_GetEntDataString(int entity, int offset, char[] buffer, int maxlen) { return GetEntDataString(entity, offset, buffer, maxlen); }
+public int public_SetEntDataString(int entity, int offset, const char[] buffer, int maxlen, bool changeState) { return SetEntDataString(entity, offset, buffer, maxlen, changeState); }
+public int public_FindSendPropInfo(const char[] cls, const char[] prop, PropFieldType &type, int &num_bits, int &local_offset) { return FindSendPropInfo(cls, prop, type, num_bits, local_offset); }
+public int public_FindDataMapInfo(int entity, const char[] prop, PropFieldType &type, int &num_bits, int &local_offset) { return FindDataMapInfo(entity, prop, type, num_bits, local_offset); }
+public int public_GetEntProp(int entity, PropType type, const char[] prop, int size, int element) { return GetEntProp(entity, type, prop, size, element); }
+public void public_SetEntProp(int entity, PropType type, const char[] prop, any value, int size, int element) { SetEntProp(entity, type, prop, value, size, element); }
+public float public_GetEntPropFloat(int entity, PropType type, const char[] prop, int element) { return GetEntPropFloat(entity, type, prop, element); }
+public void public_SetEntPropFloat(int entity, PropType type, const char[] prop, float value, int element) { SetEntPropFloat(entity, type, prop, value, element); }
+public int public_GetEntPropEnt(int entity, PropType type, const char[] prop, int element) { return GetEntPropEnt(entity, type, prop, element); }
+public void public_SetEntPropEnt(int entity, PropType type, const char[] prop, int other, int element) { SetEntPropEnt(entity, type, prop, other, element); }
+public void public_GetEntPropVector(int entity, PropType type, const char[] prop, float vec[3], int element) { GetEntPropVector(entity, type, prop, vec, element); }
+public void public_SetEntPropVector(int entity, PropType type, const char[] prop, const float vec[3], int element) { SetEntPropVector(entity, type, prop, vec, element); }
+public int public_GetEntPropString(int entity, PropType type, const char[] prop, char[] buffer, int maxlen, int element) { return GetEntPropString(entity, type, prop, buffer, maxlen, element); }
+public int public_SetEntPropString(int entity, PropType type, const char[] prop, const char[] buffer, int element) { return SetEntPropString(entity, type, prop, buffer, element); }
+public int public_GetEntPropArraySize(int entity, PropType type, const char[] prop) { return GetEntPropArraySize(entity, type, prop); }
+public Address public_GetEntityAddress(int entity) { return GetEntityAddress(entity); }
+
+/* SDKTOOLS_FUNCTIONS.INC */
+// SDKTOOLS_FUNCTIONS.INC - Public
+public bool public_RemovePlayerItem(int client, int item) { return RemovePlayerItem(client, item); }
+public int public_GivePlayerItem(int client, const char[] item, int iSubType) { return GivePlayerItem(client, item, iSubType); }
+public int public_GetPlayerWeaponSlot(int client, int slot) { return GetPlayerWeaponSlot(client, slot); }
+public void public_IgniteEntity(int entity, float time, bool npc, float size, bool level) { IgniteEntity(entity, time, npc, size, level); }
+public void public_ExtinguishEntity(int entity) { ExtinguishEntity(entity); }
+public void public_TeleportEntity(int entity, const float origin[3], const float angles[3], const float velocity[3]) { TeleportEntity(entity, origin, angles, velocity); }
+public void public_ForcePlayerSuicide(int client) { ForcePlayerSuicide(client); }
+public void public_SlapPlayer(int client, int health, bool sound) { SlapPlayer(client, health, sound); }
+public int public_FindEntityByClassname(int startEnt, const char[] classname) { return FindEntityByClassname(startEnt, classname); }
+public bool public_GetClientEyeAngles(int client, float ang[3]) { return GetClientEyeAngles(client, ang); }
+public int public_CreateEntityByName(const char[] classname, int ForceEdictIndex) { return CreateEntityByName(classname, ForceEdictIndex); }
+public bool public_DispatchSpawn(int entity) { return DispatchSpawn(entity); }
+public bool public_DispatchKeyValue(int entity, const char[] keyName, const char[] value) { return DispatchKeyValue(entity, keyName, value); }
+public bool public_DispatchKeyValueFloat(int entity, const char[] keyName, float value) { return DispatchKeyValueFloat(entity, keyName, value); }
+public bool public_DispatchKeyValueVector(int entity, const char[] keyName, const float vec[3]) { return DispatchKeyValueVector(entity, keyName, vec); }
+public int public_GetClientAimTarget(int client, bool only_clients) { return GetClientAimTarget(client, only_clients); }
+public int public_GetTeamCount() { return GetTeamCount(); }
+public void public_GetTeamName(int index, char[] name, int maxlength) { GetTeamName(index, name, maxlength); }
+public int public_GetTeamScore(int index) { return GetTeamScore(index); }
+public void public_SetTeamScore(int index, int value) { SetTeamScore(index, value); }
+public int public_GetTeamClientCount(int index) { return GetTeamClientCount(index); }
+public int public_GetTeamEntity(int teamIndex) { return GetTeamEntity(teamIndex); }
+public void public_SetEntityModel(int entity, const char[] model) { SetEntityModel(entity, model); }
+public bool public_GetPlayerDecalFile(int client, char[] hex, int maxlength) { return GetPlayerDecalFile(client, hex, maxlength); }
+public bool public_GetPlayerJingleFile(int client, char[] hex, int maxlength) { return GetPlayerJingleFile(client, hex, maxlength); }
+public void public_GetServerNetStats(float &inAmount, float &outAmount) { GetServerNetStats(inAmount, outAmount); }
+public void public_EquipPlayerWeapon(int client, int weapon) { EquipPlayerWeapon(client, weapon); }
+public void public_ActivateEntity(int entity) { ActivateEntity(entity); }
+public void public_SetClientInfo(int client, const char[] key, const char[] value) { SetClientInfo(client, key, value); }
+public void public_SetClientName(int client, const char[] name) { SetClientName(client, name); }
+public int public_GivePlayerAmmo(int client, int amount, int ammotype, bool suppressSound) { return GivePlayerAmmo(client, amount, ammotype, suppressSound); }
+
+/* SDKHOOKS.INC */
+// Helper
+stock SDKHookCB ResolveCallback(SDKHookType type)
+{
+	return s_SDKHookCallbacks[type];
+}
+// SDKHOOKS.INC - Natives
+public void OnEntityCreated(int entity, const char[] classname) { native_OnEntityCreated(entity, classname); }
+public void OnEntitySpawned(int entity, const char[] classname) { native_OnEntitySpawned(entity, classname); }
+public void OnEntityDestroyed(int entity) { native_OnEntityDestroyed(entity); }
+public Action OnGetGameDescription(char gameDesc[64]) { return native_OnGetGameDescription(gameDesc); }
+public Action OnLevelInit(const char[] mapName, char mapEntities[2097152]) { return native_OnLevelInit(mapName, mapEntities); }
+// SDKHOOKS.INC - Public
+public void public_SDKHook(int entity, SDKHookType type) { SDKHook(entity, type, ResolveCallback(type)); }
+public bool public_SDKHookEx(int entity, SDKHookType type) { return SDKHookEx(entity, type, ResolveCallback(type)); }
+public void public_SDKUnhook(int entity, SDKHookType type) { SDKUnhook(entity, type, ResolveCallback(type)); }
+public void public_SDKHooks_TakeDamage(int entity, int inflictor, int attacker,
+		float damage, int damageType, int weapon,
+		const float damageForce[3], const float damagePosition[3])
+		{ SDKHooks_TakeDamage(entity, inflictor, attacker, damage, damageType, weapon, damageForce, damagePosition); }
+public void public_SDKHooks_DropWeapon(int client, int weapon, const float vecTarget[3],
+		const float vecVelocity[3])
+		{ SDKHooks_DropWeapon(client, weapon, vecTarget, vecVelocity); }
+
+// MENUS.INC
+public Menu public_CreateMenu(MenuAction actions) { return CreateMenu(MenuHandlerCallback, actions); }
+public bool public_DisplayMenu(Handle menu, int client, int time) { return DisplayMenu(menu, client, time); }
+public bool public_DisplayMenuAtItem(Handle menu, int client, int first_item, int time) { return DisplayMenuAtItem(menu, client, first_item, time); }
+public bool public_AddMenuItem(Handle menu, const char[] info, const char[] display, int style) { return AddMenuItem(menu, info, display, style); }
+public bool public_InsertMenuItem(Handle menu, int position, const char[] info, const char[] display, int style) { return InsertMenuItem(menu, position, info, display, style); }
+public bool public_RemoveMenuItem(Handle menu, int position) { return RemoveMenuItem(menu, position); }
+public void public_RemoveAllMenuItems(Handle menu) { RemoveAllMenuItems(menu); }
+public bool public_GetMenuItem(Handle menu, int position, char[] infoBuf, int infoBufLen, int &style, char[] dispBuf, int dispBufLen, int client)
+	{ return GetMenuItem(menu, position, infoBuf, infoBufLen, style, dispBuf, dispBufLen, client); }
+public void public_MenuShufflePerClient(Handle menu, int start, int stop) { MenuShufflePerClient(menu, start, stop); }
+public void public_MenuSetClientMapping(Handle menu, int client, int[] array, int length) { MenuSetClientMapping(menu, client, array, length); }
+public int public_GetMenuSelectionPosition() { return GetMenuSelectionPosition(); }
+public int public_GetMenuItemCount(Handle menu) { return GetMenuItemCount(menu); }
+public bool public_SetMenuPagination(Handle menu, int itemsPerPage) { return SetMenuPagination(menu, itemsPerPage); }
+public int public_GetMenuPagination(Handle menu) { return GetMenuPagination(menu); }
+public Handle public_GetMenuStyle(Handle menu) { return GetMenuStyle(menu); }
+public void public_SetMenuTitle(Handle menu, const char[] fmt, any...) { char buffer[128]; VFormat(buffer, sizeof(buffer), fmt, 3); SetMenuTitle(menu, buffer); }
+public int public_GetMenuTitle(Handle menu, char[] buffer, int maxlength) { return GetMenuTitle(menu, buffer, maxlength); }
+public Panel public_CreatePanelFromMenu(Handle menu) { return CreatePanelFromMenu(menu); }
+public bool public_GetMenuExitButton(Handle menu) { return GetMenuExitButton(menu); }
+public bool public_SetMenuExitButton(Handle menu, bool button) { return SetMenuExitButton(menu, button); }
+public bool public_GetMenuExitBackButton(Handle menu) { return GetMenuExitBackButton(menu); }
+public void public_SetMenuExitBackButton(Handle menu, bool button) { SetMenuExitBackButton(menu, button); }
+public bool public_SetMenuNoVoteButton(Handle menu, bool button) { return SetMenuNoVoteButton(menu, button); }
+public void public_CancelMenu(Handle menu) { CancelMenu(menu); }
+public int public_GetMenuOptionFlags(Handle menu) { return GetMenuOptionFlags(menu); }
+public void public_SetMenuOptionFlags(Handle menu, int flags) { SetMenuOptionFlags(menu, flags); }
+public bool public_IsVoteInProgress(Handle menu) { return IsVoteInProgress(menu); }
+public void public_CancelVote() { CancelVote(); }
+public bool public_VoteMenu(Handle menu, int[] clients, int numClients, int time, int flags) { return VoteMenu(menu, clients, numClients, time, flags); }
+/*stock bool VoteMenuToAll(Handle menu, int time, int flags=0)
+{
+	int total;
+	int[] players = new int[MaxClients];
+
+	for (int i=1; i<=MaxClients; i++)
+	{
+		if (!IsClientInGame(i) || IsFakeClient(i))
+		{
+			continue;
+		}
+		players[total++] = i;
+	}
+
+	return VoteMenu(menu, players, total, time, flags);
+}*/
+public void public_SetVoteResultCallback(Handle menu) { SetVoteResultCallback(menu, VoteHandlerCallback); }
+public int public_CheckVoteDelay() { return CheckVoteDelay(); }
+public bool public_IsClientInVotePool(int client) { return IsClientInVotePool(client); }
+public bool public_RedrawClientVoteMenu(int client, bool revotes) { return RedrawClientVoteMenu(client, revotes); }
+public Handle public_GetMenuStyleHandle(MenuStyle style) { return GetMenuStyleHandle(style); }
+public Panel public_CreatePanel(Handle hStyle) { return CreatePanel(hStyle); }
+public Menu public_CreateMenuEx(Handle hStyle, MenuAction actions) { return CreateMenuEx(hStyle, MenuHandlerCallback, actions); }
+public MenuSource public_GetClientMenu(int client, Handle hStyle) { return GetClientMenu(client, hStyle); }
+public bool public_CancelClientMenu(int client, bool autoIgnore, Handle hStyle) { return CancelClientMenu(client, autoIgnore, hStyle); }
+public int public_GetMaxPageItems(Handle hStyle) { return GetMaxPageItems(hStyle); }
+public Handle public_GetPanelStyle(Handle panel) { return GetPanelStyle(panel); }
+public void public_SetPanelTitle(Handle panel, const char[] text, bool onlyIfEmpty) { SetPanelTitle(panel, text, onlyIfEmpty); }
+public int public_DrawPanelItem(Handle panel, const char[] text, int style) { return DrawPanelItem(panel, text, style); }
+public bool public_DrawPanelText(Handle panel, const char[] text) { return DrawPanelText(panel, text); }
+public bool public_CanPanelDrawFlags(Handle panel, int style) { return CanPanelDrawFlags(panel, style); }
+public bool public_SetPanelKeys(Handle panel, int keys) { return SetPanelKeys(panel, keys); }
+public bool public_SendPanelToClient(Handle panel, int client, int time) { return SendPanelToClient(panel, client, MenuHandlerCallback, time); }
+public int public_GetPanelTextRemaining(Handle panel) { return GetPanelTextRemaining(panel); }
+public int public_GetPanelCurrentKey(Handle panel) { return GetPanelCurrentKey(panel); }
+public bool public_SetPanelCurrentKey(Handle panel, int key) { return SetPanelCurrentKey(panel, key); }
+public int public_RedrawMenuItem(const char[] text) { return RedrawMenuItem(text); }
+public bool public_InternalShowMenu(int client, const char[] str, int time, int keys) { return InternalShowMenu(client, str, time, keys, MenuHandlerCallback); }
+
+/*stock void GetMenuVoteInfo(int param2, int &winningVotes, int &totalVotes)
+{
+	winningVotes = param2 & 0xFFFF;
+	totalVotes = param2 >> 16;
+}*/
+
+/*stock bool IsNewVoteAllowed()
+{
+	if (IsVoteInProgress() || CheckVoteDelay() != 0)
+	{
+		return false;
+	}
+
+	return true;
+}*/
+
+/* EVENTS.INC */
+// EVENTS.INC - Public
 public void public_HookEvent(const char[] name, EventHookMode mode)
 {
 	if (mode == EventHookMode_Pre) { HookEvent(name, EventHookCallbackPre, EventHookMode_Pre); }

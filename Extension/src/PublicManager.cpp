@@ -2,6 +2,46 @@
 
 int PublicManager::s_MaxClients = 0;
 
+// SDKTOOLS_FUNCTIONS.INC
+IPluginFunction* PublicManager::s_RemovePlayerItemFunc;
+IPluginFunction* PublicManager::s_GivePlayerItemFunc;
+IPluginFunction* PublicManager::s_GetPlayerWeaponSlotFunc;
+IPluginFunction* PublicManager::s_IgniteEntityFunc;
+IPluginFunction* PublicManager::s_ExtinguishEntityFunc;
+IPluginFunction* PublicManager::s_TeleportEntityFunc;
+IPluginFunction* PublicManager::s_ForcePlayerSuicideFunc;
+IPluginFunction* PublicManager::s_SlapPlayerFunc;
+IPluginFunction* PublicManager::s_FindEntityByClassnameFunc;
+IPluginFunction* PublicManager::s_GetClientEyeAnglesFunc;
+IPluginFunction* PublicManager::s_CreateEntityByNameFunc;
+IPluginFunction* PublicManager::s_DispatchSpawnFunc;
+IPluginFunction* PublicManager::s_DispatchKeyValueFunc;
+IPluginFunction* PublicManager::s_DispatchKeyValueFloatFunc;
+IPluginFunction* PublicManager::s_DispatchKeyValueVectorFunc;
+IPluginFunction* PublicManager::s_GetClientAimTargetFunc;
+IPluginFunction* PublicManager::s_GetTeamCountFunc;
+IPluginFunction* PublicManager::s_GetTeamNameFunc;
+IPluginFunction* PublicManager::s_GetTeamScoreFunc;
+IPluginFunction* PublicManager::s_SetTeamScoreFunc;
+IPluginFunction* PublicManager::s_GetTeamClientCountFunc;
+IPluginFunction* PublicManager::s_GetTeamEntityFunc;
+IPluginFunction* PublicManager::s_SetEntityModelFunc;
+IPluginFunction* PublicManager::s_GetPlayerDecalFileFunc;
+IPluginFunction* PublicManager::s_GetPlayerJingleFileFunc;
+IPluginFunction* PublicManager::s_GetServerNetStatsFunc;
+IPluginFunction* PublicManager::s_EquipPlayerWeaponFunc;
+IPluginFunction* PublicManager::s_ActivateEntityFunc;
+IPluginFunction* PublicManager::s_SetClientInfoFunc;
+IPluginFunction* PublicManager::s_SetClientNameFunc;
+IPluginFunction* PublicManager::s_GivePlayerAmmoFunc;
+
+// SDKHOOKS.INC
+IPluginFunction* PublicManager::s_SDKHookFunc;
+IPluginFunction* PublicManager::s_SDKHookExFunc;
+IPluginFunction* PublicManager::s_SDKUnhookFunc;
+IPluginFunction* PublicManager::s_SDKHooks_TakeDamageFunc;
+IPluginFunction* PublicManager::s_SDKHooks_DropWeaponFunc;
+
 // MENUS.INC
 IPluginFunction* PublicManager::s_CreateMenuFunc;
 IPluginFunction* PublicManager::s_DisplayMenuFunc;
@@ -235,6 +275,8 @@ IPluginFunction* PublicManager::s_ChangeClientTeamFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientSerialFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientFromSerialFunc = nullptr;
 
+std::unordered_map<std::pair<int, SDKHookType>, void*, pair_hash> PublicManager::s_SDKHooksCallbacks;
+
 std::unordered_map<Handle, MenuHandler> PublicManager::s_MenuHandlers;
 std::unordered_map<Handle, VoteHandler> PublicManager::s_VoteHandlers;
 
@@ -254,6 +296,46 @@ void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 {
 	IPluginFunction* GetMaxClientsFunc = pContext->GetFunctionByName("public_GetMaxClients");
 	GetMaxClientsFunc->Execute(&s_MaxClients);
+
+	// SDKTOOLS_FUNCTIONS.INC
+	LOAD_PTR(RemovePlayerItem);
+	LOAD_PTR(GivePlayerItem);
+	LOAD_PTR(GetPlayerWeaponSlot);
+	LOAD_PTR(IgniteEntity);
+	LOAD_PTR(ExtinguishEntity);
+	LOAD_PTR(TeleportEntity);
+	LOAD_PTR(ForcePlayerSuicide);
+	LOAD_PTR(SlapPlayer);
+	LOAD_PTR(FindEntityByClassname);
+	LOAD_PTR(GetClientEyeAngles);
+	LOAD_PTR(CreateEntityByName);
+	LOAD_PTR(DispatchSpawn);
+	LOAD_PTR(DispatchKeyValue);
+	LOAD_PTR(DispatchKeyValueFloat);
+	LOAD_PTR(DispatchKeyValueVector);
+	LOAD_PTR(GetClientAimTarget);
+	LOAD_PTR(GetTeamCount);
+	LOAD_PTR(GetTeamName);
+	LOAD_PTR(GetTeamScore);
+	LOAD_PTR(SetTeamScore);
+	LOAD_PTR(GetTeamClientCount);
+	LOAD_PTR(GetTeamEntity);
+	LOAD_PTR(SetEntityModel);
+	LOAD_PTR(GetPlayerDecalFile);
+	LOAD_PTR(GetPlayerJingleFile);
+	LOAD_PTR(GetServerNetStats);
+	LOAD_PTR(EquipPlayerWeapon);
+	LOAD_PTR(ActivateEntity);
+	LOAD_PTR(SetClientInfo);
+	LOAD_PTR(SetClientName);
+	LOAD_PTR(GivePlayerAmmo);
+
+	// SDKHOOKS.INC
+	LOAD_PTR(SDKHook);
+	LOAD_PTR(SDKHookEx);
+	LOAD_PTR(SDKUnhook);
+	LOAD_PTR(SDKHooks_TakeDamage);
+	LOAD_PTR(SDKHooks_DropWeapon);
 
 	// MENUS.INC
 	LOAD_PTR(CreateMenu);
@@ -579,8 +661,6 @@ bool    PublicManager::GetClientInfo(int client, const char* key, char* value, i
 int     PublicManager::GetClientTeam(int client) { return ExecFunc(s_GetClientTeamFunc, client); }
 void    PublicManager::SetUserAdmin(int client, AdminId id, bool temp) { ExecFunc(s_SetUserAdminFunc, client, id, temp); }
 AdminId PublicManager::GetUserAdmin(int client) { return ExecFunc(s_GetUserAdminFunc, client); }
-void    PublicManager::AddUserFlags(int client, AdminFlag flag) { ExecFunc(s_AddUserFlagsFunc, client, flag); }
-void    PublicManager::RemoveUserFlags(int client, AdminFlag flag) { ExecFunc(s_RemoveUserFlagsFunc, client, flag); }
 void    PublicManager::SetUserFlagBits(int client, int flags) { ExecFunc(s_SetUserFlagBitsFunc, client, flags); }
 int     PublicManager::GetUserFlagBits(int client) { return ExecFunc(s_GetUserFlagBitsFunc, client); }
 bool    PublicManager::CanUserTarget(int client, int target) { return ExecFunc(s_CanUserTargetFunc, client, target); }
