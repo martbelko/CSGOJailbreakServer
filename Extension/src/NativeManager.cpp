@@ -57,6 +57,99 @@ cell_t NativeManager::CmdListenerCallback(IPluginContext* pContext, const cell_t
 	return MainPlugin::CmdListenerCallback(client, cmd, argc);
 }
 
+int NativeManager::OnPlayerRunCmd(IPluginContext* pContext, const cell_t* params)
+{
+	int client = params[1];
+
+	int* buttonsPtr;
+	pContext->LocalToPhysAddr(params[2], &buttonsPtr);
+
+	int* impulsePtr;
+	pContext->LocalToPhysAddr(params[3], &impulsePtr);
+
+	int* velocityPtr;
+	pContext->LocalToPhysAddr(params[4], &velocityPtr);
+	float velocity[3] = { sp_ctof(velocityPtr[0]), sp_ctof(velocityPtr[1]), sp_ctof(velocityPtr[2]) };
+
+	int* anglesPtr;
+	pContext->LocalToPhysAddr(params[5], &anglesPtr);
+	float angles[3] = { sp_ctof(anglesPtr[0]), sp_ctof(anglesPtr[1]), sp_ctof(anglesPtr[2]) };
+
+	int* weaponAddr;
+	pContext->LocalToPhysAddr(params[6], &weaponAddr);
+
+	int* subTypeAddr;
+	pContext->LocalToPhysAddr(params[7], &subTypeAddr);
+
+	int* cmdNumPtr;
+	pContext->LocalToPhysAddr(params[8], &cmdNumPtr);
+
+	int* tickCountPtr;
+	pContext->LocalToPhysAddr(params[9], &tickCountPtr);
+
+	int* seedPtr;
+	pContext->LocalToPhysAddr(params[10], &seedPtr);
+
+	int* mousePtr;
+	pContext->LocalToPhysAddr(params[11], &mousePtr);
+
+	// callback here
+
+	anglesPtr[0] = angles[0];
+	anglesPtr[1] = angles[1];
+	anglesPtr[2] = angles[2];
+
+	velocityPtr[0] = velocity[0];
+	velocityPtr[1] = velocity[1];
+	velocityPtr[2] = velocity[2];
+
+	// return here
+}
+
+int NativeManager::OnPlayerRunCmdPost(IPluginContext* pContext, const cell_t* params)
+{
+	int client = params[1];
+	int buttons = params[2];
+	int impulse = params[3];
+
+	int* velocityPtr;
+	pContext->LocalToPhysAddr(params[4], &velocityPtr);
+	const float velocity[3] = { sp_ctof(velocityPtr[0]), sp_ctof(velocityPtr[1]), sp_ctof(velocityPtr[2]) };
+
+	int* anglesPtr;
+	pContext->LocalToPhysAddr(params[5], &anglesPtr);
+	const float angles[3] = { sp_ctof(anglesPtr[0]), sp_ctof(anglesPtr[1]), sp_ctof(anglesPtr[2]) };
+
+	int weapon = params[6];
+	int subType = params[7];
+	int cmdnum = params[8];
+	int tickCount = params[9];
+	int seed = params[10];
+
+	int* mousePtr;
+	pContext->LocalToPhysAddr(params[11], &mousePtr);
+
+	// Callback and return here
+}
+
+int NativeManager::OnFileSend(IPluginContext* pContext, const cell_t* params)
+{
+	int client = params[1];
+	char* filepath;
+	pContext->LocalToString(params[2], &filepath);
+
+	// Callback and return here
+}
+
+int NativeManager::OnFileReceive(IPluginContext* pContext, const cell_t* params)
+{
+	int client = params[1];
+	char* filepath;
+	pContext->LocalToString(params[2], &filepath);
+
+	// Callback and return here
+}
+
 int NativeManager::OnEntityCreated(IPluginContext* pContext, const cell_t* params)
 {
 	int entity = params[1];

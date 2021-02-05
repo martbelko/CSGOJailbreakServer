@@ -1,6 +1,45 @@
 #include "PublicManager.h"
 
-int PublicManager::s_MaxClients = 0;
+int PublicManager::s_MaxClients = 0;\
+
+// ENTITY.INC
+IPluginFunction* PublicManager::s_GetMaxEntitiesFunc;
+IPluginFunction* PublicManager::s_GetEntityCountFunc;
+IPluginFunction* PublicManager::s_IsValidEntityFunc;
+IPluginFunction* PublicManager::s_IsValidEdictFunc;
+IPluginFunction* PublicManager::s_IsEntNetworkableFunc;
+IPluginFunction* PublicManager::s_CreateEdictFunc;
+IPluginFunction* PublicManager::s_RemoveEdictFunc;
+IPluginFunction* PublicManager::s_RemoveEntityFunc;
+IPluginFunction* PublicManager::s_GetEdictFlagsFunc;
+IPluginFunction* PublicManager::s_SetEdictFlagsFunc;
+IPluginFunction* PublicManager::s_GetEdictClassnameFunc;
+IPluginFunction* PublicManager::s_GetEntityNetClassFunc;
+IPluginFunction* PublicManager::s_ChangeEdictStateFunc;
+IPluginFunction* PublicManager::s_GetEntDataFunc;
+IPluginFunction* PublicManager::s_SetEntDataFunc;
+IPluginFunction* PublicManager::s_GetEntDataFloatFunc;
+IPluginFunction* PublicManager::s_SetEntDataFloatFunc;
+IPluginFunction* PublicManager::s_GetEntDataEnt2Func;
+IPluginFunction* PublicManager::s_SetEntDataEnt2Func;
+IPluginFunction* PublicManager::s_GetEntDataVectorFunc;
+IPluginFunction* PublicManager::s_SetEntDataVectorFunc;
+IPluginFunction* PublicManager::s_GetEntDataStringFunc;
+IPluginFunction* PublicManager::s_SetEntDataStringFunc;
+IPluginFunction* PublicManager::s_FindSendPropInfoFunc;
+IPluginFunction* PublicManager::s_FindDataMapInfoFunc;
+IPluginFunction* PublicManager::s_GetEntPropFunc;
+IPluginFunction* PublicManager::s_SetEntPropFunc;
+IPluginFunction* PublicManager::s_GetEntPropFloatFunc;
+IPluginFunction* PublicManager::s_SetEntPropFloatFunc;
+IPluginFunction* PublicManager::s_GetEntPropEntFunc;
+IPluginFunction* PublicManager::s_SetEntPropEntFunc;
+IPluginFunction* PublicManager::s_GetEntPropVectorFunc;
+IPluginFunction* PublicManager::s_SetEntPropVectorFunc;
+IPluginFunction* PublicManager::s_GetEntPropStringFunc;
+IPluginFunction* PublicManager::s_SetEntPropStringFunc;
+IPluginFunction* PublicManager::s_GetEntPropArraySizeFunc;
+IPluginFunction* PublicManager::s_GetEntityAddressFunc;
 
 // SDKTOOLS_FUNCTIONS.INC
 IPluginFunction* PublicManager::s_RemovePlayerItemFunc;
@@ -297,6 +336,45 @@ void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 	IPluginFunction* GetMaxClientsFunc = pContext->GetFunctionByName("public_GetMaxClients");
 	GetMaxClientsFunc->Execute(&s_MaxClients);
 
+	// ENTITY.INC
+	LOAD_PTR(GetMaxEntities);
+	LOAD_PTR(GetEntityCount);
+	LOAD_PTR(IsValidEntity);
+	LOAD_PTR(IsValidEdict);
+	LOAD_PTR(IsEntNetworkable);
+	LOAD_PTR(CreateEdict);
+	LOAD_PTR(RemoveEdict);
+	LOAD_PTR(RemoveEntity);
+	LOAD_PTR(GetEdictFlags);
+	LOAD_PTR(SetEdictFlags);
+	LOAD_PTR(GetEdictClassname);
+	LOAD_PTR(GetEntityNetClass);
+	LOAD_PTR(ChangeEdictState);
+	LOAD_PTR(GetEntData);
+	LOAD_PTR(SetEntData);
+	LOAD_PTR(GetEntDataFloat);
+	LOAD_PTR(SetEntDataFloat);
+	LOAD_PTR(GetEntDataEnt2);
+	LOAD_PTR(SetEntDataEnt2);
+	LOAD_PTR(GetEntDataVector);
+	LOAD_PTR(SetEntDataVector);
+	LOAD_PTR(GetEntDataString);
+	LOAD_PTR(SetEntDataString);
+	LOAD_PTR(FindSendPropInfo);
+	LOAD_PTR(FindDataMapInfo);
+	LOAD_PTR(GetEntProp);
+	LOAD_PTR(SetEntProp);
+	LOAD_PTR(GetEntPropFloat);
+	LOAD_PTR(SetEntPropFloat);
+	LOAD_PTR(GetEntPropEnt);
+	LOAD_PTR(SetEntPropEnt);
+	LOAD_PTR(GetEntPropVector);
+	LOAD_PTR(SetEntPropVector);
+	LOAD_PTR(GetEntPropString);
+	LOAD_PTR(SetEntPropString);
+	LOAD_PTR(GetEntPropArraySize);
+	LOAD_PTR(GetEntityAddress);
+
 	// SDKTOOLS_FUNCTIONS.INC
 	LOAD_PTR(RemovePlayerItem);
 	LOAD_PTR(GivePlayerItem);
@@ -568,9 +646,21 @@ void PublicManager::CS_RespawnPlayer(int client) { ExecFunc(s_CS_RespawnPlayerFu
 void PublicManager::CS_SwitchTeam(int client, int team) { ExecFunc(s_CS_SwitchTeamFunc, client, team); }
 void PublicManager::CS_DropWeapon(int client, int weaponIndex, bool toss, bool blockhook) { ExecFunc(s_CS_DropWeaponFunc, client, weaponIndex, toss, blockhook); }
 void PublicManager::CS_TerminateRound(float delay, CSRoundEndReason reason, bool blockhook) { ExecFunc(s_CS_TerminateRoundFunc, delay, reason, blockhook); }
-void PublicManager::CS_GetTranslatedWeaponAlias(const char* alias, char* weapon, int size) { ExecFunc(s_CS_GetTranslatedWeaponAliasFunc, alias, weapon, size); }
+void PublicManager::CS_GetTranslatedWeaponAlias(const char* alias, char* weapon, int size)
+{
+	s_CS_GetTranslatedWeaponAliasFunc->PushString(alias);
+	s_CS_GetTranslatedWeaponAliasFunc->PushStringEx(weapon, size, 0, 1);
+	s_CS_GetTranslatedWeaponAliasFunc->PushCell(size);
+	ExecAndReturn(s_CS_GetTranslatedWeaponAliasFunc);
+}
 int PublicManager::CS_GetWeaponPrice(int client, CSWeaponID id, bool defaultprice) { return ExecFunc(s_CS_GetWeaponPriceFunc, client, id, defaultprice); }
-int PublicManager::CS_GetClientClanTag(int client, char* buffer, int size) { return ExecFunc(s_CS_GetClientClanTagFunc, client, buffer, size); }
+int PublicManager::CS_GetClientClanTag(int client, char* buffer, int size)
+{
+	s_CS_GetClientClanTagFunc->PushCell(client);
+	s_CS_GetClientClanTagFunc->PushStringEx(buffer, size, 0, 1);
+	s_CS_GetClientClanTagFunc->PushCell(size);
+	return ExecAndReturn(s_CS_GetClientClanTagFunc);
+}
 void PublicManager::CS_SetClientClanTag(int client, const char* tag) { ExecFunc(s_CS_SetClientClanTagFunc, client, tag); }
 int PublicManager::CS_GetTeamScore(int team) { return ExecFunc(s_CS_GetTeamScoreFunc, team); }
 void PublicManager::CS_SetTeamScore(int team, int value) { ExecFunc(s_CS_SetTeamScoreFunc, team, value); }
@@ -669,8 +759,20 @@ void    PublicManager::NotifyPostAdminCheck(int client) { ExecFunc(s_NotifyPostA
 int     PublicManager::CreateFakeClient(const char* name) { return ExecFunc(s_CreateFakeClientFunc, name); }
 void    PublicManager::SetFakeClientConVar(int client, const char* cvar, const char* value) { ExecFunc(s_SetFakeClientConVarFunc, client, cvar, value); }
 int     PublicManager::GetClientHealth(int client) { return ExecFunc(s_GetClientHealthFunc, client); }
-void    PublicManager::GetClientModel(int client, char* model, int maxlen) { ExecFunc(s_GetClientModelFunc, client, model, maxlen); }
-void    PublicManager::GetClientWeapon(int client, char* weapon, int maxlen) { ExecFunc(s_GetClientWeaponFunc, client, weapon, maxlen); }
+void    PublicManager::GetClientModel(int client, char* model, int maxlen)
+{
+	PushArg(s_GetClientModelFunc, client);
+	s_GetClientModelFunc->PushStringEx(model, maxlen, 0, 1);
+	PushArg(s_GetClientModelFunc, maxlen);
+	ExecAndReturn(s_GetClientModelFunc);
+}
+void    PublicManager::GetClientWeapon(int client, char* weapon, int maxlen)
+{
+	PushArg(s_GetClientWeaponFunc, client);
+	s_GetClientWeaponFunc->PushStringEx(weapon, maxlen, 0, 1);
+	PushArg(s_GetClientWeaponFunc, maxlen);
+	ExecAndReturn(s_GetClientWeaponFunc);
+}
 void    PublicManager::GetClientMaxs(int client, float vec[3]) { ExecFunc(s_GetClientMaxsFunc, client, vec); }
 void    PublicManager::GetClientMins(int client, float vec[3]) { ExecFunc(s_GetClientMinsFunc, client, vec); }
 void    PublicManager::GetClientAbsAngles(int client, float ang[3]) { ExecFunc(s_GetClientAbsAnglesFunc, client, ang); }

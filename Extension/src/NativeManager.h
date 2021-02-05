@@ -17,6 +17,12 @@ public:
 	static cell_t SrvCmdCallback(IPluginContext* pContext, const cell_t* params);
 	static cell_t CmdListenerCallback(IPluginContext* pContext, const cell_t* params);
 
+	// SDKTOOLS_HOOKS.INC
+	static int OnPlayerRunCmd(IPluginContext* pContext, const cell_t* params);
+	static int OnPlayerRunCmdPost(IPluginContext* pContext, const cell_t* params);
+	static int OnFileSend(IPluginContext* pContext, const cell_t* params);
+	static int OnFileReceive(IPluginContext* pContext, const cell_t* params);
+
 	// SDKHOOKS.INC
 	static int OnEntityCreated(IPluginContext* pContext, const cell_t* params);
 	static int OnEntitySpawned(IPluginContext* pContext, const cell_t* params);

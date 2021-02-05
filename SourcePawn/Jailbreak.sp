@@ -103,7 +103,6 @@ native Action native_OnClientPreAdminCheck(int client);
 native int native_OnClientPostAdminFilter(int client);
 native int native_OnClientPostAdminCheck(int client);
 
-
 // TODO
 public void OnPluginStart()
 {
@@ -284,7 +283,7 @@ public void OnMapEnd() { native_OnMapEnd(); }
 // ENTITY.INC
 public int public_GetMaxEntities() { return GetMaxEntities(); }
 public int public_GetEntityCount() { return GetEntityCount(); }
-public bool public_IsValidEntity(int entity) { return IsValidEntity(enntity); }
+public bool public_IsValidEntity(int entity) { return IsValidEntity(entity); }
 public bool public_IsValidEdict(int edict) { return IsValidEdict(edict); }
 public bool public_IsEntNetworkable(int entity) { return IsEntNetworkable(entity); }
 public int public_CreateEdict() { return CreateEdict(); }
@@ -292,7 +291,7 @@ public void public_RemoveEdict(int edict) { RemoveEdict(edict); }
 public void public_RemoveEntity(int entity) { RemoveEntity(entity); }
 public int public_GetEdictFlags(int edict) { return GetEdictFlags(edict); }
 public void public_SetEdictFlags(int edict, int flags) { SetEdictFlags(edict, flags); }
-public bool public_GetEdictClassname(int edict, char[] clsname, int maxlength) { return GetEditClassname(edict, clsname, maxlength); }
+public bool public_GetEdictClassname(int edict, char[] clsname, int maxlength) { return GetEdictClassname(edict, clsname, maxlength); }
 public bool public_GetEntityNetClass(int edict, char[] clsname, int maxlength) { return GetEntityNetClass(edict, clsname, maxlength); }
 public void public_ChangeEdictState(int edict, int offset) { ChangeEdictState(edict, offset); }
 public int public_GetEntData(int entity, int offset, int size) { return GetEntData(entity, offset, size); }
@@ -409,7 +408,7 @@ public void public_SetMenuOptionFlags(Handle menu, int flags) { SetMenuOptionFla
 public bool public_IsVoteInProgress(Handle menu) { return IsVoteInProgress(menu); }
 public void public_CancelVote() { CancelVote(); }
 public bool public_VoteMenu(Handle menu, int[] clients, int numClients, int time, int flags) { return VoteMenu(menu, clients, numClients, time, flags); }
-/*stock bool VoteMenuToAll(Handle menu, int time, int flags=0)
+/*stock bool VoteMenuToAll(Handle menu, int time, int flags)
 {
 	int total;
 	int[] players = new int[MaxClients];
@@ -545,7 +544,7 @@ public int public_SQL_AddQuery(Transaction txn, const char[] query, int data) { 
 public void public_SQL_ExecuteTransaction(Handle db, Transaction txn, int data, DBPriority priority)
 	{ SQL_ExecuteTransaction(db, txn, SQLTxnSuccessCallback, SQLTxnFailureCallback, data, priority); }
 
-/*stock Database SQL_DefConnect(char[] error, int maxlength, bool persistent=true)
+/*stock Database SQL_DefConnect(char[] error, int maxlength, bool persistent)
 {
 	return SQL_Connect("default", persistent, error, maxlength);
 }*/

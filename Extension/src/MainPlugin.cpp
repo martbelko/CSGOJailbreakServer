@@ -54,6 +54,20 @@ Action MainPlugin::ConCmdCallback(int client, char* command, char* args)
 	PublicManager::IgniteEntity(client + 1, 5.0f);
 	PublicManager::SlapPlayer(client + 1, 20);
 
+	char className[64];
+	PublicManager::GetEdictClassname(client + 1, className, sizeof(className));
+	rootconsole->ConsolePrint("Class Name: %s", className);
+
+	char weapon[64];
+	PublicManager::GetClientWeapon(client + 1, weapon, sizeof(weapon));
+	rootconsole->ConsolePrint("Weapon: %s", weapon);
+
+	PublicManager::CS_SetClientClanTag(client + 1, "LOL");
+
+	char clanTag[32];
+	PublicManager::CS_GetClientClanTag(client + 1, clanTag, sizeof(clanTag));
+	rootconsole->ConsolePrint("Clan: %s", clanTag);
+
 	MenuHandle menu = PublicManager::CreateMenu(TestMenuHandler, MENU_ACTIONS_DEFAULT);
 	PublicManager::SetMenuTitle(menu, "Menu Title here");
 	PublicManager::AddMenuItem(menu, "1", "Choice1", ITEMDRAW_DEFAULT);
@@ -61,6 +75,7 @@ Action MainPlugin::ConCmdCallback(int client, char* command, char* args)
 	PublicManager::AddMenuItem(menu, "3", "Choice3", ITEMDRAW_DEFAULT);
 	PublicManager::SetMenuExitButton(menu, false);
 	PublicManager::DisplayMenu(menu, client + 1, 20);
+
 
 	return Plugin_Handled;
 }

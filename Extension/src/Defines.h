@@ -34,6 +34,7 @@
 #define LANG_SERVER 0
 
 static constexpr float NULL_VECTOR[] = { 0.0f, 0.0f, 0.0f };
+static int NULL_VALUE = 0;
 
 using Handle = int;
 using EventHandle = int;
@@ -625,3 +626,6 @@ enum PropFieldType
 	PropField_Variant           /**< Valid for Data fields only Type is not known at the field level,
                                      (for this call), but dependent on current field value. */
 };
+
+// ENTITY.INC
+using Address = int;

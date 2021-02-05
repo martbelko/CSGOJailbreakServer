@@ -152,6 +152,9 @@ class PublicManager
 public:
 	static void InitOnPluginStart(IPluginContext* pContext);
 
+	// ENTITY.INC
+	#include "API/EntityAPI.h"
+
 	// SDKTOOLS_FUNCTIONS.INC
 	#include "API/SDKToolsFunctions.h"
 
@@ -232,6 +235,14 @@ private:
 		return ExecAndReturn(func);
 	}
 
+	template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+	static int ExecFunc(IPluginFunction* func, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
+	{
+		PushArg(func, t1); PushArg(func, t2); PushArg(func, t3);
+		PushArg(func, t4); PushArg(func, t5); PushArg(func, t6);
+		return ExecAndReturn(func);
+	}
+
 	template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
 	static int ExecFunc(IPluginFunction* func, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
 	{
@@ -261,6 +272,45 @@ private:
 	static std::unordered_map<int, int> s_SQLTQueryCallbacksData;
 private:
 	static int s_MaxClients;
+
+	// ENTITY.INC
+	static IPluginFunction* s_GetMaxEntitiesFunc;
+	static IPluginFunction* s_GetEntityCountFunc;
+	static IPluginFunction* s_IsValidEntityFunc;
+	static IPluginFunction* s_IsValidEdictFunc;
+	static IPluginFunction* s_IsEntNetworkableFunc;
+	static IPluginFunction* s_CreateEdictFunc;
+	static IPluginFunction* s_RemoveEdictFunc;
+	static IPluginFunction* s_RemoveEntityFunc;
+	static IPluginFunction* s_GetEdictFlagsFunc;
+	static IPluginFunction* s_SetEdictFlagsFunc;
+	static IPluginFunction* s_GetEdictClassnameFunc;
+	static IPluginFunction* s_GetEntityNetClassFunc;
+	static IPluginFunction* s_ChangeEdictStateFunc;
+	static IPluginFunction* s_GetEntDataFunc;
+	static IPluginFunction* s_SetEntDataFunc;
+	static IPluginFunction* s_GetEntDataFloatFunc;
+	static IPluginFunction* s_SetEntDataFloatFunc;
+	static IPluginFunction* s_GetEntDataEnt2Func;
+	static IPluginFunction* s_SetEntDataEnt2Func;
+	static IPluginFunction* s_GetEntDataVectorFunc;
+	static IPluginFunction* s_SetEntDataVectorFunc;
+	static IPluginFunction* s_GetEntDataStringFunc;
+	static IPluginFunction* s_SetEntDataStringFunc;
+	static IPluginFunction* s_FindSendPropInfoFunc;
+	static IPluginFunction* s_FindDataMapInfoFunc;
+	static IPluginFunction* s_GetEntPropFunc;
+	static IPluginFunction* s_SetEntPropFunc;
+	static IPluginFunction* s_GetEntPropFloatFunc;
+	static IPluginFunction* s_SetEntPropFloatFunc;
+	static IPluginFunction* s_GetEntPropEntFunc;
+	static IPluginFunction* s_SetEntPropEntFunc;
+	static IPluginFunction* s_GetEntPropVectorFunc;
+	static IPluginFunction* s_SetEntPropVectorFunc;
+	static IPluginFunction* s_GetEntPropStringFunc;
+	static IPluginFunction* s_SetEntPropStringFunc;
+	static IPluginFunction* s_GetEntPropArraySizeFunc;
+	static IPluginFunction* s_GetEntityAddressFunc;
 
 	// SDKTOOLS_FUNCTIONS.INC
 	static IPluginFunction* s_RemovePlayerItemFunc;
