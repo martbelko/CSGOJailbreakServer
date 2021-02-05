@@ -75,11 +75,11 @@ int NativeManager::OnPlayerRunCmd(IPluginContext* pContext, const cell_t* params
 	pContext->LocalToPhysAddr(params[5], &anglesPtr);
 	float angles[3] = { sp_ctof(anglesPtr[0]), sp_ctof(anglesPtr[1]), sp_ctof(anglesPtr[2]) };
 
-	int* weaponAddr;
-	pContext->LocalToPhysAddr(params[6], &weaponAddr);
+	int* weaponPtr;
+	pContext->LocalToPhysAddr(params[6], &weaponPtr);
 
-	int* subTypeAddr;
-	pContext->LocalToPhysAddr(params[7], &subTypeAddr);
+	int* subTypePtr;
+	pContext->LocalToPhysAddr(params[7], &subTypePtr);
 
 	int* cmdNumPtr;
 	pContext->LocalToPhysAddr(params[8], &cmdNumPtr);
@@ -93,7 +93,8 @@ int NativeManager::OnPlayerRunCmd(IPluginContext* pContext, const cell_t* params
 	int* mousePtr;
 	pContext->LocalToPhysAddr(params[11], &mousePtr);
 
-	// callback here
+	Action res = MainPlugin::OnPlayerRunCmd(client, *buttonsPtr, *impulsePtr, velocity,
+		angles, *weaponPtr, *subTypePtr, *cmdNumPtr, *tickCountPtr, *seedPtr, mousePtr);
 
 	anglesPtr[0] = angles[0];
 	anglesPtr[1] = angles[1];
@@ -103,7 +104,7 @@ int NativeManager::OnPlayerRunCmd(IPluginContext* pContext, const cell_t* params
 	velocityPtr[1] = velocity[1];
 	velocityPtr[2] = velocity[2];
 
-	// return here
+	return res;
 }
 
 int NativeManager::OnPlayerRunCmdPost(IPluginContext* pContext, const cell_t* params)
@@ -129,7 +130,9 @@ int NativeManager::OnPlayerRunCmdPost(IPluginContext* pContext, const cell_t* pa
 	int* mousePtr;
 	pContext->LocalToPhysAddr(params[11], &mousePtr);
 
-	// Callback and return here
+	MainPlugin::OnPlayerRunCmdPost(client, buttons, impulse, velocity, angles,
+		weapon, subType, cmdnum, tickCount, seed, mousePtr);
+	return 0;
 }
 
 int NativeManager::OnFileSend(IPluginContext* pContext, const cell_t* params)
@@ -138,7 +141,7 @@ int NativeManager::OnFileSend(IPluginContext* pContext, const cell_t* params)
 	char* filepath;
 	pContext->LocalToString(params[2], &filepath);
 
-	// Callback and return here
+	return MainPlugin::OnFileSend(client, filepath);
 }
 
 int NativeManager::OnFileReceive(IPluginContext* pContext, const cell_t* params)
@@ -147,7 +150,7 @@ int NativeManager::OnFileReceive(IPluginContext* pContext, const cell_t* params)
 	char* filepath;
 	pContext->LocalToString(params[2], &filepath);
 
-	// Callback and return here
+	return MainPlugin::OnFileReceive(client, filepath);
 }
 
 int NativeManager::OnEntityCreated(IPluginContext* pContext, const cell_t* params)

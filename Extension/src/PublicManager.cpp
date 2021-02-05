@@ -1,6 +1,17 @@
 #include "PublicManager.h"
 
-int PublicManager::s_MaxClients = 0;\
+int PublicManager::s_MaxClients = 0;
+
+// TIMERS.INC
+IPluginFunction* PublicManager::s_CreateTimerFunc;
+IPluginFunction* PublicManager::s_KillTimerFunc;
+IPluginFunction* PublicManager::s_TriggerTimerFunc;
+IPluginFunction* PublicManager::s_GetTickedTimeFunc;
+IPluginFunction* PublicManager::s_GetMapTimeLeftFunc;
+IPluginFunction* PublicManager::s_GetMapTimeLimitFunc;
+IPluginFunction* PublicManager::s_ExtendMapTimeLimitFunc;
+IPluginFunction* PublicManager::s_GetTickIntervalFunc;
+IPluginFunction* PublicManager::s_IsServerProcessingFunc;
 
 // ENTITY.INC
 IPluginFunction* PublicManager::s_GetMaxEntitiesFunc;
@@ -314,6 +325,8 @@ IPluginFunction* PublicManager::s_ChangeClientTeamFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientSerialFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientFromSerialFunc = nullptr;
 
+std::unordered_map<Handle, TimerCallbackFunc> PublicManager::s_TimerCallbacks;
+
 std::unordered_map<std::pair<int, SDKHookType>, void*, pair_hash> PublicManager::s_SDKHooksCallbacks;
 
 std::unordered_map<Handle, MenuHandler> PublicManager::s_MenuHandlers;
@@ -335,6 +348,17 @@ void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 {
 	IPluginFunction* GetMaxClientsFunc = pContext->GetFunctionByName("public_GetMaxClients");
 	GetMaxClientsFunc->Execute(&s_MaxClients);
+
+	// TIMERS.INC
+	LOAD_PTR(CreateTimer);
+	LOAD_PTR(KillTimer);
+	LOAD_PTR(TriggerTimer);
+	LOAD_PTR(GetTickedTime);
+	LOAD_PTR(GetMapTimeLeft);
+	LOAD_PTR(GetMapTimeLimit);
+	LOAD_PTR(ExtendMapTimeLimit);
+	LOAD_PTR(GetTickInterval);
+	LOAD_PTR(IsServerProcessing);
 
 	// ENTITY.INC
 	LOAD_PTR(GetMaxEntities);
@@ -729,69 +753,3 @@ void PublicManager::AddServerTag(const char* tag) { ExecFunc(s_AddServerTagFunc,
 void PublicManager::RemoveServerTag(const char* tag) { ExecFunc(s_RemoveServerTagFunc, tag); }
 bool PublicManager::AddCommandListener(const char* command) { return ExecFunc(s_AddCommandListenerFunc, command); }
 void PublicManager::RemoveCommandListener(const char* command) { ExecFunc(s_RemoveCommandListenerFunc, command); }
-
-// CLIENTS.INC
-int     PublicManager::GetMaxHumanPlayers() { return ExecFunc(s_GetMaxHumanPlayersFunc); }
-int     PublicManager::GetClientCount(bool inGameOnly) { return ExecFunc(s_GetClientCountFunc, inGameOnly); }
-bool    PublicManager::GetClientName(int client, char* name, int maxlen) { return ExecFunc(s_GetClientNameFunc, client, name, maxlen); }
-bool    PublicManager::GetClientIP(int client, char* ip, int maxlen, bool remport) { return ExecFunc(s_GetClientIPFunc, client, ip, maxlen, remport); }
-bool    PublicManager::GetClientAuthId(int client, AuthIdType authType, char* auth, int maxlen, bool validate) { return ExecFunc(s_GetClientAuthIdFunc, client, authType, auth, maxlen, validate); }
-int     PublicManager::GetSteamAccountID(int client, bool validate) { return ExecFunc(s_GetSteamAccountIDFunc, client, validate); }
-int     PublicManager::GetClientUserId(int client) { return ExecFunc(s_GetClientUserIdFunc, client); }
-bool    PublicManager::IsClientConnected(int client) { return ExecFunc(s_IsClientConnectedFunc, client); }
-bool    PublicManager::IsClientInGame(int client) { return ExecFunc(s_IsClientInGameFunc, client); }
-bool    PublicManager::IsClientInKickQueue(int client) { return ExecFunc(s_IsClientInKickQueueFunc, client); }
-bool    PublicManager::IsClientAuthorized(int client) { return ExecFunc(s_IsClientAuthorizedFunc, client); }
-bool    PublicManager::IsFakeClient(int client) { return ExecFunc(s_IsFakeClientFunc, client); }
-bool    PublicManager::IsClientSourceTV(int client) { return ExecFunc(s_IsClientSourceTVFunc, client); }
-bool    PublicManager::IsClientReplay(int client) { return ExecFunc(s_IsClientReplayFunc, client); }
-bool    PublicManager::IsClientObserver(int client) { return ExecFunc(s_IsClientObserverFunc, client); }
-bool    PublicManager::IsPlayerAlive(int client) { return ExecFunc(s_IsPlayerAliveFunc, client); }
-bool    PublicManager::GetClientInfo(int client, const char* key, char* value, int maxlen) { return ExecFunc(s_GetClientInfoFunc, client, key, value, maxlen); }
-int     PublicManager::GetClientTeam(int client) { return ExecFunc(s_GetClientTeamFunc, client); }
-void    PublicManager::SetUserAdmin(int client, AdminId id, bool temp) { ExecFunc(s_SetUserAdminFunc, client, id, temp); }
-AdminId PublicManager::GetUserAdmin(int client) { return ExecFunc(s_GetUserAdminFunc, client); }
-void    PublicManager::SetUserFlagBits(int client, int flags) { ExecFunc(s_SetUserFlagBitsFunc, client, flags); }
-int     PublicManager::GetUserFlagBits(int client) { return ExecFunc(s_GetUserFlagBitsFunc, client); }
-bool    PublicManager::CanUserTarget(int client, int target) { return ExecFunc(s_CanUserTargetFunc, client, target); }
-bool    PublicManager::RunAdminCacheChecks(int client) { return ExecFunc(s_RunAdminCacheChecksFunc, client); }
-void    PublicManager::NotifyPostAdminCheck(int client) { ExecFunc(s_NotifyPostAdminCheckFunc, client); }
-int     PublicManager::CreateFakeClient(const char* name) { return ExecFunc(s_CreateFakeClientFunc, name); }
-void    PublicManager::SetFakeClientConVar(int client, const char* cvar, const char* value) { ExecFunc(s_SetFakeClientConVarFunc, client, cvar, value); }
-int     PublicManager::GetClientHealth(int client) { return ExecFunc(s_GetClientHealthFunc, client); }
-void    PublicManager::GetClientModel(int client, char* model, int maxlen)
-{
-	PushArg(s_GetClientModelFunc, client);
-	s_GetClientModelFunc->PushStringEx(model, maxlen, 0, 1);
-	PushArg(s_GetClientModelFunc, maxlen);
-	ExecAndReturn(s_GetClientModelFunc);
-}
-void    PublicManager::GetClientWeapon(int client, char* weapon, int maxlen)
-{
-	PushArg(s_GetClientWeaponFunc, client);
-	s_GetClientWeaponFunc->PushStringEx(weapon, maxlen, 0, 1);
-	PushArg(s_GetClientWeaponFunc, maxlen);
-	ExecAndReturn(s_GetClientWeaponFunc);
-}
-void    PublicManager::GetClientMaxs(int client, float vec[3]) { ExecFunc(s_GetClientMaxsFunc, client, vec); }
-void    PublicManager::GetClientMins(int client, float vec[3]) { ExecFunc(s_GetClientMinsFunc, client, vec); }
-void    PublicManager::GetClientAbsAngles(int client, float ang[3]) { ExecFunc(s_GetClientAbsAnglesFunc, client, ang); }
-void    PublicManager::GetClientAbsOrigin(int client, float vec[3]) { ExecFunc(s_GetClientAbsOriginFunc, client, vec); }
-int     PublicManager::GetClientArmor(int client) { return ExecFunc(s_GetClientArmorFunc, client); }
-int     PublicManager::GetClientDeaths(int client) { return ExecFunc(s_GetClientDeathsFunc, client); }
-int     PublicManager::GetClientFrags(int client) { return ExecFunc(s_GetClientFragsFunc, client); }
-int     PublicManager::GetClientDataRate(int client) { return ExecFunc(s_GetClientDataRateFunc, client); }
-bool    PublicManager::IsClientTimingOut(int client) { return ExecFunc(s_IsClientTimingOutFunc, client); }
-float   PublicManager::GetClientTime(int client) { return sp_ctof(ExecFunc(s_GetClientTimeFunc, client)); }
-float   PublicManager::GetClientLatency(int client, NetFlow flow) { return sp_ctof(ExecFunc(s_GetClientLatencyFunc, client, flow)); }
-float   PublicManager::GetClientAvgLatency(int client, NetFlow flow) { return sp_ctof(ExecFunc(s_GetClientAvgLatencyFunc, client, flow)); }
-float   PublicManager::GetClientAvgLoss(int client, NetFlow flow) { return sp_ctof(ExecFunc(s_GetClientAvgLossFunc, client, flow)); }
-float   PublicManager::GetClientAvgChoke(int client, NetFlow flow) { return sp_ctof(ExecFunc(s_GetClientAvgChokeFunc, client, flow)); }
-float   PublicManager::GetClientAvgData(int client, NetFlow flow) { return sp_ctof(ExecFunc(s_GetClientAvgDataFunc, client, flow)); }
-float   PublicManager::GetClientAvgPackets(int client, NetFlow flow) { return sp_ctof(ExecFunc(s_GetClientAvgPacketsFunc, client, flow)); }
-int     PublicManager::GetClientOfUserId(int userid) { return ExecFunc(s_GetClientOfUserIdFunc, userid); }
-void    PublicManager::KickClient(int client, const char* message) { ExecFunc(s_KickClientFunc, client, message); }
-void    PublicManager::KickClientEx(int client, const char* message) { ExecFunc(s_KickClientExFunc, client, message); }
-void    PublicManager::ChangeClientTeam(int client, int team) { ExecFunc(s_ChangeClientTeamFunc, client, team); }
-int     PublicManager::GetClientSerial(int client) { return ExecFunc(s_GetClientSerialFunc, client); }
-int     PublicManager::GetClientFromSerial(int serial) { return ExecFunc(s_GetClientFromSerialFunc, serial); }

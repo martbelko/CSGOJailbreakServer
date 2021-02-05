@@ -1,6 +1,6 @@
 public:
 	/**
-	 * Returns the maximum number of networked entities.
+	 * @brief Returns the maximum number of networked entities.
 	 *
 	 * Note: For legacy reasons, this only returns the maximum
 	 * networked entities (maximum edicts), rather than total
@@ -14,7 +14,7 @@ public:
 	}
 
 	/**
-	 * Returns the number of networked entities in the server.
+	 * @brief Returns the number of networked entities in the server.
 	 *
 	 * Note: For legacy reasons, this only returns the current count
 	 * of networked entities (current edicts), rather than total
@@ -28,7 +28,7 @@ public:
 	}
 
 	/**
-	 * Returns whether or not an entity is valid.  Returns false
+	 * @brief Returns whether or not an entity is valid.  Returns false
 	 * if there is no matching CBaseEntity for this entity index.
 	 *
 	 * @param entity        Index of the entity.
@@ -40,7 +40,7 @@ public:
 	}
 
 	/**
-	 * Returns whether or not an edict index is valid.
+	 * @brief Returns whether or not an edict index is valid.
 	 *
 	 * @param edict         Index of the edict.
 	 * @return              True if valid, false otherwise.
@@ -51,7 +51,7 @@ public:
 	}
 
 	/**
-	 * Returns whether or not an entity has a valid networkable edict.
+	 * @brief Returns whether or not an entity has a valid networkable edict.
 	 *
 	 * @param entity        Index of the entity.
 	 * @return              True if networkable, false if invalid or not networkable.
@@ -62,7 +62,7 @@ public:
 	}
 
 	/**
-	 * Creates a new edict (the basis of a networkable entity)
+	 * @brief Creates a new edict (the basis of a networkable entity)
 	 *
 	 * @return              Index of the edict, 0 on failure.
 	 */
@@ -72,7 +72,7 @@ public:
 	}
 
 	/**
-	 * Removes an edict from the world.
+	 * @brief Removes an edict from the world.
 	 *
 	 * @param edict         Index of the edict.
 	 * @error               Invalid edict index.
@@ -83,7 +83,7 @@ public:
 	}
 
 	/**
-	 * Marks an entity for deletion.
+	 * @brief Marks an entity for deletion.
 	 *
 	 * @param entity        Index of the entity.
 	 * @error               Invalid entity index.
@@ -94,7 +94,7 @@ public:
 	}
 
 	/**
-	 * Returns the flags on an edict.  These are not the same as entity flags.
+	 * @brief Returns the flags on an edict.  These are not the same as entity flags.
 	 *
 	 * @param edict         Index of the entity.
 	 * @return              Edict flags.
@@ -106,7 +106,7 @@ public:
 	}
 
 	/**
-	 * Sets the flags on an edict.  These are not the same as entity flags.
+	 * @brief Sets the flags on an edict.  These are not the same as entity flags.
 	 *
 	 * @param edict         Index of the entity.
 	 * @param flags         Flags to set.
@@ -118,7 +118,7 @@ public:
 	}
 
 	/**
-	 * Retrieves an edict classname.
+	 * @brief Retrieves an edict classname.
 	 *
 	 * @param edict         Index of the entity.
 	 * @param className     Buffer to store the classname.
@@ -134,7 +134,7 @@ public:
 	}
 
 	/**
-	 * Retrieves an entity's networkable serverclass name.
+	 * @brief Retrieves an entity's networkable serverclass name.
 	 * This is not the same as the classname and is used for networkable state changes.
 	 *
 	 * @param edict         Index of the entity.
@@ -152,7 +152,7 @@ public:
 	}
 
 	/**
-	 * Marks an entity as state changed.  This can be useful if you set an offset
+	 * @brief Marks an entity as state changed.  This can be useful if you set an offset
 	 * and wish for it to be immediately changed over the network.  By default this
 	 * is not done for offset setting functions.
 	 *
@@ -167,7 +167,7 @@ public:
 	}
 
 	/**
-	 * Peeks into an entity's object data and retrieves the integer value at
+	 * @brief Peeks into an entity's object data and retrieves the integer value at
 	 * the given offset.
 	 *
 	 * @param entity        Edict index.
@@ -182,7 +182,7 @@ public:
 	}
 
 	/**
-	 * Peeks into an entity's object data and sets the integer value at
+	 * @brief Peeks into an entity's object data and sets the integer value at
 	 * the given offset.
 	 *
 	 * @param entity        Edict index.
@@ -199,7 +199,7 @@ public:
 	}
 
 	/**
-	 * Peeks into an entity's object data and retrieves the float value at
+	 * @brief Peeks into an entity's object data and retrieves the float value at
 	 * the given offset.
 	 *
 	 * @param entity        Edict index.
@@ -213,7 +213,7 @@ public:
 	}
 
 	/**
-	 * Peeks into an entity's object data and sets the float value at
+	 * @brief Peeks into an entity's object data and sets the float value at
 	 * the given offset.
 	 *
 	 * @param entity        Edict index.
@@ -228,7 +228,7 @@ public:
 	}
 
 	/**
-	 * Peeks into an entity's object data and retrieves the entity index
+	 * @brief Peeks into an entity's object data and retrieves the entity index
 	 * at the given offset.
 	 *
 	 * Note: This will only work on offsets that are stored as "entity
@@ -247,7 +247,7 @@ public:
 	}
 
 	/**
-	 * Peeks into an entity's object data and sets the entity index at the
+	 * @brief Peeks into an entity's object data and sets the entity index at the
 	 * given offset.
 	 *
 	 * Note: This will only work on offsets that are stored as "entity
@@ -266,7 +266,7 @@ public:
 	}
 
 	/**
-	 * Peeks into an entity's object data and retrieves the vector at the
+	 * @brief Peeks into an entity's object data and retrieves the vector at the
 	 * given offset.
 	 * @note Both a Vector and a QAngle are three floats.  This is a
 	 *       convenience function and will work with both types.
@@ -282,7 +282,7 @@ public:
 	}
 
 	/**
-	 * Peeks into an entity's object data and sets the vector at the given
+	 * @brief Peeks into an entity's object data and sets the vector at the given
 	 * offset.
 	 * @note Both a Vector and a QAngle are three floats.  This is a
 	 *       convenience function and will work with both types.
@@ -299,7 +299,7 @@ public:
 	}
 
 	/**
-	 * Peeks into an entity's object data and retrieves the string at
+	 * @brief Peeks into an entity's object data and retrieves the string at
 	 * the given offset.
 	 *
 	 * @param entity        Edict index.
@@ -315,7 +315,7 @@ public:
 	}
 
 	/**
-	 * Peeks into an entity's object data and sets the string at
+	 * @brief Peeks into an entity's object data and sets the string at
 	 * the given offset.
 	 *
 	 * @param entity        Edict index.
@@ -332,7 +332,7 @@ public:
 	}
 
 	/**
-	 * Given a ServerClass name, finds a networkable send property offset.
+	 * @brief Given a ServerClass name, finds a networkable send property offset.
 	 * This information is cached for future calls.
 	 *
 	 * @param className     Classname.
@@ -359,7 +359,7 @@ public:
 	}
 
 	/**
-	 * Given an entity, finds a nested datamap property offset.
+	 * @brief Given an entity, finds a nested datamap property offset.
 	 * This information is cached for future calls.
 	 *
 	 * @param entity        Entity index.
@@ -383,7 +383,7 @@ public:
 	}
 
 	/**
-	 * Wrapper function for finding a send property for a particular entity.
+	 * @brief Wrapper function for finding a send property for a particular entity.
 	 *
 	 * @param entity        Entity index.
 	 * @param propName      Property name.
@@ -408,7 +408,7 @@ public:
 	}
 
 	/**
-	 * Checks if an entity property exists on an entity.
+	 * @brief Checks if an entity property exists on an entity.
 	 *
 	 * @param entity        Entity/edict index.
 	 * @param type          Property type.
@@ -432,7 +432,7 @@ public:
 	}
 
 	/**
-	 * Retrieves an integer value from an entity's property.
+	 * @brief Retrieves an integer value from an entity's property.
 	 *
 	 * This function is considered safer and more robust over GetEntData,
 	 * because it performs strict offset checking and typing rules.
@@ -453,7 +453,7 @@ public:
 	}
 
 	/**
-	 * Sets an integer value in an entity's property.
+	 * @brief Sets an integer value in an entity's property.
 	 *
 	 * This function is considered safer and more robust over SetEntData,
 	 * because it performs strict offset checking and typing rules.
@@ -475,7 +475,7 @@ public:
 	}
 
 	/**
-	 * Retrieves a float value from an entity's property.
+	 * @brief Retrieves a float value from an entity's property.
 	 *
 	 * This function is considered safer and more robust over GetEntDataFloat,
 	 * because it performs strict offset checking and typing rules.
@@ -493,7 +493,7 @@ public:
 	}
 
 	/**
-	 * Sets a float value in an entity's property.
+	 * @brief Sets a float value in an entity's property.
 	 *
 	 * This function is considered safer and more robust over SetEntDataFloat,
 	 * because it performs strict offset checking and typing rules.
@@ -511,7 +511,7 @@ public:
 	}
 
 	/**
-	 * Retrieves an entity index from an entity's property.
+	 * @brief Retrieves an entity index from an entity's property.
 	 *
 	 * This function is considered safer and more robust over GetEntDataEnt*,
 	 * because it performs strict offset checking and typing rules.
@@ -531,7 +531,7 @@ public:
 	}
 
 	/**
-	 * Sets an entity index in an entity's property.
+	 * @brief Sets an entity index in an entity's property.
 	 *
 	 * This function is considered safer and more robust over SetEntDataEnt*,
 	 * because it performs strict offset checking and typing rules.
@@ -549,7 +549,7 @@ public:
 	}
 
 	/**
-	 * Retrieves a vector of floats from an entity, given a named network property.
+	 * @brief Retrieves a vector of floats from an entity, given a named network property.
 	 *
 	 * This function is considered safer and more robust over GetEntDataVector,
 	 * because it performs strict offset checking and typing rules.
@@ -568,7 +568,7 @@ public:
 	}
 
 	/**
-	 * Sets a vector of floats in an entity, given a named network property.
+	 * @brief Sets a vector of floats in an entity, given a named network property.
 	 *
 	 * This function is considered safer and more robust over SetEntDataVector,
 	 * because it performs strict offset checking and typing rules.
@@ -587,7 +587,7 @@ public:
 	}
 
 	/**
-	 * Gets a network property as a string.
+	 * @brief Gets a network property as a string.
 	 *
 	 * @param entity        Edict index.
 	 * @param type          Property type.
@@ -604,7 +604,7 @@ public:
 	}
 
 	/**
-	 * Sets a network property as a string.
+	 * @brief Sets a network property as a string.
 	 *
 	 * @param entity        Edict index.
 	 * @param type          Property type.
@@ -620,7 +620,7 @@ public:
 	}
 
 	/**
-	 * Retrieves the count of values that an entity property's array can store.
+	 * @brief Retrieves the count of values that an entity property's array can store.
 	 *
 	 * @param entity        Entity/edict index.
 	 * @param type          Property type.
@@ -634,7 +634,7 @@ public:
 	}
 
 	/**
-	 * Copies an array of cells from an entity at a given offset.
+	 * @brief Copies an array of cells from an entity at a given offset.
 	 *
 	 * @param entity        Entity index.
 	 * @param offset        Offset to use.
@@ -653,7 +653,7 @@ public:
 	}
 
 	/**
-	 * Copies an array of cells to an entity at a given offset.
+	 * @brief Copies an array of cells to an entity at a given offset.
 	 *
 	 * @param entity        Entity index.
 	 * @param offset        Offset to use.
@@ -673,7 +673,7 @@ public:
 	}
 
 	/**
-	 * Gets the memory address of an entity.
+	 * @brief Gets the memory address of an entity.
 	 *
 	 * @param entity        Entity index.
 	 * @return              Address of the entity.
@@ -685,7 +685,7 @@ public:
 	}
 
 	/**
-	 * Retrieves the classname of an entity.
+	 * @brief Retrieves the classname of an entity.
 	 * This is like GetEdictClassname(), except it works for ALL
 	 * entities, not just edicts.
 	 *

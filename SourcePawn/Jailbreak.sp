@@ -71,6 +71,10 @@ native int native_OnPluginEnd();
 native int native_OnMapStart();
 native int native_OnMapEnd();
 
+// TIMERS.INC - Natives declaration
+native Action native_TimerCallback(Handle timer, int data);
+native void native_OnMapTimeLeftChanged();
+
 // SDKHOOKS.INC - Natives declaration
 native void native_OnEntityCreated(int entity, const char[] classname);
 native void native_OnEntitySpawned(int entity, const char[] classname);
@@ -274,11 +278,27 @@ public int MenuHandlerCallback(Menu menu, MenuAction action, int param1, int par
 public void VoteHandlerCallback(Menu menu, int num_votes, int num_clients, const int[][] client_info, int num_items, const int[][] item_info)
 	{ native_VoteHandlerCallback(menu, num_votes, num_clients, client_info, num_items, item_info); }
 
+public Action TimerCallback(Handle timer, int data) { return native_TimerCallback(timer, data); }
+
 // TODO
 public void OnPluginEnd() { native_OnPluginEnd(); }
 
 public void OnMapStart() { native_OnMapStart(); }
 public void OnMapEnd() { native_OnMapEnd(); }
+
+/* TIMERS.INC */
+// TIMERS.INC - Natives
+public void OnMapTimeLeftChanged() { native_OnMapTimeLeftChanged(); }
+// TIMERS.INC - Public
+public Handle public_CreateTimer(float interval, int data, int flags) { return CreateTimer(interval, TimerCallback, data, flags); }
+public void public_KillTimer(Handle timer, bool autoClose) { KillTimer(timer, autoClose); }
+public void public_TriggerTimer(Handle timer, bool reset) { TriggerTimer(timer, reset); }
+public float public_GetTickedTime() { return GetTickedTime(); }
+public bool public_GetMapTimeLeft(int &timeleft) { return GetMapTimeLeft(timeleft); }
+public bool public_GetMapTimeLimit(int &time) { return GetMapTimeLimit(time); }
+public bool public_ExtendMapTimeLimit(int time) { return ExtendMapTimeLimit(time); }
+public float public_GetTickInterval() { return GetTickInterval(); }
+public bool public_IsServerProcessing() { return IsServerProcessing(); }
 
 // ENTITY.INC
 public int public_GetMaxEntities() { return GetMaxEntities(); }

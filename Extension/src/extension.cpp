@@ -14,6 +14,9 @@ const sp_nativeinfo_t MyNatives[] =
 	{ "native_OnPluginEnd", NativeManager::OnPluginEnd },
 	{ "native_OnMapStart", NativeManager::OnMapStart },
 	{ "native_OnMapEnd", NativeManager::OnMapEnd },
+	// TIMERS.INC
+	{ "native_TimerCallback", NativeManager::TimerCallback },
+	{ "native_OnMapTimeLeftChanged", NativeManager::OnMapTimeLeftChanged },
 	// SDKHOOKS.INC
 	{ "native_OnEntityCreated", NativeManager::OnEntityCreated },
 	{ "native_OnEntitySpawned", NativeManager::OnEntitySpawned },

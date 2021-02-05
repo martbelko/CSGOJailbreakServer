@@ -600,7 +600,7 @@ enum PropType
  * @section For more information on these, see the HL2SDK (public/edict.h)
  */
 #define FL_EDICT_CHANGED                (1<<0)  /**< Game DLL sets this when the entity state changes
-													 Mutually exclusive with FL_EDICT_PARTIAL_CHANGE. */
+                                                     Mutually exclusive with FL_EDICT_PARTIAL_CHANGE. */
 #define FL_EDICT_FREE                   (1<<1)  /**< this edict if free for reuse */
 #define FL_EDICT_FULL                   (1<<2)  /**< this is a full server entity */
 #define FL_EDICT_FULLCHECK              (0<<0)  /**< call ShouldTransmit() each time, this is a fake flag */
@@ -629,3 +629,8 @@ enum PropFieldType
 
 // ENTITY.INC
 using Address = int;
+
+// TIMERS.INC
+#define TIMER_REPEAT            (1<<0)      /**< Timer will repeat until it returns Plugin_Stop */
+#define TIMER_FLAG_NO_MAPCHANGE (1<<1)      /**< Timer will not carry over mapchanges */
+#define TIMER_DATA_HNDL_CLOSE   (1<<9)      /**< Timer will automatically call CloseHandle() on its data when finished */

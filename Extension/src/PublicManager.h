@@ -55,6 +55,7 @@
 	static void FUNC##Sub(const char* arg) { PushArg(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
 	public:
 
+/* SDKHOOKS.INC */
 // PreThink/Post - client
 // PostThink/Post - client
 // GroundEntChanged - entity
@@ -136,6 +137,9 @@ using EventHookCallback = Action(*)(EventHandle eventHandle, const char* name, b
 using MenuHandler = int(*)(MenuHandle menu, MenuAction action, int param1, int param2);
 using VoteHandler = void(*)(MenuHandle menu, int numVotes, int numClients, const int** clientInfo, int numItems, const int** itemInfo);
 
+/* TIMERS.INC */
+using TimerCallbackFunc = Action(*)(Handle timer, void* data);
+
 struct pair_hash
 {
 	template <class T1, class T2>
@@ -151,6 +155,9 @@ class PublicManager
 {
 public:
 	static void InitOnPluginStart(IPluginContext* pContext);
+
+	// TIMERS.INC
+	#include "API/TimersAPI.h"
 
 	// ENTITY.INC
 	#include "API/EntityAPI.h"
@@ -177,6 +184,7 @@ public:
 	#include "API/ConsoleAPI.h"
 
 	// CLIENT.INC
+	static int GetMaxClients() { return s_MaxClients; }
 	#include "API/ClientAPI.h"
 private:
 	static void PushArg(IPluginFunction* func, int arg) { func->PushCell(arg); }
@@ -253,6 +261,9 @@ private:
 private:
 	friend class NativeManager;
 
+	// TIMERS.INC
+	static std::unordered_map<Handle, TimerCallbackFunc> s_TimerCallbacks;
+
 	// SDKHOOKS.INC
 	static std::unordered_map<std::pair<int, SDKHookType>, void*, pair_hash> s_SDKHooksCallbacks;
 
@@ -272,6 +283,17 @@ private:
 	static std::unordered_map<int, int> s_SQLTQueryCallbacksData;
 private:
 	static int s_MaxClients;
+
+	// TIMERS.INC
+	static IPluginFunction* s_CreateTimerFunc;
+	static IPluginFunction* s_KillTimerFunc;
+	static IPluginFunction* s_TriggerTimerFunc;
+	static IPluginFunction* s_GetTickedTimeFunc;
+	static IPluginFunction* s_GetMapTimeLeftFunc;
+	static IPluginFunction* s_GetMapTimeLimitFunc;
+	static IPluginFunction* s_ExtendMapTimeLimitFunc;
+	static IPluginFunction* s_GetTickIntervalFunc;
+	static IPluginFunction* s_IsServerProcessingFunc;
 
 	// ENTITY.INC
 	static IPluginFunction* s_GetMaxEntitiesFunc;

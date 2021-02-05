@@ -1,6 +1,6 @@
 public:
 	/**
-	 * Creates an SQL connection from a named configuration.
+	 * @brief Creates an SQL connection from a named configuration.
 	 *
 	 * @param confname      Named configuration.
 	 * @param persistent    True to re-use a previous persistent connection if
@@ -12,7 +12,7 @@ public:
 	static database_t SQL_Connect(const char* confname, bool persistent, char* error, int maxlength) { return ExecFunc(s_SQL_ConnectFunc, confname, persistent, error, maxlength); }
 
 	/**
-	 * Connects to a database using key value pairs containing the database info.
+	 * @brief Connects to a database using key value pairs containing the database info.
 	 * The key/value pairs should match what would be in databases.cfg.
 	 *
 	 * I.e. "driver" should be "default" or a driver name (or omitted for
@@ -35,7 +35,7 @@ public:
 	static database_t SQL_ConnectCustom(Handle keyvalues, char* error, int maxlength, bool persistent) { return ExecFunc(s_SQL_ConnectCustomFunc, keyvalues, error, maxlength, persistent); }
 
 	/**
-	 * Returns if a named configuration is present in databases.cfg.
+	 * @brief Returns if a named configuration is present in databases.cfg.
 	 *
 	 * @param name          Configuration name.
 	 * @return              True if it exists, false otherwise.
@@ -43,7 +43,7 @@ public:
 	static bool SQL_CheckConfig(const char* name) { return ExecFunc(s_SQL_CheckConfigFunc, name); }
 
 	/**
-	 * Returns a driver Handle from a name string.
+	 * @brief Returns a driver Handle from a name string.
 	 *
 	 * If the driver is not found, SourceMod will attempt
 	 * to load an extension named dbi.<name>.ext.[dll|so].
@@ -55,7 +55,7 @@ public:
 	static DBDriver SQL_GetDriver(const char* name) { return ExecFunc(s_SQL_GetDriverFunc, name); }
 
 	/**
-	 * Reads the driver of an opened database.
+	 * @brief Reads the driver of an opened database.
 	 *
 	 * @param database      Database Handle.
 	 * @param ident         Option buffer to store the identification string.
@@ -65,7 +65,7 @@ public:
 	static DBDriver SQL_ReadDriver(Handle database, char* ident, int ident_length) { return ExecFunc(s_SQL_ReadDriverFunc, database, ident, ident_length); }
 
 	/**
-	 * Retrieves a driver's identification string.
+	 * @brief Retrieves a driver's identification string.
 	 *
 	 * Example: "mysql", "sqlite"
 	 *
@@ -77,7 +77,7 @@ public:
 	static void SQL_GetDriverIdent(Handle driver, char* ident, int maxlength) { ExecFunc(s_SQL_GetDriverIdentFunc, driver, ident, maxlength); }
 
 	/**
-	 * Retrieves a driver's product string.
+	 * @brief Retrieves a driver's product string.
 	 *
 	 * Example: "MySQL", "SQLite"
 	 *
@@ -89,7 +89,7 @@ public:
 	static void SQL_GetDriverProduct(Handle driver, char* product, int maxlength) { ExecFunc(s_SQL_GetDriverProductFunc, driver, product, maxlength); }
 
 	/**
-	 * Sets the character set of the current connection.
+	 * @brief Sets the character set of the current connection.
 	 * Like SET NAMES .. in mysql, but stays after connection problems.
 	 *
 	 * Example: "utf8", "latin1"
@@ -101,7 +101,7 @@ public:
 	static bool SQL_SetCharset(Handle database, const char* charset) { return ExecFunc(s_SQL_SetCharsetFunc, database, charset); }
 
 	/**
-	 * Returns the number of affected rows from the last query.
+	 * @brief Returns the number of affected rows from the last query.
 	 *
 	 * @param hndl          A database OR statement Handle.
 	 * @return              Number of rows affected by the last query.
@@ -110,7 +110,7 @@ public:
 	static int SQL_GetAffectedRows(Handle hndl) { return ExecFunc(s_SQL_GetAffectedRowsFunc, hndl); }
 
 	/**
-	 * Returns the last query's insertion id.
+	 * @brief Returns the last query's insertion id.
 	 *
 	 * @param hndl          A database, query, OR statement Handle.
 	 * @return              Last query's insertion id.
@@ -119,7 +119,7 @@ public:
 	static int SQL_GetInsertId(Handle hndl) { return ExecFunc(s_SQL_GetInsertIdFunc, hndl); }
 
 	/**
-	 * Returns the error reported by the last query.
+	 * @brief Returns the error reported by the last query.
 	 *
 	 * @param hndl          A database, query, OR statement Handle.
 	 * @param error         Error buffer.
@@ -130,7 +130,7 @@ public:
 	static bool SQL_GetError(Handle hndl, char* error, int maxlength) { return ExecFunc(s_SQL_GetErrorFunc, hndl, error, maxlength); }
 
 	/**
-	 * Escapes a database string for literal insertion.  This is not needed
+	 * @brief Escapes a database string for literal insertion.  This is not needed
 	 * for binding strings in prepared statements.
 	 *
 	 * Generally, database strings are inserted into queries enclosed in
@@ -161,7 +161,7 @@ public:
 	}
 
 	/**
-	 * Formats a string according to the SourceMod format rules (see documentation).
+	 * @brief Formats a string according to the SourceMod format rules (see documentation).
 	 * All format specifiers are escaped (see SQL_EscapeString) unless the '!' flag is used.
 	 *
 	 * @param database      A database Handle.
@@ -176,7 +176,7 @@ public:
 	}
 
 	/**
-	* Formats a string according to the SourceMod format rules (see documentation).
+	* @brief Formats a string according to the SourceMod format rules (see documentation).
 	* All format specifiers are escaped (see SQL_EscapeString) unless the '!' flag is used.
 	*
 	* @param database      A database Handle.
@@ -211,7 +211,7 @@ private:
 	}
 public:
 	/**
-	 * Executes a query and ignores the result set.
+	 * @brief Executes a query and ignores the result set.
 	 *
 	 * @param database      A database Handle.
 	 * @param query         Query string.
@@ -225,7 +225,7 @@ public:
 	static bool SQL_FastQuery(Handle database, const char* query, int len) { return ExecFunc(s_SQL_FastQueryFunc, database, query, len); }
 
 	/**
-	 * Executes a simple query and returns a new query Handle for
+	 * @brief Executes a simple query and returns a new query Handle for
 	 * receiving the results.
 	 *
 	 * @param database      A database Handle.
@@ -240,7 +240,7 @@ public:
 	static DBResultSet SQL_Query(Handle database, const char* query, int len) { return ExecFunc(s_SQL_QueryFunc, database, query, len); }
 
 	/**
-	 * Creates a new prepared statement query.  Prepared statements can
+	 * @brief Creates a new prepared statement query.  Prepared statements can
 	 * be executed any number of times.  They can also have placeholder
 	 * parameters, similar to variables, which can be bound safely and
 	 * securely (for example, you do not need to quote bound strings).
@@ -258,7 +258,7 @@ public:
 	static DBStatement SQL_PrepareQuery(Handle database, const char* query, char* error, int maxlength) { return ExecFunc(s_SQL_PrepareQueryFunc, database, query, error, maxlength); }
 
 	/**
-	 * Advances to the next set of results.
+	 * @brief Advances to the next set of results.
 	 *
 	 * In some SQL implementations, multiple result sets can exist on one query.
 	 * This is possible in MySQL with simple queries when executing a CALL
@@ -272,7 +272,7 @@ public:
 	static bool SQL_FetchMoreResults(Handle query) { return ExecFunc(s_SQL_FetchMoreResultsFunc, query); }
 
 	/**
-	 * Returns whether or not a result set exists.  This will
+	 * @brief Returns whether or not a result set exists.  This will
 	 * return true even if 0 results were returned, but false
 	 * on queries like UPDATE, INSERT, or DELETE.
 	 *
@@ -283,7 +283,7 @@ public:
 	static bool SQL_HasResultSet(Handle query) { return ExecFunc(s_SQL_HasResultSetFunc, query); }
 
 	/**
-	 * Retrieves the number of rows in the last result set.
+	 * @brief Retrieves the number of rows in the last result set.
 	 *
 	 * @param query         A query (or statement) Handle.
 	 * @return              Number of rows in the current result set.
@@ -292,7 +292,7 @@ public:
 	static int SQL_GetRowCount(Handle query) { return ExecFunc(s_SQL_GetRowCountFunc, query); }
 
 	/**
-	 * Retrieves the number of fields in the last result set.
+	 * @brief Retrieves the number of fields in the last result set.
 	 *
 	 * @param query         A query (or statement) Handle.
 	 * @return              Number of fields in the current result set.
@@ -301,7 +301,7 @@ public:
 	static int SQL_GetFieldCount(Handle query) { return ExecFunc(s_SQL_GetFieldCountFunc, query); }
 
 	/**
-	 * Retrieves the name of a field by index.
+	 * @brief Retrieves the name of a field by index.
 	 *
 	 * @param query         A query (or statement) Handle.
 	 * @param field         Field number (starting from 0).
@@ -313,7 +313,7 @@ public:
 	static void SQL_FieldNumToName(Handle query, int field, char* name, int maxlength) { ExecFunc(s_SQL_FieldNumToNameFunc, query, field, name, maxlength); }
 
 	/**
-	 * Retrieves a field index by name.
+	 * @brief Retrieves a field index by name.
 	 *
 	 * @param query         A query (or statement) Handle.
 	 * @param name          Name of the field (case sensitive).
@@ -328,7 +328,7 @@ public:
 	}
 
 	/**
-	 * Fetches a row from the current result set.  This must be
+	 * @brief Fetches a row from the current result set.  This must be
 	 * successfully called before any results are fetched.
 	 *
 	 * If this function fails, SQL_MoreRows() can be used to
@@ -341,7 +341,7 @@ public:
 	static bool SQL_FetchRow(Handle query) { return ExecFunc(s_SQL_FetchRowFunc, query); }
 
 	/**
-	 * Returns if there are more rows.
+	 * @brief Returns if there are more rows.
 	 *
 	 * @param query         A query (or statement) Handle.
 	 * @return              True if there are more rows, false otherwise.
@@ -350,7 +350,7 @@ public:
 	static bool SQL_MoreRows(Handle query) { return ExecFunc(s_SQL_MoreRowsFunc, query); }
 
 	/**
-	 * Rewinds a result set back to the first result.
+	 * @brief Rewinds a result set back to the first result.
 	 *
 	 * @param query         A query (or statement) Handle.
 	 * @return              True on success, false otherwise.
@@ -359,7 +359,7 @@ public:
 	static bool SQL_Rewind(Handle query) { return ExecFunc(s_SQL_RewindFunc, query); }
 
 	/**
-	 * Fetches a string from a field in the current row of a result set.
+	 * @brief Fetches a string from a field in the current row of a result set.
 	 * If the result is NULL, an empty string will be returned.  A NULL
 	 * check can be done with the result parameter, or SQL_IsFieldNull().
 	 *
@@ -381,7 +381,7 @@ public:
 	}
 
 	/**
-	 * Fetches a float from a field in the current row of a result set.
+	 * @brief Fetches a float from a field in the current row of a result set.
 	 * If the result is NULL, a value of 0.0 will be returned.  A NULL
 	 * check can be done with the result parameter, or SQL_IsFieldNull().
 	 *
@@ -400,7 +400,7 @@ public:
 	}
 
 	/**
-	 * Fetches an integer from a field in the current row of a result set.
+	 * @brief Fetches an integer from a field in the current row of a result set.
 	 * If the result is NULL, a value of 0 will be returned.  A NULL
 	 * check can be done with the result parameter, or SQL_IsFieldNull().
 	 *
@@ -419,7 +419,7 @@ public:
 	}
 
 	/**
-	 * Returns whether a field's data in the current row of a result set is
+	 * @brief Returns whether a field's data in the current row of a result set is
 	 * NULL or not.  NULL is an SQL type which means "no data."
 	 *
 	 * @param query         A query (or statement) Handle.
@@ -431,7 +431,7 @@ public:
 	static bool SQL_IsFieldNull(Handle query, int field) { return ExecFunc(s_SQL_IsFieldNullFunc, query, field); }
 
 	/**
-	 * Returns the length of a field's data in the current row of a result
+	 * @brief Returns the length of a field's data in the current row of a result
 	 * set.  This only needs to be called for strings to determine how many
 	 * bytes to use.  Note that the return value does not include the null
 	 * terminator.
@@ -445,7 +445,7 @@ public:
 	static int SQL_FetchSize(Handle query, int field) { return ExecFunc(s_SQL_FetchSizeFunc, query, field); }
 
 	/**
-	 * Binds a parameter in a prepared statement to a given integer value.
+	 * @brief Binds a parameter in a prepared statement to a given integer value.
 	 *
 	 * @param statement     A statement (prepared query) Handle.
 	 * @param param         The parameter index (starting from 0).
@@ -458,7 +458,7 @@ public:
 	static void SQL_BindParamInt(Handle statement, int param, int number, bool isSigned) { ExecFunc(s_SQL_BindParamStringFunc, statement, param, number, isSigned); }
 
 	/**
-	 * Binds a parameter in a prepared statement to a given float value.
+	 * @brief Binds a parameter in a prepared statement to a given float value.
 	 *
 	 * @param statement     A statement (prepared query) Handle.
 	 * @param param         The parameter index (starting from 0).
@@ -469,7 +469,7 @@ public:
 	static void SQL_BindParamFloat(Handle statement, int param, float value) { ExecFunc(s_SQL_BindParamFloatFunc, statement, param, value); }
 
 	/**
-	 * Binds a parameter in a prepared statement to a given string value.
+	 * @brief Binds a parameter in a prepared statement to a given string value.
 	 *
 	 * @param statement     A statement (prepared query) Handle.
 	 * @param param         The parameter index (starting from 0).
@@ -484,7 +484,7 @@ public:
 	static void SQL_BindParamString(Handle statement, int param, const char* value, bool copy) { ExecFunc(s_SQL_BindParamStringFunc, statement, param, value, copy); }
 
 	/**
-	 * Executes a prepared statement.  All parameters must be bound beforehand.
+	 * @brief Executes a prepared statement.  All parameters must be bound beforehand.
 	 *
 	 * @param statement     A statement (prepared query) Handle.
 	 * @return              True on success, false on failure.
@@ -493,7 +493,7 @@ public:
 	static bool SQL_Execute(Handle statement) { return ExecFunc(s_SQL_ExecuteFunc, statement); }
 
 	/**
-	 * Locks a database so threading operations will not interrupt.
+	 * @brief Locks a database so threading operations will not interrupt.
 	 *
 	 * If you are using a database Handle for both threading and non-threading,
 	 * this MUST be called before doing any set of non-threading DB operations.
@@ -512,7 +512,7 @@ public:
 	static void SQL_LockDatabase(Handle database) { ExecFunc(s_SQL_LockDatabaseFunc, database); }
 
 	/**
-	 * Unlocks a database so threading operations may continue.
+	 * @brief Unlocks a database so threading operations may continue.
 	 *
 	 * @param database      A database Handle.
 	 * @error               Invalid database Handle.
@@ -520,7 +520,7 @@ public:
 	static void SQL_UnlockDatabase(Handle database) { ExecFunc(s_SQL_UnlockDatabaseFunc, database); }
 
 	/**
-	 * Tells whether two database handles both point to the same database
+	 * @brief Tells whether two database handles both point to the same database
 	 * connection.
 	 *
 	 * @param hndl1         First database Handle.
@@ -532,7 +532,7 @@ public:
 	static bool SQL_IsSameConnection(Handle hndl1, Handle hndl2) { return ExecFunc(s_SQL_IsSameConnectionFunc, hndl1, hndl2); }
 
 	/**
-	 * Connects to a database via a thread.  This can be used instead of
+	 * @brief Connects to a database via a thread.  This can be used instead of
 	 * SQL_Connect() if you wish for non-blocking functionality.
 	 *
 	 * It is not necessary to use this to use threaded queries.  However, if you
@@ -554,7 +554,7 @@ public:
 	}
 
 	/**
-	 * Executes a simple query via a thread.  The query Handle is passed through
+	 * @brief Executes a simple query via a thread.  The query Handle is passed through
 	 * the callback.
 	 *
 	 * The database Handle returned through the callback is always a new Handle,
@@ -582,7 +582,7 @@ public:
 	}
 
 	/**
-	 * Creates a new transaction object. A transaction object is a list of queries
+	 * @brief Creates a new transaction object. A transaction object is a list of queries
 	 * that can be sent to the database thread and executed as a single transaction.
 	 *
 	 * @return              A transaction handle.
@@ -590,7 +590,7 @@ public:
 	static transaction_t SQL_CreateTransaction() { return ExecFunc(s_SQL_CreateTransactionFunc); }
 
 	/**
-	 * Adds a query to a transaction object.
+	 * @brief Adds a query to a transaction object.
 	 *
 	 * @param txn           A transaction handle.
 	 * @param query         Query string.
@@ -602,7 +602,7 @@ public:
 
 	// TODO: Callbacks
 	/**
-	 * Sends a transaction to the database thread. The transaction handle is
+	 * @brief Sends a transaction to the database thread. The transaction handle is
 	 * automatically closed. When the transaction completes, the optional
 	 * callback is invoked.
 	 *

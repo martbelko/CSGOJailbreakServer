@@ -3,6 +3,8 @@
 #include "smsdk_ext.h"
 
 #include "Defines.h"
+#include "PublicManager.h"
+#include "MainPlugin.h"
 
 class NativeManager
 {
@@ -16,6 +18,21 @@ public:
 	static cell_t ConCmdCallback(IPluginContext* pContext, const cell_t* params);
 	static cell_t SrvCmdCallback(IPluginContext* pContext, const cell_t* params);
 	static cell_t CmdListenerCallback(IPluginContext* pContext, const cell_t* params);
+
+	// TIMERS.INC
+	static int TimerCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		Handle timer = params[1];
+		void* data = reinterpret_cast<void*>(params[2]);
+		TimerCallbackFunc callback = PublicManager::s_TimerCallbacks[timer];
+		return callback(timer, data);
+	}
+
+	static int OnMapTimeLeftChanged(IPluginContext* pContext, const cell_t* params)
+	{
+		MainPlugin::OnMapTimeLeftChanged();
+		return 0;
+	}
 
 	// SDKTOOLS_HOOKS.INC
 	static int OnPlayerRunCmd(IPluginContext* pContext, const cell_t* params);
@@ -91,7 +108,6 @@ private:
 	static int SDKHooksCallback14(SDKHookType type, IPluginContext* pContext, const cell_t* params);
 	static int SDKHooksCallback15(SDKHookType type, IPluginContext* pContext, const cell_t* params);
 public:
-
 	// MENU.INC
 	static int MenuHandlerCallback(IPluginContext* pContext, const cell_t* params);
 	static int VoteHandlerCallback(IPluginContext* pContext, const cell_t* params);
