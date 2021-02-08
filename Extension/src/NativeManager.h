@@ -19,6 +19,94 @@ public:
 	static cell_t SrvCmdCallback(IPluginContext* pContext, const cell_t* params);
 	static cell_t CmdListenerCallback(IPluginContext* pContext, const cell_t* params);
 
+	// SDKTOOLS_TRACE.INC
+	static int TraceEntityFilterCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		int entity = params[1];
+		int contentsMask = params[2];
+		int filterIndex = params[3];
+
+		TraceEntityFilterFunc callback = PublicManager::s_TraceEntityFilterCallbacks[filterIndex];
+		void* data = PublicManager::s_TraceEntityFilterData[filterIndex];
+		return callback(entity, contentsMask, data);
+	}
+
+	static int TraceEntityEnumeratorCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		int entity = params[1];
+		int enumeratorIndex = params[2];
+
+		TraceEntityEnumeratorFunc callback = PublicManager::s_TraceEntityEnumeratorCallbacks[enumeratorIndex];
+		void* data = PublicManager::s_TraceEntityEnumeratorData[enumeratorIndex];
+		return callback(entity, data);
+	}
+
+	// LOGGING.INC
+	static int OnLogAction(IPluginContext* pContext, const cell_t* params)
+	{
+		Handle handle = params[1];
+		Identity ident = static_cast<Identity>(params[2]);
+		int client = params[3];
+		int target = params[4];
+		char* message;
+		pContext->LocalToString(params[5], &message);
+
+		return MainPlugin::OnLogAction(handle, ident, client, target, message);
+	}
+
+	static int GameLogHookCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		char* message;
+		pContext->LocalToString(params[1], &message);
+		return PublicManager::s_GameLogHookCallback(message);
+	}
+
+	// SDKTOOLS_TEMPENTS.INC
+	static int TEHookCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		char* teName;
+		pContext->LocalToString(params[1], &teName);
+		int* players;
+		pContext->LocalToPhysAddr(params[2], &players);
+		int numClients = params[3];
+		float delay = sp_ctof(params[4]);
+
+		std::string teNameStr = teName;
+		TEHookFunc callback = PublicManager::s_TEHooksCallbacks[teNameStr];
+		return callback(teName, players, numClients, delay);
+	}
+
+	// SDKTOOLS_ENTOUTPUT.INC
+	static int EntityOutputCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		char* output;
+		pContext->LocalToString(params[1], &output);
+		int caller = params[2];
+		int activator = params[3];
+		float delay = sp_ctof(params[4]);
+
+		char className[64];
+		PublicManager::GetEntityClassname(caller, className, sizeof(className));
+
+		std::string classNameStr = className;
+		std::string outputStr = output;
+		EntityOutputFunc callback = PublicManager::s_EntityOutputCallbacks[std::make_pair(classNameStr, outputStr)];
+		return callback(output, caller, activator, delay);
+	}
+
+	static int SingleEntityOutputCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		char* output;
+		pContext->LocalToString(params[1], &output);
+		int caller = params[2];
+		int activator = params[3];
+		float delay = sp_ctof(params[4]);
+
+		std::string outputStr = output;
+		EntityOutputFunc callback = PublicManager::s_SingleEntityOutputCallbacks[std::make_pair(caller, outputStr)];
+		return callback(output, caller, activator, delay);
+	}
+
 	// TIMERS.INC
 	static int TimerCallback(IPluginContext* pContext, const cell_t* params)
 	{
@@ -123,17 +211,17 @@ public:
 	static int SQLTCallbackConnect(IPluginContext* pContext, const cell_t* params);
 	static int SQLTCallbackQuery(IPluginContext* pContext, const cell_t* params);
 
-	// cstrike.inc
+	// CSTRIKE.INC
 	static int CS_OnBuyCommand(IPluginContext* pContext, const cell_t* params);
 	static int CS_OnCSWeaponDrop(IPluginContext* pContext, const cell_t* params);
 	static int CS_OnGetWeaponPrice(IPluginContext* pContext, const cell_t* params);
 	static int CS_OnTerminateRound(IPluginContext* pContext, const cell_t* params);
 
-	// Console.inc
+	// CONSOLE.inc
 	static int OnClientSayCommand(IPluginContext* pContext, const cell_t* params);
 	static int OnClientSayCommandPost(IPluginContext* pContext, const cell_t* params);
 
-	// Client.inc
+	// CLIENTS.inc
 	static int OnClientConnect(IPluginContext* pContext, const cell_t* params);
 	static int OnClientConnected(IPluginContext* pContext, const cell_t* params);
 	static int OnClientPutInServer(IPluginContext* pContext, const cell_t* params);

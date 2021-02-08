@@ -1,6 +1,6 @@
 #include <cstrike>
 #include <sdkhooks>
-#include <sdktools_functions>
+#include <sdktools>
 
 // SDKHooks helpers
 static SDKHookCB s_SDKHookCallbacks[44];
@@ -71,6 +71,21 @@ native int native_OnPluginEnd();
 native int native_OnMapStart();
 native int native_OnMapEnd();
 
+// SDKTOOLS_TRACE.INC - Natives declaration
+native bool native_TraceEntityFilterCallback(int entity, int contentsMask, int data);
+native bool native_TraceEntityEnumeratorCallback(int entity, int data);
+
+// LOGGING.INC - Natives declaration
+native Action native_OnLogAction(Handle source, Identity ident, int client, int target, const char[] message);
+native Action native_GameLogHookCallback(const char[] message);
+
+// SDKTOOLS_TEMPENTS.INC - Natives declaration
+native Action native_TEHookCallback(const char[] te_name, const int[] Players, int numClients, float delay);
+
+// SDKTOOLS_ENTOUTPUT.INC - Natives declaration
+native Action native_EntityOutputCallback(const char[] output, int caller, int activator, float delay);
+native Action native_SingleEntityOutputCallback(const char[] output, int caller, int activator, float delay);
+
 // TIMERS.INC - Natives declaration
 native Action native_TimerCallback(Handle timer, int data);
 native void native_OnMapTimeLeftChanged();
@@ -107,9 +122,24 @@ native Action native_OnClientPreAdminCheck(int client);
 native int native_OnClientPostAdminFilter(int client);
 native int native_OnClientPostAdminCheck(int client);
 
+public Action DoorOpenCallback(const char[] output, int caller, int activator, float delay)
+{
+	PrintToConsoleAll("Opened DOORS!");
+	return Plugin_Continue;
+}
+
 // TODO
 public void OnPluginStart()
 {
+	HookEntityOutput("func_door", "open", DoorOpenCallback);
+	HookEntityOutput("func_door", "toggle", DoorOpenCallback);
+	HookEntityOutput("func_door_rotating", "open", DoorOpenCallback);
+	HookEntityOutput("func_door_rotating", "toggle", DoorOpenCallback);
+	HookEntityOutput("dz_door", "open", DoorOpenCallback);
+	HookEntityOutput("dz_door", "toggle", DoorOpenCallback);
+	HookEntityOutput("prop_door_rotating", "open", DoorOpenCallback);
+	HookEntityOutput("prop_door_rotating", "toggle", DoorOpenCallback);
+
 	s_SDKHookCallbacks[SDKHook_EndTouch] = SDKHooksEndTouch;
 	s_SDKHookCallbacks[SDKHook_FireBulletsPost] = SDKHooksFireBulletsPost;
 	s_SDKHookCallbacks[SDKHook_OnTakeDamage] = SDKHooksOnTakeDamage;
@@ -157,7 +187,6 @@ public void OnPluginStart()
 	
 	native_OnPluginStart();
 }
-
 
 // SDKHooks Callbacks
 public void SDKHooksPreThink(int client)
@@ -280,11 +309,365 @@ public void VoteHandlerCallback(Menu menu, int num_votes, int num_clients, const
 
 public Action TimerCallback(Handle timer, int data) { return native_TimerCallback(timer, data); }
 
+public Action EntityOutputCallback(const char[] output, int caller, int activator, float delay) { return native_EntityOutputCallback(output, caller, activator, delay); }
+public Action SingleEntityOutputCallback(const char[] output, int caller, int activator, float delay) { return native_SingleEntityOutputCallback(output, caller, activator, delay); }
+
+public Action TEHookCallback(const char[] te_name, const int[] Players, int numClients, float delay) { return native_TEHookCallback(te_name, Players, numClients, delay); }
+
+public Action GameLogHookCallback(const char[] message) { return native_GameLogHookCallback(message); }
+
+public bool TraceEntityFilterCallback(int entity, int contentsMask, int data) { return native_TraceEntityFilterCallback(entity, contentsMask, data); }
+public bool TraceEntityEnumeratorCallback(int entity, int data) { return native_TraceEntityEnumeratorCallback(entity, data); }
+
 // TODO
 public void OnPluginEnd() { native_OnPluginEnd(); }
 
 public void OnMapStart() { native_OnMapStart(); }
 public void OnMapEnd() { native_OnMapEnd(); }
+
+// SDKTOOLS_ENGINE.INC
+public void public_SetClientViewEntity(int client, int entity) { SetClientViewEntity(client, entity); }
+public void public_SetLightStyle(int style, const char[] value) { SetLightStyle(style, value); }
+public void public_GetClientEyePosition(int client, float pos[3]) { GetClientEyePosition(client, pos); }
+
+/* SDKTOOLS_TRACE.INC */
+// SDKTOOLS_TRACE.INC - Public
+public int public_TR_GetPointContents(const float pos[3], int &entindex)
+{
+	return TR_GetPointContents(pos, entindex);
+}
+public int public_TR_GetPointContentsEnt(int entindex, const float pos[3])
+{
+	return TR_GetPointContentsEnt(entindex, pos);
+}
+public void public_TR_TraceRay(const float pos[3], const float vec[3], int flags, RayType rtype)
+{
+	TR_TraceRay(pos, vec, flags, rtype);
+}
+public void public_TR_TraceHull(const float pos[3], const float vec[3], const float mins[3], const float maxs[3], int flags)
+{
+	TR_TraceHull(pos, vec, mins, maxs, flags);
+}
+public void public_TR_EnumerateEntities(const float pos[3], const float vec[3], int mask, RayType rtype, int data)
+{
+	TR_EnumerateEntities(pos, vec, mask, rtype, TraceEntityEnumeratorCallback, data);
+}
+public void public_TR_EnumerateEntitiesHull(const float pos[3], const float vec[3], const float mins[3], const float maxs[3], int mask, int data)
+{
+	TR_EnumerateEntitiesHull(pos, vec, mins, maxs, mask, TraceEntityEnumeratorCallback, data);
+}
+public void public_TR_EnumerateEntitiesSphere(const float pos[3], float radius, int mask, int data)
+{
+	TR_EnumerateEntitiesSphere(pos, radius, mask, TraceEntityEnumeratorCallback, data);
+}
+public void public_TR_EnumerateEntitiesBox(const float mins[3], const float maxs[3], int mask, int data)
+{
+	TR_EnumerateEntitiesBox(mins, maxs, mask, TraceEntityEnumeratorCallback, data);
+}
+public void public_TR_EnumerateEntitiesPoint(const float pos[3], int mask, int data)
+{
+	TR_EnumerateEntitiesPoint(pos, mask, TraceEntityEnumeratorCallback, data);
+}
+public void public_TR_TraceRayFilter(const float pos[3], const float vec[3], int flags, RayType rtype, int data)
+{
+	TR_TraceRayFilter(pos, vec, flags, rtype, TraceEntityFilterCallback, data);
+}
+public void public_TR_TraceHullFilter(const float pos[3], const float vec[3], const float mins[3], const float maxs[3], int flags, int data)
+{
+	TR_TraceHullFilter(pos, vec, mins, maxs, flags, TraceEntityFilterCallback, data);
+}
+public void public_TR_ClipRayToEntity(const float pos[3], const float vec[3], int flags, RayType rtype, int entity)
+{
+	TR_ClipRayToEntity(pos, vec, flags, rtype, entity);
+}
+public void public_TR_ClipRayHullToEntity(const float pos[3], const float vec[3], const float mins[3], const float maxs[3], int flags, int entity)
+{
+	TR_ClipRayHullToEntity(pos, vec, mins, maxs, flags, entity);
+}
+public void public_TR_ClipCurrentRayToEntity(int flags, int entity)
+{
+	TR_ClipCurrentRayToEntity(flags, entity);
+}
+public Handle public_TR_TraceRayEx(const float pos[3], const float vec[3], int flags, RayType rtype)
+{
+	return TR_TraceRayEx(pos, vec, flags, rtype);
+}
+public Handle public_TR_TraceHullEx(const float pos[3], const float vec[3], const float mins[3], const float maxs[3], int flags)
+{
+	return TR_TraceHullEx(pos, vec, mins, maxs, flags);
+}
+public Handle public_TR_TraceRayFilterEx(const float pos[3], const float vec[3], int flags, RayType rtype, int data)
+{
+	return TR_TraceRayFilterEx(pos, vec, flags, rtype, TraceEntityFilterCallback, data);
+}
+public Handle public_TR_TraceHullFilterEx(const float pos[3], const float vec[3], const float mins[3], const float maxs[3], int flags, int data)
+{
+	return TR_TraceHullFilterEx(pos, vec, mins, maxs, flags, TraceEntityFilterCallback, data);
+}
+public Handle public_TR_ClipRayToEntityEx(const float pos[3], const float vec[3], int flags, RayType rtype, int entity)
+{
+	return TR_ClipRayToEntityEx(pos, vec, flags, rtype, entity);
+}
+public Handle public_TR_ClipRayHullToEntityEx(const float pos[3], const float vec[3], const float mins[3], const float maxs[3], int flags, int entity)
+{
+	return TR_ClipRayHullToEntityEx(pos, vec, mins, maxs, flags, entity);
+}
+public Handle public_TR_ClipCurrentRayToEntityEx(int flags, int entity)
+{
+	return TR_ClipCurrentRayToEntityEx(flags, entity);
+}
+public float public_TR_GetFraction(Handle hndl)
+{
+	return TR_GetFraction(hndl);
+}
+public float public_TR_GetFractionLeftSolid(Handle hndl)
+{
+	return TR_GetFractionLeftSolid(hndl);
+}
+public void public_TR_GetStartPosition(Handle hndl, float pos[3])
+{
+	TR_GetStartPosition(hndl, pos);
+}
+public void public_TR_GetEndPosition(float pos[3], Handle hndl)
+{
+	TR_GetEndPosition(pos, hndl);
+}
+public int public_TR_GetEntityIndex(Handle hndl)
+{
+	return TR_GetEntityIndex(hndl);
+}
+public int public_TR_GetDisplacementFlags(Handle hndl)
+{
+	return TR_GetDisplacementFlags(hndl);
+}
+public void public_TR_GetSurfaceName(Handle hndl, char[] buffer, int maxlen)
+{
+	TR_GetSurfaceName(hndl, buffer, maxlen);
+}
+public int public_TR_GetSurfaceProps(Handle hndl)
+{
+	return TR_GetSurfaceProps(hndl);
+}
+public int public_TR_GetSurfaceFlags(Handle hndl)
+{
+	return TR_GetSurfaceFlags(hndl);
+}
+public int public_TR_GetPhysicsBone(Handle hndl)
+{
+	return TR_GetPhysicsBone(hndl);
+}
+public bool public_TR_AllSolid(Handle hndl)
+{
+	return TR_AllSolid(hndl);
+}
+public bool public_TR_StartSolid(Handle hndl)
+{
+	return TR_StartSolid(hndl);
+}
+public bool public_TR_DidHit(Handle hndl)
+{
+	return TR_DidHit(hndl);
+}
+public int public_TR_GetHitGroup(Handle hndl)
+{
+	return TR_GetHitGroup(hndl);
+}
+public int public_TR_GetHitBoxIndex(Handle hndl)
+{
+	return TR_GetHitBoxIndex(hndl);
+}
+public void public_TR_GetPlaneNormal(Handle hndl, float normal[3])
+{
+	TR_GetPlaneNormal(hndl, normal);
+}
+public bool public_TR_PointOutsideWorld(float pos[3])
+{
+	return TR_PointOutsideWorld(pos);
+}
+
+/* LOGGING.INC */
+// LOGGING.INC - Natives
+public Action OnLogAction(Handle source, Identity ident, int client, int target, const char[] message)
+{
+	return native_OnLogAction(source, ident, client, target, message);
+}
+// LOGGING.INC - Public
+public void public_LogMessage(const char[] format, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), format, 2);
+	LogMessage(buffer);
+}
+public void public_LogToFile(const char[] file, const char[] format, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), format, 3);
+	LogToFile(file, buffer);
+}
+public void public_LogToFileEx(const char[] file, const char[] format, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), format, 3);
+	LogToFileEx(file, buffer);
+}
+public void public_LogAction(int client, int target, const char[] message, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), message, 4);
+	LogAction(client, target, buffer);
+}
+public void public_LogError(const char[] format, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), format, 2);
+	LogError(buffer);
+}
+public void public_AddGameLogHook() { AddGameLogHook(GameLogHookCallback); }
+public void public_RemoveGameLogHook(GameLogHook hook) { RemoveGameLogHook(GameLogHookCallback); }
+
+/* SDKTOOLS_TEMPENTS.INC */
+// SDKTOOLS_TEMPENTS.INC - Public
+public void public_AddTempEntHook(const char[] te_name) { AddTempEntHook(te_name, TEHookCallback); }
+public void public_RemoveTempEntHook(const char[] te_name) { RemoveTempEntHook(te_name, TEHookCallback); }
+public void public_TE_Start(const char[] te_name) { TE_Start(te_name); }
+public bool public_TE_IsValidProp(const char[] prop) { return TE_IsValidProp(prop); }
+public void public_TE_WriteNum(const char[] prop, int value) { TE_WriteNum(prop, value); }
+public int public_TE_ReadNum(const char[] prop) { return TE_ReadNum(prop); }
+public void public_TE_WriteFloat(const char[] prop, float value) { TE_WriteFloat(prop, value); }
+public float public_TE_ReadFloat(const char[] prop) { return TE_ReadFloat(prop); }
+public void public_TE_WriteVector(const char[] prop, const float vector[3]) { TE_WriteVector(prop, vector); }
+public void public_TE_ReadVector(const char[] prop, float vector[3]) { TE_ReadVector(prop, vector); }
+public void public_TE_WriteAngles(const char[] prop, const float angles[3]) { TE_WriteAngles(prop, angles); }
+public void public_TE_WriteFloatArray(const char[] prop, const float[] array, int arraySize) { TE_WriteFloatArray(prop, array, arraySize); }
+public void public_TE_Send(const int[] clients, int numClients, float delay) { TE_Send(clients, numClients, delay); }
+
+/* SDKTOOLS_GAMERULES.INC */
+// SDKTOOLS_GAMERULES.INC - Public
+public int public_GameRules_GetProp(const char[] prop, int size, int element) { return GameRules_GetProp(prop, size, element); }
+public void public_GameRules_SetProp(const char[] prop, any value, int size, int element, bool changeState) { GameRules_SetProp(prop, value, size, element, changeState); }
+public float public_GameRules_GetPropFloat(const char[] prop, int element) { return GameRules_GetPropFloat(prop, element); }
+public void public_GameRules_SetPropFloat(const char[] prop, float value, int element, bool changeState) { GameRules_SetPropFloat(prop, value, element, changeState); }
+public int public_GameRules_GetPropEnt(const char[] prop, int element) { return GameRules_GetPropEnt(prop, element); }
+public void public_GameRules_SetPropEnt(const char[] prop, int other, int element, bool changeState) { GameRules_SetPropEnt(prop, other, element, changeState); }
+public void public_GameRules_GetPropVector(const char[] prop, float vec[3], int element) { GameRules_GetPropVector(prop, vec, element); }
+public void public_GameRules_SetPropVector(const char[] prop, const float vec[3], int element, bool changeState) { GameRules_SetPropVector(prop, vec, element, changeState); }
+public int public_GameRules_GetPropString(const char[] prop, char[] buffer, int maxlen) { return GameRules_GetPropString(prop, buffer, maxlen); }
+public int public_GameRules_SetPropString(const char[] prop, const char[] buffer, bool changeState) { return GameRules_SetPropString(prop, buffer, changeState); }
+
+/* SDKTOOLS_ENTINPUT.INC */
+// SDKTOOLS_ENTINPUT.INC - Public
+public bool public_AcceptEntityInput(int dest, const char[] input, int activator, int caller, int outputid) { return AcceptEntityInput(dest, input, activator, caller, outputid); }
+
+/* SDKTOOLS_ENTOUTPUT.INC */
+// SDKTOOLS_ENTOUTPUT.INC - Public
+public void public_HookEntityOutput(const char[] classname, const char[] output) { HookEntityOutput(classname, output, EntityOutputCallback); }
+public bool public_UnhookEntityOutput(const char[] classname, const char[] output) { return UnhookEntityOutput(classname, output, EntityOutputCallback); }
+public void public_HookSingleEntityOutput(int entity, const char[] output, bool once) { HookSingleEntityOutput(entity, output, SingleEntityOutputCallback, once); }
+public bool public_UnhookSingleEntityOutput(int entity, const char[] output) { return UnhookSingleEntityOutput(entity, output, SingleEntityOutputCallback); }
+public void public_FireEntityOutput(int caller, const char[] output, int activator, float delay) { FireEntityOutput(caller, output, activator, delay); }
+
+/* HANDLES.INC */
+// HANDLES.INC - Public
+public void public_CloseHandle(Handle hndl) { CloseHandle(hndl); }
+public Handle public_CloneHandle(Handle hndl, Handle plugin) { return CloneHandle(hndl, plugin); }
+
+/* ENTITY_PROP_STOCKS.INC */
+// ENTITY_PROP_STOCKS.INC - Public
+public int public_GetEntityFlags(int entity) { return GetEntityFlags(entity); }
+public void public_SetEntityFlags(int entity, int flags) { SetEntityFlags(entity, flags); }
+public MoveType public_GetEntityMoveType(int entity) { return GetEntityMoveType(entity); }
+public void public_SetEntityMoveType(int entity, MoveType mt) { SetEntityMoveType(entity, mt); }
+public RenderMode public_GetEntityRenderMode(int entity) { return GetEntityRenderMode(entity); }
+public void public_SetEntityRenderMode(int entity, RenderMode mode) { SetEntityRenderMode(entity, mode); }
+public RenderFx public_GetEntityRenderFx(int entity) { return GetEntityRenderFx(entity); }
+public void public_SetEntityRenderFx(int entity, RenderFx fx) { SetEntityRenderFx(entity, fx); }
+public void public_GetEntityRenderColor(int entity, int &r, int &g, int &b, int &a) { GetEntityRenderColor(entity, r, g, b, a); }
+public void public_SetEntityRenderColor(int entity, int r, int g, int b, int a) { SetEntityRenderColor(entity, r, g, b, a); }
+public float public_GetEntityGravity(int entity) { return GetEntityGravity(entity); }
+public void public_SetEntityGravity(int entity, float amount) { SetEntityGravity(entity, amount); }
+public void public_SetEntityHealth(int entity, int amount) { SetEntityHealth(entity, amount); }
+public int public_GetClientButtons(int client) { return GetClientButtons(client); }
+
+/* HALFLIFE.INC */
+// HALFLIFE.INC - Public
+public void public_LogToGame(const char[] format, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), format, 2);
+	LogToGame(buffer);
+}
+public void public_SetRandomSeed(int seed) { SetRandomSeed(seed); }
+public bool public_IsMapValid(const char[] map) { return IsMapValid(map); }
+public FindMapResult public_FindMap(const char[] map, char[] foundmap, int maxlen) { return FindMap(map, foundmap, maxlen); }
+public bool public_GetMapDisplayName(const char[] map, char[] displayName, int maxlen) { return GetMapDisplayName(map, displayName, maxlen); }
+public bool public_IsDedicatedServer() { return IsDedicatedServer(); }
+public float public_GetEngineTime() { return GetEngineTime(); }
+public float public_GetGameTime() { return GetGameTime(); }
+public int public_GetGameTickCount() { return GetGameTickCount(); }
+public float public_GetGameFrameTime() { return GetGameFrameTime(); }
+public int public_GetGameDescription(char[] buffer, int maxlength, bool original) { return GetGameDescription(buffer, maxlength, original); }
+public int public_GetGameFolderName(char[] buffer, int maxlength) { return GetGameFolderName(buffer, maxlength); }
+public int public_GetCurrentMap(char[] buffer, int maxlength) { return GetCurrentMap(buffer, maxlength); }
+public int public_PrecacheModel(const char[] model, bool preload) { return PrecacheModel(model, preload); }
+public int public_PrecacheSentenceFile(const char[] file, bool preload) { return PrecacheSentenceFile(file, preload); }
+public int public_PrecacheDecal(const char[] decal, bool preload) { return PrecacheDecal(decal, preload); }
+public int public_PrecacheGeneric(const char[] generic, bool preload) { return PrecacheGeneric(generic, preload); }
+public bool public_IsModelPrecached(const char[] model) { return IsModelPrecached(model); }
+public bool public_IsDecalPrecached(const char[] decal) { return IsDecalPrecached(decal); }
+public bool public_IsGenericPrecached(const char[] generic) { return IsGenericPrecached(generic); }
+public bool public_PrecacheSound(const char[] sound, bool preload) { return PrecacheSound(sound, preload); }
+public void public_CreateDialog(int client, Handle kv, DialogType type) { CreateDialog(client, kv, type); }
+public EngineVersion public_GetEngineVersion() { return GetEngineVersion(); }
+public void public_PrintToChat(int client, const char[] format, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), format, 3);
+	PrintToChat(client, buffer);
+}
+public void public_PrintCenterText(int client, const char[] format, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), format, 3);
+	PrintCenterText(client, buffer);
+}
+public void public_PrintHintText(int client, const char[] format, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), format, 3);
+	PrintHintText(client, buffer);
+}
+public void public_ShowVGUIPanel(int client, const char[] name, Handle Kv, bool show) { ShowVGUIPanel(client, name, Kv, show); }
+public Handle public_CreateHudSynchronizer() { return CreateHudSynchronizer(); }
+public void public_SetHudTextParams(float x, float y, float holdTime, int r, int g, int b, int a, int effect, float fxTime, float fadeIn, float fadeOut)
+{
+	SetHudTextParams(x, y, holdTime, r, g, b, a, effect, fxTime, fadeIn, fadeOut);
+}
+public void public_SetHudTextParamsEx(float x, float y, float holdTime, int color1[4], int color2[4], int effect, float fxTime, float fadeIn, float fadeOut)
+{
+	SetHudTextParamsEx(x, y, holdTime, color1, color2, effect, fxTime, fadeIn, fadeOut);
+}
+public int public_ShowSyncHudText(int client, Handle sync, const char[] message, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), message, 4);
+	return ShowSyncHudText(client, sync, buffer);
+}
+public void public_ClearSyncHud(int client, Handle sync) { ClearSyncHud(client, sync); }
+public int public_ShowHudText(int client, int channel, const char[] message, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), message, 4);
+	return ShowHudText(client, channel, buffer);
+}
+public int public_EntIndexToEntRef(int entity) { return EntIndexToEntRef(entity); }
+public int public_EntRefToEntIndex(int ref) { return EntRefToEntIndex(ref); }
+public int public_MakeCompatEntRef(int ref) { return MakeCompatEntRef(ref); }
+public int public_GetClientsInRange(const float origin[3], ClientRangeType rangeType, int[] clients, int size)
+{
+	return GetClientsInRange(origin, rangeType, clients, size);
+}
+public void public_GetServerAuthId(AuthIdType authType, char[] auth, int maxlen) { GetServerAuthId(authType, auth, maxlen); }
+public int public_GetServerSteamAccountId() { return GetServerSteamAccountId(); }
 
 /* TIMERS.INC */
 // TIMERS.INC - Natives
@@ -564,11 +947,6 @@ public int public_SQL_AddQuery(Transaction txn, const char[] query, int data) { 
 public void public_SQL_ExecuteTransaction(Handle db, Transaction txn, int data, DBPriority priority)
 	{ SQL_ExecuteTransaction(db, txn, SQLTxnSuccessCallback, SQLTxnFailureCallback, data, priority); }
 
-/*stock Database SQL_DefConnect(char[] error, int maxlength, bool persistent)
-{
-	return SQL_Connect("default", persistent, error, maxlength);
-}*/
-
 /* CSTRIKE.INC */
 // cstrike.inc - Natives
 public Action CS_OnBuyCommand(int client, const char[] weapon) { return native_CS_OnBuyCommand(client, weapon); }
@@ -713,40 +1091,3 @@ public void public_KickClientEx(int client, const char[] message) { KickClientEx
 public void public_ChangeClientTeam(int client, int team) { ChangeClientTeam(client, team); }
 public int public_GetClientSerial(int client) { return GetClientSerial(client); }
 public int public_GetClientFromSerial(int serial) { return GetClientFromSerial(serial); }
-
-/*stock void PrintToConsoleAll(const char[] format, any ...)
-{
-	char buffer[254];
-	
-	for (int i = 1; i <= MaxClients; i++)
-	{
-		if (IsClientInGame(i))
-		{
-			SetGlobalTransTarget(i);
-			VFormat(buffer, sizeof(buffer), format, 2);
-			PrintToConsole(i, "%s", buffer);
-		}
-	}
-}*/
-
-
-/*stock int GetCmdArgInt(int argnum)
-{
-    char str[12];
-    GetCmdArg(argnum, str, sizeof(str));
-
-    return StringToInt(str);
-}*/
-
-/*stock bool GetCmdArgIntEx(int argnum, int &value)
-{
-    char str[12];
-    int len = GetCmdArg(argnum, str, sizeof(str));
-
-    return StringToIntEx(str, value) == len && len > 0;
-}*/
-
-/*stock bool CommandExists(const char[] command)
-{
-	return (GetCommandFlags(command) != INVALID_FCVAR_FLAGS);
-}*/

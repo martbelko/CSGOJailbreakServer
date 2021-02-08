@@ -14,6 +14,17 @@ const sp_nativeinfo_t MyNatives[] =
 	{ "native_OnPluginEnd", NativeManager::OnPluginEnd },
 	{ "native_OnMapStart", NativeManager::OnMapStart },
 	{ "native_OnMapEnd", NativeManager::OnMapEnd },
+	// SDKTOOLS_TRACE.INC
+	{ "native_TraceEntityFilterCallback", NativeManager::TraceEntityFilterCallback },
+	{ "native_TraceEntityEnumeratorCallback", NativeManager::TraceEntityEnumeratorCallback },
+	// LOGGING.INC
+	{ "native_OnLogAction", NativeManager::OnLogAction },
+	{ "native_GameLogHookCallback", NativeManager::GameLogHookCallback },
+	// SDKTOOLS_TEMPENTS.INC
+	{ "native_TEHookCallback", NativeManager::TEHookCallback },
+	// SDKTOOLS_ENTOUTPUT.INC
+	{ "native_EntityOutputCallback", NativeManager::EntityOutputCallback },
+	{ "native_SingleEntityOutputCallback", NativeManager::SingleEntityOutputCallback },
 	// TIMERS.INC
 	{ "native_TimerCallback", NativeManager::TimerCallback },
 	{ "native_OnMapTimeLeftChanged", NativeManager::OnMapTimeLeftChanged },

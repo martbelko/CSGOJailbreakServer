@@ -54,7 +54,7 @@ public:
 	 */
 	static float GetTickedTime()
 	{
-		return ExecAndReturn(s_GetTickedTimeFunc);
+		return ExecFunc(s_GetTickedTimeFunc);
 	}
 
 	/**
@@ -69,7 +69,7 @@ public:
 	static bool GetMapTimeLeft(int& timeleft)
 	{
 		s_GetMapTimeLeftFunc->PushCellByRef(&timeleft);
-		return ExecAndReturn(s_GetMapTimeLeftFunc);
+		return ExecFunc(s_GetMapTimeLeftFunc);
 	}
 
 	/**
@@ -84,7 +84,7 @@ public:
 	static bool GetMapTimeLimit(int& time)
 	{
 		s_GetMapTimeLimitFunc->PushCellByRef(&time);
-		return ExecAndReturn(s_GetMapTimeLimitFunc);
+		return ExecFunc(s_GetMapTimeLimitFunc);
 	}
 
 	/**
@@ -109,7 +109,7 @@ public:
 	 */
 	static float GetTickInterval()
 	{
-		return ExecAndReturn(s_GetTickIntervalFunc);
+		return ExecFunc(s_GetTickIntervalFunc);
 	}
 
 	/**
@@ -123,5 +123,5 @@ public:
 	 */
 	static bool IsServerProcessing()
 	{
-		return ExecAndReturn(s_IsServerProcessingFunc);
+		return ExecFunc(s_IsServerProcessingFunc);
 	}

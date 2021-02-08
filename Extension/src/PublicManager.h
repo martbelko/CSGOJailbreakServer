@@ -7,6 +7,10 @@
 #include <sstream>
 #include <unordered_map>
 
+#ifdef CreateDialog
+	#undef CreateDialog // Windows function
+#endif
+
 #define VARIADIC_FUNC2(FUNC, FUNC_IMPL, T1) \
 	static void FUNC(T1 arg1) { PushArg(FUNC_IMPL, arg1); ExecFunc(FUNC_IMPL); } \
 	template<typename ... Args> \
@@ -55,7 +59,23 @@
 	static void FUNC##Sub(const char* arg) { PushArg(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
 	public:
 
+/* SDKTOOLS_ENTOUTPUT.INC */
+
+/**
+ * @brief Called when an entity output is fired.
+ *
+ * @param output        Name of the output that fired.
+ * @param caller        Entity index of the caller.
+ * @param activator     Entity index of the activator.
+ * @param delay         Delay in seconds? before the event gets fired.
+ * @return              Anything other than Plugin_Continue will supress this event,
+ *                      returning Plugin_Continue will allow it to propagate the results
+ *                      of this output to any entity inputs.
+ */
+using EntityOutputFunc = Action(*)(const char* output, int caller, int activator, float delay);
+
 /* SDKHOOKS.INC */
+
 // PreThink/Post - client
 // PostThink/Post - client
 // GroundEntChanged - entity
@@ -138,7 +158,58 @@ using MenuHandler = int(*)(MenuHandle menu, MenuAction action, int param1, int p
 using VoteHandler = void(*)(MenuHandle menu, int numVotes, int numClients, const int** clientInfo, int numItems, const int** itemInfo);
 
 /* TIMERS.INC */
+
 using TimerCallbackFunc = Action(*)(Handle timer, void* data);
+
+/* SDKTOOLS_TEMPENTS.INC */
+
+/**
+ * @brief Called when a temp entity is going to be sent.
+ *
+ * @param teName        TE name.
+ * @param players       Array containing target player indexes.
+ * @param numClients    Number of players in the array.
+ * @param delay         Delay in seconds to send the TE.
+ * @return              Plugin_Continue to allow the transmission of the TE, Plugin_Stop to block it.
+ */
+using TEHookFunc = Action(*)(const char* teName, const int players[], int numClients, float delay);
+
+/* LOGGING.INC */
+
+/**
+ * @brief Called when a game log message is received.
+ *
+ * Any Log*() functions called within this callback will not recursively
+ * pass through.  That is, they will log directly, bypassing this callback.
+ *
+ * Note that this does not capture log messages from the engine.  It only
+ * captures log messages being sent from the game/mod itself.
+ *
+ * @param message       Message contents.
+ * @return              Plugin_Handled or Plugin_Stop will prevent the message
+ *                      from being written to the log file.
+ */
+using GameLogHookFunc = Action(*)(const char* message);
+
+/* SDKTOOLS_TRACE.INC */
+
+/**
+ * Called on entity filtering.
+ *
+ * @param entity        Entity index.
+ * @param contentsMask  Contents Mask.
+ * @param data          Data value
+ * @return              True to allow the current entity to be hit, otherwise false.
+ */
+using TraceEntityFilterFunc = bool(*)(int entity, int contentsMask, void* data);
+
+/**
+ * Called for each entity enumerated with EnumerateEntities*.
+ *
+ * @param entity        Entity index.
+ * @param data          Data value
+ * @return              True to continue enumerating, otherwise false. */
+using TraceEntityEnumeratorFunc = bool(*)(int entity, void* data);
 
 struct pair_hash
 {
@@ -155,6 +226,43 @@ class PublicManager
 {
 public:
 	static void InitOnPluginStart(IPluginContext* pContext);
+
+	// SDKTOOLS_ENGINE.INC
+	#include "API/SDKToolsEngineAPI.h"
+
+	// SDKTOOLS_TRACE.INC
+	#include "API/SDKToolsTraceAPI.h"
+
+	// BITBUFFER.INC
+	#include "API/BitBufferAPI.h"
+
+	// LOGGING.INC
+	#include "API/LoggingAPI.h"
+
+	// SDKTOOLS_STOCKS.INC
+	#include "API/SDKToolsStocksAPI.h"
+
+	// SDKTOOLS_TEMPENTS_STOCKS.INC
+	#include "API/SDKToolsTempentsStocksAPI.h"
+
+	// SDKTOOLS_TEMPENTS.INC
+	#include "API/SDKToolsTempentsAPI.h"
+
+	// SDKTOOLS_GAMERULES.INC
+	#include "API/SDKToolsGameRulesAPI.h"
+
+	// SDKTOOLS_ENTINPUT.INC
+	// SDKTOOLS_ENTOUTPUT.INC
+	#include "API/SDKToolsEntInOutAPI.h"
+
+	// HANDLES.INC
+	#include "API/HandlesAPI.h"
+
+	// ENTITY_PROP_STOCKS.INC
+	#include "API/EntityPropStocksAPI.h"
+
+	// HALFLIFE.INC
+	#include "API/HalfLifeAPI.h"
 
 	// TIMERS.INC
 	#include "API/TimersAPI.h"
@@ -190,9 +298,13 @@ private:
 	static void PushArg(IPluginFunction* func, int arg) { func->PushCell(arg); }
 	static void PushArg(IPluginFunction* func, float arg) { func->PushFloat(arg); }
 	static void PushArg(IPluginFunction* func, const char* arg) { func->PushString(arg); }
-	static void PushArg(IPluginFunction* func, float arg[3]) { func->PushArray((int*)arg, 3, 1); }
-	static void PushArg(IPluginFunction* func, const float arg[3]) { func->PushArray((int*)arg, 3, 1); }
-	static void PushArg(IPluginFunction* func, int arg[], unsigned int len) { func->PushArray(arg, len); }
+	static void PushArg(IPluginFunction* func, char* arg, unsigned int len) { func->PushStringEx(arg, len, 0, 1); }
+	static void PushArg(IPluginFunction* func, float arg[3]) { func->PushArray((int*)arg, 3, 1); } // TODO: Remove
+	static void PushArg(IPluginFunction* func, const float arg[3]) { func->PushArray((int*)arg, 3, 0); } // TODO: Remove
+	static void PushArg(IPluginFunction* func, const float* arg, unsigned int len) { func->PushArray(const_cast<int*>(reinterpret_cast<const int*>(arg)), len, 0); }
+	static void PushArg(IPluginFunction* func, float* arg, unsigned int len) { func->PushArray(reinterpret_cast<int*>(arg), len, 1); }
+	static void PushArg(IPluginFunction* func, int* arg, unsigned int len) { func->PushArray(arg, len, 1); }
+	static void PushArg(IPluginFunction* func, const int* arg, unsigned int len) { func->PushArray(const_cast<int*>(arg), len, 0); }
 
 	static void PushArgRef(IPluginFunction* func, int& arg) { func->PushCellByRef(&arg); }
 	static void PushArgRef(IPluginFunction* func, float& arg) { func->PushFloatByRef(&arg); }
@@ -205,7 +317,10 @@ private:
 		return res;
 	}
 
-	static int ExecFunc(IPluginFunction* func) { return ExecAndReturn(func); }
+	static int ExecFunc(IPluginFunction* func)
+	{
+		return ExecAndReturn(func);
+	}
 
 	template<typename T1>
 	static int ExecFunc(IPluginFunction* func, T1 t1)
@@ -258,8 +373,36 @@ private:
 		PushArg(func, t5); PushArg(func, t6); PushArg(func, t7); PushArg(func, t8);
 		return ExecAndReturn(func);
 	}
+
+	template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10, typename T11>
+	static int ExecFunc(IPluginFunction* func, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, T10 t10, T11 t11)
+	{
+		PushArg(func, t1); PushArg(func, t2); PushArg(func, t3); PushArg(func, t4);
+		PushArg(func, t5); PushArg(func, t6); PushArg(func, t7); PushArg(func, t8);
+		PushArg(func, t9); PushArg(func, t10); PushArg(func, t11);
+		return ExecAndReturn(func);
+	}
 private:
 	friend class NativeManager;
+
+	// SDKTOOLS_TRACE.INC
+	static int s_TraceEntityFilterIndex;
+	static std::unordered_map<int, TraceEntityFilterFunc> s_TraceEntityFilterCallbacks;
+	static std::unordered_map<int, void*> s_TraceEntityFilterData;
+
+	static int s_TraceEntityEnumeratorIndex;
+	static std::unordered_map<int, TraceEntityEnumeratorFunc> s_TraceEntityEnumeratorCallbacks;
+	static std::unordered_map<int, void*> s_TraceEntityEnumeratorData;
+
+	// LOGGING.INC
+	static GameLogHookFunc s_GameLogHookCallback;
+
+	// SDKTOOLS_TEMPENTS.INC
+	static std::unordered_map<std::string, TEHookFunc> s_TEHooksCallbacks;
+
+	// SDKTOOLS_ENTOUTPUT.INC
+	static std::unordered_map<std::pair<std::string, std::string>, EntityOutputFunc, pair_hash> s_EntityOutputCallbacks;
+	static std::unordered_map<std::pair<int, std::string>, EntityOutputFunc, pair_hash> s_SingleEntityOutputCallbacks;
 
 	// TIMERS.INC
 	static std::unordered_map<Handle, TimerCallbackFunc> s_TimerCallbacks;
@@ -283,6 +426,189 @@ private:
 	static std::unordered_map<int, int> s_SQLTQueryCallbacksData;
 private:
 	static int s_MaxClients;
+
+	// SDKTOOLS_ENGINE.INC
+	static IPluginFunction* s_SetClientViewEntityFunc;
+	static IPluginFunction* s_SetLightStyleFunc;
+	static IPluginFunction* s_GetClientEyePositionFunc;
+
+	// SDKTOOLS_TRACE.INC
+	static IPluginFunction* s_TR_GetPointContentsFunc;
+	static IPluginFunction* s_TR_GetPointContentsEntFunc;
+	static IPluginFunction* s_TR_TraceRayFunc;
+	static IPluginFunction* s_TR_TraceHullFunc;
+	static IPluginFunction* s_TR_EnumerateEntitiesFunc;
+	static IPluginFunction* s_TR_EnumerateEntitiesHullFunc;
+	static IPluginFunction* s_TR_EnumerateEntitiesSphereFunc;
+	static IPluginFunction* s_TR_EnumerateEntitiesBoxFunc;
+	static IPluginFunction* s_TR_EnumerateEntitiesPointFunc;
+	static IPluginFunction* s_TR_TraceRayFilterFunc;
+	static IPluginFunction* s_TR_TraceHullFilterFunc;
+	static IPluginFunction* s_TR_ClipRayToEntityFunc;
+	static IPluginFunction* s_TR_ClipRayHullToEntityFunc;
+	static IPluginFunction* s_TR_ClipCurrentRayToEntityFunc;
+	static IPluginFunction* s_TR_TraceRayExFunc;
+	static IPluginFunction* s_TR_TraceHullExFunc;
+	static IPluginFunction* s_TR_TraceRayFilterExFunc;
+	static IPluginFunction* s_TR_TraceHullFilterExFunc;
+	static IPluginFunction* s_TR_ClipRayToEntityExFunc;
+	static IPluginFunction* s_TR_ClipRayHullToEntityExFunc;
+	static IPluginFunction* s_TR_ClipCurrentRayToEntityExFunc;
+	static IPluginFunction* s_TR_GetFractionFunc;
+	static IPluginFunction* s_TR_GetFractionLeftSolidFunc;
+	static IPluginFunction* s_TR_GetStartPositionFunc;
+	static IPluginFunction* s_TR_GetEndPositionFunc;
+	static IPluginFunction* s_TR_GetEntityIndexFunc;
+	static IPluginFunction* s_TR_GetDisplacementFlagsFunc;
+	static IPluginFunction* s_TR_GetSurfaceNameFunc;
+	static IPluginFunction* s_TR_GetSurfacePropsFunc;
+	static IPluginFunction* s_TR_GetSurfaceFlagsFunc;
+	static IPluginFunction* s_TR_GetPhysicsBoneFunc;
+	static IPluginFunction* s_TR_AllSolidFunc;
+	static IPluginFunction* s_TR_StartSolidFunc;
+	static IPluginFunction* s_TR_DidHitFunc;
+	static IPluginFunction* s_TR_GetHitGroupFunc;
+	static IPluginFunction* s_TR_GetHitBoxIndexFunc;
+	static IPluginFunction* s_TR_GetPlaneNormalFunc;
+	static IPluginFunction* s_TR_PointOutsideWorldFunc;
+
+	// BITBUFFER.INC
+	static IPluginFunction* s_BfWriteBoolFunc;
+	static IPluginFunction* s_BfWriteByteFunc;
+	static IPluginFunction* s_BfWriteCharFunc;
+	static IPluginFunction* s_BfWriteShortFunc;
+	static IPluginFunction* s_BfWriteWordFunc;
+	static IPluginFunction* s_BfWriteNumFunc;
+	static IPluginFunction* s_BfWriteFloatFunc;
+	static IPluginFunction* s_BfWriteStringFunc;
+	static IPluginFunction* s_BfWriteEntityFunc;
+	static IPluginFunction* s_BfWriteAngleFunc;
+	static IPluginFunction* s_BfWriteCoordFunc;
+	static IPluginFunction* s_BfWriteVecCoordFunc;
+	static IPluginFunction* s_BfWriteVecNormalFunc;
+	static IPluginFunction* s_BfWriteAnglesFunc;
+	static IPluginFunction* s_BfReadBoolFunc;
+	static IPluginFunction* s_BfReadByteFunc;
+	static IPluginFunction* s_BfReadCharFunc;
+	static IPluginFunction* s_BfReadShortFunc;
+	static IPluginFunction* s_BfReadWordFunc;
+	static IPluginFunction* s_BfReadNumFunc;
+	static IPluginFunction* s_BfReadFloatFunc;
+	static IPluginFunction* s_BfReadStringFunc;
+	static IPluginFunction* s_BfReadEntityFunc;
+	static IPluginFunction* s_BfReadAngleFunc;
+	static IPluginFunction* s_BfReadCoordFunc;
+	static IPluginFunction* s_BfReadVecCoordFunc;
+	static IPluginFunction* s_BfReadVecNormalFunc;
+	static IPluginFunction* s_BfReadAnglesFunc;
+	static IPluginFunction* s_BfGetNumBytesLeftFunc;
+
+	// LOGGING.INC
+	static IPluginFunction* s_LogMessageFunc;
+	static IPluginFunction* s_LogToFileFunc;
+	static IPluginFunction* s_LogToFileExFunc;
+	static IPluginFunction* s_LogActionFunc;
+	static IPluginFunction* s_LogErrorFunc;
+	static IPluginFunction* s_AddGameLogHookFunc;
+	static IPluginFunction* s_RemoveGameLogHookFunc;
+
+	// SDKTOOLS_TEMPENTS.INC
+	static IPluginFunction* s_AddTempEntHookFunc;
+	static IPluginFunction* s_RemoveTempEntHookFunc;
+	static IPluginFunction* s_TE_StartFunc;
+	static IPluginFunction* s_TE_IsValidPropFunc;
+	static IPluginFunction* s_TE_WriteNumFunc;
+	static IPluginFunction* s_TE_ReadNumFunc;
+	static IPluginFunction* s_TE_WriteFloatFunc;
+	static IPluginFunction* s_TE_ReadFloatFunc;
+	static IPluginFunction* s_TE_WriteVectorFunc;
+	static IPluginFunction* s_TE_ReadVectorFunc;
+	static IPluginFunction* s_TE_WriteAnglesFunc;
+	static IPluginFunction* s_TE_WriteFloatArrayFunc;
+	static IPluginFunction* s_TE_SendFunc;
+
+	// SDKTOOLS_GAMERULES.INC
+	static IPluginFunction* s_GameRules_GetPropFunc;
+	static IPluginFunction* s_GameRules_SetPropFunc;
+	static IPluginFunction* s_GameRules_GetPropFloatFunc;
+	static IPluginFunction* s_GameRules_SetPropFloatFunc;
+	static IPluginFunction* s_GameRules_GetPropEntFunc;
+	static IPluginFunction* s_GameRules_SetPropEntFunc;
+	static IPluginFunction* s_GameRules_GetPropVectorFunc;
+	static IPluginFunction* s_GameRules_SetPropVectorFunc;
+	static IPluginFunction* s_GameRules_GetPropStringFunc;
+	static IPluginFunction* s_GameRules_SetPropStringFunc;
+
+	// SDKTOOLS_ENTINPUT.INC
+	static IPluginFunction* s_AcceptEntityInputFunc;
+
+	// SDKTOOLS_ENTOUTPUT.INC
+	static IPluginFunction* s_HookEntityOutputFunc;
+	static IPluginFunction* s_UnhookEntityOutputFunc;
+	static IPluginFunction* s_HookSingleEntityOutputFunc;
+	static IPluginFunction* s_UnhookSingleEntityOutputFunc;
+	static IPluginFunction* s_FireEntityOutputFunc;
+
+	// HANDLES.INC
+	static IPluginFunction* s_CloseHandleFunc;
+	static IPluginFunction* s_CloneHandleFunc;
+
+	// ENTITY_PROP_STOCKS.INC
+	static IPluginFunction* s_GetEntityFlagsFunc;
+	static IPluginFunction* s_SetEntityFlagsFunc;
+	static IPluginFunction* s_GetEntityMoveTypeFunc;
+	static IPluginFunction* s_SetEntityMoveTypeFunc;
+	static IPluginFunction* s_GetEntityRenderModeFunc;
+	static IPluginFunction* s_SetEntityRenderModeFunc;
+	static IPluginFunction* s_GetEntityRenderFxFunc;
+	static IPluginFunction* s_SetEntityRenderFxFunc;
+	static IPluginFunction* s_GetEntityRenderColorFunc;
+	static IPluginFunction* s_SetEntityRenderColorFunc;
+	static IPluginFunction* s_GetEntityGravityFunc;
+	static IPluginFunction* s_SetEntityGravityFunc;
+	static IPluginFunction* s_SetEntityHealthFunc;
+	static IPluginFunction* s_GetClientButtonsFunc;
+
+	// HALFLIFE.INC
+	static IPluginFunction* s_LogToGameFunc;
+	static IPluginFunction* s_SetRandomSeedFunc;
+	static IPluginFunction* s_IsMapValidFunc;
+	static IPluginFunction* s_FindMapFunc;
+	static IPluginFunction* s_GetMapDisplayNameFunc;
+	static IPluginFunction* s_IsDedicatedServerFunc;
+	static IPluginFunction* s_GetEngineTimeFunc;
+	static IPluginFunction* s_GetGameTimeFunc;
+	static IPluginFunction* s_GetGameTickCountFunc;
+	static IPluginFunction* s_GetGameFrameTimeFunc;
+	static IPluginFunction* s_GetGameDescriptionFunc;
+	static IPluginFunction* s_GetGameFolderNameFunc;
+	static IPluginFunction* s_GetCurrentMapFunc;
+	static IPluginFunction* s_PrecacheModelFunc;
+	static IPluginFunction* s_PrecacheSentenceFileFunc;
+	static IPluginFunction* s_PrecacheDecalFunc;
+	static IPluginFunction* s_PrecacheGenericFunc;
+	static IPluginFunction* s_IsModelPrecachedFunc;
+	static IPluginFunction* s_IsDecalPrecachedFunc;
+	static IPluginFunction* s_IsGenericPrecachedFunc;
+	static IPluginFunction* s_PrecacheSoundFunc;
+	static IPluginFunction* s_CreateDialogFunc;
+	static IPluginFunction* s_GetEngineVersionFunc;
+	static IPluginFunction* s_PrintToChatFunc;
+	static IPluginFunction* s_PrintCenterTextFunc;
+	static IPluginFunction* s_PrintHintTextFunc;
+	static IPluginFunction* s_ShowVGUIPanelFunc;
+	static IPluginFunction* s_CreateHudSynchronizerFunc;
+	static IPluginFunction* s_SetHudTextParamsFunc;
+	static IPluginFunction* s_SetHudTextParamsExFunc;
+	static IPluginFunction* s_ShowSyncHudTextFunc;
+	static IPluginFunction* s_ClearSyncHudFunc;
+	static IPluginFunction* s_ShowHudTextFunc;
+	static IPluginFunction* s_EntIndexToEntRefFunc;
+	static IPluginFunction* s_EntRefToEntIndexFunc;
+	static IPluginFunction* s_MakeCompatEntRefFunc;
+	static IPluginFunction* s_GetClientsInRangeFunc;
+	static IPluginFunction* s_GetServerAuthIdFunc;
+	static IPluginFunction* s_GetServerSteamAccountIdFunc;
 
 	// TIMERS.INC
 	static IPluginFunction* s_CreateTimerFunc;

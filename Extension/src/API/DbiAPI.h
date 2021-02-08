@@ -9,7 +9,29 @@ public:
 	 * @param maxlength     Maximum length of the error buffer.
 	 * @return              A database connection Handle, or INVALID_HANDLE on failure.
 	 */
-	static database_t SQL_Connect(const char* confname, bool persistent, char* error, int maxlength) { return ExecFunc(s_SQL_ConnectFunc, confname, persistent, error, maxlength); }
+	static database_t SQL_Connect(const char* confname, bool persistent, char* error, int maxlength)
+	{
+		PushArg(s_SQL_ConnectFunc, confname);
+		PushArg(s_SQL_ConnectFunc, persistent);
+		PushArg(s_SQL_ConnectFunc, error, maxlength);
+		PushArg(s_SQL_ConnectFunc, maxlength);
+		return ExecFunc(s_SQL_ConnectFunc);
+	}
+
+	/**
+	 * @brief Creates a default SQL connection.
+	 *
+	 * @param error         Error buffer.
+	 * @param maxlength     Maximum length of the error buffer.
+	 * @param persistent    True to re-use a previous persistent connection
+	 *                      if possible, false otherwise.
+	 * @return              A database connection Handle, or INVALID_HANDLE on failure.
+	 *                      On failure the error buffer will be filled with a message.
+	 */
+	static database_t SQL_DefConnect(char* error, int maxlength, bool persistent = true)
+	{
+		return SQL_Connect("default", persistent, error, maxlength);
+	}
 
 	/**
 	 * @brief Connects to a database using key value pairs containing the database info.
@@ -32,7 +54,14 @@ public:
 	 *                      On failure the error buffer will be filled with a message.
 	 * @error               Invalid KeyValues handle.
 	 */
-	static database_t SQL_ConnectCustom(Handle keyvalues, char* error, int maxlength, bool persistent) { return ExecFunc(s_SQL_ConnectCustomFunc, keyvalues, error, maxlength, persistent); }
+	static database_t SQL_ConnectCustom(Handle keyvalues, char* error, int maxlength, bool persistent)
+	{
+		PushArg(s_SQL_ConnectCustomFunc, keyvalues);
+		PushArg(s_SQL_ConnectCustomFunc, error, maxlength);
+		PushArg(s_SQL_ConnectCustomFunc, maxlength);
+		PushArg(s_SQL_ConnectCustomFunc, persistent);
+		return ExecFunc(s_SQL_ConnectCustomFunc);
+	}
 
 	/**
 	 * @brief Returns if a named configuration is present in databases.cfg.
@@ -40,7 +69,10 @@ public:
 	 * @param name          Configuration name.
 	 * @return              True if it exists, false otherwise.
 	 */
-	static bool SQL_CheckConfig(const char* name) { return ExecFunc(s_SQL_CheckConfigFunc, name); }
+	static bool SQL_CheckConfig(const char* name)
+	{
+		return ExecFunc(s_SQL_CheckConfigFunc, name);
+	}
 
 	/**
 	 * @brief Returns a driver Handle from a name string.
@@ -52,17 +84,26 @@ public:
 	 *                      string to return the default driver.
 	 * @return              Driver Handle, or INVALID_HANDLE on failure.
 	 */
-	static DBDriver SQL_GetDriver(const char* name) { return ExecFunc(s_SQL_GetDriverFunc, name); }
+	static DBDriver SQL_GetDriver(const char* name)
+	{
+		return ExecFunc(s_SQL_GetDriverFunc, name);
+	}
 
 	/**
 	 * @brief Reads the driver of an opened database.
 	 *
 	 * @param database      Database Handle.
 	 * @param ident         Option buffer to store the identification string.
-	 * @param ident_length  Maximum length of the buffer.
+	 * @param identLength   Maximum length of the buffer.
 	 * @return              Driver Handle.
 	 */
-	static DBDriver SQL_ReadDriver(Handle database, char* ident, int ident_length) { return ExecFunc(s_SQL_ReadDriverFunc, database, ident, ident_length); }
+	static DBDriver SQL_ReadDriver(Handle database, char* ident, int identLength)
+	{
+		PushArg(s_SQL_ReadDriverFunc, database);
+		PushArg(s_SQL_ReadDriverFunc, ident, identLength);
+		PushArg(s_SQL_ReadDriverFunc, identLength);
+		return ExecFunc(s_SQL_ReadDriverFunc);
+	}
 
 	/**
 	 * @brief Retrieves a driver's identification string.
@@ -71,10 +112,16 @@ public:
 	 *
 	 * @param driver        Driver Handle, or INVALID_HANDLE for the default driver.
 	 * @param ident         Identification string buffer.
-	 * @param maxlength     Maximum length of the buffer.
+	 * @param identLength   Maximum length of the buffer.
 	 * @error               Invalid Handle other than INVALID_HANDLE.
 	 */
-	static void SQL_GetDriverIdent(Handle driver, char* ident, int maxlength) { ExecFunc(s_SQL_GetDriverIdentFunc, driver, ident, maxlength); }
+	static void SQL_GetDriverIdent(Handle driver, char* ident, int identLength)
+	{
+		PushArg(s_SQL_GetDriverIdentFunc, driver);
+		PushArg(s_SQL_GetDriverIdentFunc, ident, identLength);
+		PushArg(s_SQL_GetDriverIdentFunc, identLength);
+		ExecFunc(s_SQL_GetDriverIdentFunc);
+	}
 
 	/**
 	 * @brief Retrieves a driver's product string.
@@ -86,7 +133,13 @@ public:
 	 * @param maxlength     Maximum length of the buffer.
 	 * @error               Invalid Handle other than INVALID_HANDLE.
 	 */
-	static void SQL_GetDriverProduct(Handle driver, char* product, int maxlength) { ExecFunc(s_SQL_GetDriverProductFunc, driver, product, maxlength); }
+	static void SQL_GetDriverProduct(Handle driver, char* product, int maxlength)
+	{
+		PushArg(s_SQL_GetDriverProductFunc, driver);
+		PushArg(s_SQL_GetDriverProductFunc, product, maxlength);
+		PushArg(s_SQL_GetDriverProductFunc, maxlength);
+		ExecFunc(s_SQL_GetDriverProductFunc);
+	}
 
 	/**
 	 * @brief Sets the character set of the current connection.
@@ -98,7 +151,10 @@ public:
 	 * @param charset       The character set string to change to.
 	 * @return              True, if character set was changed, false otherwise.
 	 */
-	static bool SQL_SetCharset(Handle database, const char* charset) { return ExecFunc(s_SQL_SetCharsetFunc, database, charset); }
+	static bool SQL_SetCharset(Handle database, const char* charset)
+	{
+		return ExecFunc(s_SQL_SetCharsetFunc, database, charset);
+	}
 
 	/**
 	 * @brief Returns the number of affected rows from the last query.
@@ -107,7 +163,10 @@ public:
 	 * @return              Number of rows affected by the last query.
 	 * @error               Invalid database or statement Handle.
 	 */
-	static int SQL_GetAffectedRows(Handle hndl) { return ExecFunc(s_SQL_GetAffectedRowsFunc, hndl); }
+	static int SQL_GetAffectedRows(Handle hndl)
+	{
+		return ExecFunc(s_SQL_GetAffectedRowsFunc, hndl);
+	}
 
 	/**
 	 * @brief Returns the last query's insertion id.
@@ -116,7 +175,10 @@ public:
 	 * @return              Last query's insertion id.
 	 * @error               Invalid database, query, or statement Handle.
 	 */
-	static int SQL_GetInsertId(Handle hndl) { return ExecFunc(s_SQL_GetInsertIdFunc, hndl); }
+	static int SQL_GetInsertId(Handle hndl)
+	{
+		return ExecFunc(s_SQL_GetInsertIdFunc, hndl);
+	}
 
 	/**
 	 * @brief Returns the error reported by the last query.
@@ -127,7 +189,13 @@ public:
 	 * @return              True if there was an error, false otherwise.
 	 * @error               Invalid database, query, or statement Handle.
 	 */
-	static bool SQL_GetError(Handle hndl, char* error, int maxlength) { return ExecFunc(s_SQL_GetErrorFunc, hndl, error, maxlength); }
+	static bool SQL_GetError(Handle hndl, char* error, int maxlength)
+	{
+		PushArg(s_SQL_GetErrorFunc, hndl);
+		PushArg(s_SQL_GetErrorFunc, error, maxlength);
+		PushArg(s_SQL_GetErrorFunc, maxlength);
+		return ExecFunc(s_SQL_GetErrorFunc);
+	}
 
 	/**
 	 * @brief Escapes a database string for literal insertion.  This is not needed
@@ -154,8 +222,10 @@ public:
 	 */
 	static bool SQL_EscapeString(Handle database, const char* string, char* buffer, int maxlength, int& written)
 	{
-		PushArg(s_SQL_EscapeStringFunc, database); PushArg(s_SQL_EscapeStringFunc, string);
-		PushArg(s_SQL_EscapeStringFunc, buffer); PushArg(s_SQL_EscapeStringFunc, maxlength);
+		PushArg(s_SQL_EscapeStringFunc, database);
+		PushArg(s_SQL_EscapeStringFunc, string);
+		PushArg(s_SQL_EscapeStringFunc, buffer, maxlength);
+		PushArg(s_SQL_EscapeStringFunc, maxlength);
 		PushArgRef(s_SQL_EscapeStringFunc, written);
 		return ExecAndReturn(s_SQL_EscapeStringFunc);
 	}
@@ -196,17 +266,15 @@ public:
 		return SQL_FormatQuerySub(args...);
 	}
 private:
-	template<typename T>
-	static int SQL_FormatQuerySub(T arg)
+	static int SQL_FormatQuerySub()
 	{
-		PushArg(s_SQL_FormatQueryFunc, arg);
-		return ExecAndReturn(s_SQL_FormatQueryFunc);
+		return ExecFunc(s_SQL_FormatQueryFunc);
 	}
 
 	template<typename T, typename ... Args>
 	static int SQL_FormatQuerySub(T arg, Args ... args)
 	{
-		PushArg(s_SQL_FormatQueryFunc, arg);
+		PushArgRef(s_SQL_FormatQueryFunc, arg);
 		return SQL_FormatQuerySub(args...);
 	}
 public:
@@ -222,7 +290,10 @@ public:
 	 *                      SQL_GetError to find the last error.
 	 * @error               Invalid database Handle.
 	 */
-	static bool SQL_FastQuery(Handle database, const char* query, int len) { return ExecFunc(s_SQL_FastQueryFunc, database, query, len); }
+	static bool SQL_FastQuery(Handle database, const char* query, int len)
+	{
+		return ExecFunc(s_SQL_FastQueryFunc, database, query, len);
+	}
 
 	/**
 	 * @brief Executes a simple query and returns a new query Handle for
@@ -237,7 +308,10 @@ public:
 	 *                      otherwise.  The Handle must be freed with CloseHandle().
 	 * @error               Invalid database Handle.
 	 */
-	static DBResultSet SQL_Query(Handle database, const char* query, int len) { return ExecFunc(s_SQL_QueryFunc, database, query, len); }
+	static DBResultSet SQL_Query(Handle database, const char* query, int len)
+	{
+		return ExecFunc(s_SQL_QueryFunc, database, query, len);
+	}
 
 	/**
 	 * @brief Creates a new prepared statement query.  Prepared statements can
@@ -255,7 +329,14 @@ public:
 	 *                      otherwise.  The Handle must be freed with CloseHandle().
 	 * @error               Invalid database Handle.
 	 */
-	static DBStatement SQL_PrepareQuery(Handle database, const char* query, char* error, int maxlength) { return ExecFunc(s_SQL_PrepareQueryFunc, database, query, error, maxlength); }
+	static DBStatement SQL_PrepareQuery(Handle database, const char* query, char* error, int maxlength)
+	{
+		PushArg(s_SQL_PrepareQueryFunc, database);
+		PushArg(s_SQL_PrepareQueryFunc, query);
+		PushArg(s_SQL_PrepareQueryFunc, error, maxlength);
+		PushArg(s_SQL_PrepareQueryFunc, maxlength);
+		return ExecFunc(s_SQL_PrepareQueryFunc);
+	}
 
 	/**
 	 * @brief Advances to the next set of results.
@@ -269,7 +350,10 @@ public:
 	 * @return              True if there was another result set, false otherwise.
 	 * @error               Invalid query Handle.
 	 */
-	static bool SQL_FetchMoreResults(Handle query) { return ExecFunc(s_SQL_FetchMoreResultsFunc, query); }
+	static bool SQL_FetchMoreResults(Handle query)
+	{
+		return ExecFunc(s_SQL_FetchMoreResultsFunc, query);
+	}
 
 	/**
 	 * @brief Returns whether or not a result set exists.  This will
@@ -280,7 +364,10 @@ public:
 	 * @return              True if there is a result set, false otherwise.
 	 * @error               Invalid query Handle.
 	 */
-	static bool SQL_HasResultSet(Handle query) { return ExecFunc(s_SQL_HasResultSetFunc, query); }
+	static bool SQL_HasResultSet(Handle query)
+	{
+		return ExecFunc(s_SQL_HasResultSetFunc, query);
+	}
 
 	/**
 	 * @brief Retrieves the number of rows in the last result set.
@@ -289,7 +376,10 @@ public:
 	 * @return              Number of rows in the current result set.
 	 * @error               Invalid query Handle.
 	 */
-	static int SQL_GetRowCount(Handle query) { return ExecFunc(s_SQL_GetRowCountFunc, query); }
+	static int SQL_GetRowCount(Handle query)
+	{
+		return ExecFunc(s_SQL_GetRowCountFunc, query);
+	}
 
 	/**
 	 * @brief Retrieves the number of fields in the last result set.
@@ -298,7 +388,10 @@ public:
 	 * @return              Number of fields in the current result set.
 	 * @error               Invalid query Handle.
 	 */
-	static int SQL_GetFieldCount(Handle query) { return ExecFunc(s_SQL_GetFieldCountFunc, query); }
+	static int SQL_GetFieldCount(Handle query)
+	{
+		return ExecFunc(s_SQL_GetFieldCountFunc, query);
+	}
 
 	/**
 	 * @brief Retrieves the name of a field by index.
@@ -310,7 +403,14 @@ public:
 	 * @error               Invalid query Handle, invalid field index, or
 	 *                      no current result set.
 	 */
-	static void SQL_FieldNumToName(Handle query, int field, char* name, int maxlength) { ExecFunc(s_SQL_FieldNumToNameFunc, query, field, name, maxlength); }
+	static void SQL_FieldNumToName(Handle query, int field, char* name, int maxlength)
+	{
+		PushArg(s_SQL_FieldNumToNameFunc, query);
+		PushArg(s_SQL_FieldNumToNameFunc, field);
+		PushArg(s_SQL_FieldNumToNameFunc, name, maxlength);
+		PushArg(s_SQL_FieldNumToNameFunc, maxlength);
+		ExecFunc(s_SQL_FieldNumToNameFunc);
+	}
 
 	/**
 	 * @brief Retrieves a field index by name.
@@ -323,8 +423,10 @@ public:
 	 */
 	static bool SQL_FieldNameToNum(Handle query, const char* name, int& field)
 	{
-		PushArg(s_SQL_FieldNameToNumFunc, query); PushArg(s_SQL_FieldNameToNumFunc, name); PushArgRef(s_SQL_FieldNameToNumFunc, field);
-		return ExecAndReturn(s_SQL_FieldNameToNumFunc);
+		PushArg(s_SQL_FieldNameToNumFunc, query);
+		PushArg(s_SQL_FieldNameToNumFunc, name);
+		PushArgRef(s_SQL_FieldNameToNumFunc, field);
+		return ExecFunc(s_SQL_FieldNameToNumFunc);
 	}
 
 	/**
@@ -338,7 +440,10 @@ public:
 	 * @return              True if a row was fetched, false otherwise.
 	 * @error               Invalid query Handle.
 	 */
-	static bool SQL_FetchRow(Handle query) { return ExecFunc(s_SQL_FetchRowFunc, query); }
+	static bool SQL_FetchRow(Handle query)
+	{
+		return ExecFunc(s_SQL_FetchRowFunc, query);
+	}
 
 	/**
 	 * @brief Returns if there are more rows.
@@ -347,7 +452,10 @@ public:
 	 * @return              True if there are more rows, false otherwise.
 	 * @error               Invalid query Handle.
 	 */
-	static bool SQL_MoreRows(Handle query) { return ExecFunc(s_SQL_MoreRowsFunc, query); }
+	static bool SQL_MoreRows(Handle query)
+	{
+		return ExecFunc(s_SQL_MoreRowsFunc, query);
+	}
 
 	/**
 	 * @brief Rewinds a result set back to the first result.
@@ -356,7 +464,10 @@ public:
 	 * @return              True on success, false otherwise.
 	 * @error               Invalid query Handle or no current result set.
 	 */
-	static bool SQL_Rewind(Handle query) { return ExecFunc(s_SQL_RewindFunc, query); }
+	static bool SQL_Rewind(Handle query)
+	{
+		return ExecFunc(s_SQL_RewindFunc, query);
+	}
 
 	/**
 	 * @brief Fetches a string from a field in the current row of a result set.
@@ -375,9 +486,12 @@ public:
 	 */
 	static int SQL_FetchString(Handle query, int field, char* buffer, int maxlength, DBResult& result)
 	{
-		PushArg(s_SQL_FetchStringFunc, query); PushArg(s_SQL_FetchStringFunc, field); PushArg(s_SQL_FetchStringFunc, buffer);
-		PushArg(s_SQL_FetchStringFunc, maxlength); PushArgRef(s_SQL_FetchStringFunc, reinterpret_cast<int&>(result));
-		return ExecFunc(s_SQL_FetchStringFunc, query, field, buffer, maxlength, result);
+		PushArg(s_SQL_FetchStringFunc, query);
+		PushArg(s_SQL_FetchStringFunc, field);
+		PushArg(s_SQL_FetchStringFunc, buffer, maxlength);
+		PushArg(s_SQL_FetchStringFunc, maxlength);
+		PushArgRef(s_SQL_FetchStringFunc, reinterpret_cast<int&>(result));
+		return ExecFunc(s_SQL_FetchStringFunc);
 	}
 
 	/**
@@ -395,8 +509,10 @@ public:
 	 */
 	static float SQL_FetchFloat(Handle query, int field, DBResult& result)
 	{
-		PushArg(s_SQL_FetchFloatFunc, query); PushArg(s_SQL_FetchFloatFunc, field); PushArgRef(s_SQL_FetchFloatFunc, reinterpret_cast<int&>(result));
-		return ExecAndReturn(s_SQL_FetchFloatFunc);
+		PushArg(s_SQL_FetchFloatFunc, query);
+		PushArg(s_SQL_FetchFloatFunc, field);
+		PushArgRef(s_SQL_FetchFloatFunc, reinterpret_cast<int&>(result));
+		return ExecFunc(s_SQL_FetchFloatFunc);
 	}
 
 	/**
@@ -414,7 +530,9 @@ public:
 	 */
 	static int SQL_FetchInt(Handle query, int field, DBResult& result)
 	{
-		PushArg(s_SQL_FetchIntFunc, query); PushArg(s_SQL_FetchIntFunc, field); PushArgRef(s_SQL_FetchIntFunc, reinterpret_cast<int&>(result));
+		PushArg(s_SQL_FetchIntFunc, query);
+		PushArg(s_SQL_FetchIntFunc, field);
+		PushArgRef(s_SQL_FetchIntFunc, reinterpret_cast<int&>(result));
 		return ExecAndReturn(s_SQL_FetchIntFunc);
 	}
 
@@ -428,7 +546,10 @@ public:
 	 * @error               Invalid query Handle or field index, or no
 	 *                      current result set.
 	 */
-	static bool SQL_IsFieldNull(Handle query, int field) { return ExecFunc(s_SQL_IsFieldNullFunc, query, field); }
+	static bool SQL_IsFieldNull(Handle query, int field)
+	{
+		return ExecFunc(s_SQL_IsFieldNullFunc, query, field);
+	}
 
 	/**
 	 * @brief Returns the length of a field's data in the current row of a result
@@ -442,7 +563,10 @@ public:
 	 * @error               Invalid query Handle or field index or no
 	 *                      current result set.
 	 */
-	static int SQL_FetchSize(Handle query, int field) { return ExecFunc(s_SQL_FetchSizeFunc, query, field); }
+	static int SQL_FetchSize(Handle query, int field)
+	{
+		return ExecFunc(s_SQL_FetchSizeFunc, query, field);
+	}
 
 	/**
 	 * @brief Binds a parameter in a prepared statement to a given integer value.
@@ -455,7 +579,10 @@ public:
 	 * @error               Invalid statement Handle or parameter index, or
 	 *                      SQL error.
 	 */
-	static void SQL_BindParamInt(Handle statement, int param, int number, bool isSigned) { ExecFunc(s_SQL_BindParamStringFunc, statement, param, number, isSigned); }
+	static void SQL_BindParamInt(Handle statement, int param, int number, bool isSigned)
+	{
+		ExecFunc(s_SQL_BindParamStringFunc, statement, param, number, isSigned);
+	}
 
 	/**
 	 * @brief Binds a parameter in a prepared statement to a given float value.
@@ -466,7 +593,10 @@ public:
 	 * @error               Invalid statement Handle or parameter index, or
 	 *                      SQL error.
 	 */
-	static void SQL_BindParamFloat(Handle statement, int param, float value) { ExecFunc(s_SQL_BindParamFloatFunc, statement, param, value); }
+	static void SQL_BindParamFloat(Handle statement, int param, float value)
+	{
+		ExecFunc(s_SQL_BindParamFloatFunc, statement, param, value);
+	}
 
 	/**
 	 * @brief Binds a parameter in a prepared statement to a given string value.
@@ -481,7 +611,10 @@ public:
 	 * @error               Invalid statement Handle or parameter index, or
 	 *                      SQL error.
 	 */
-	static void SQL_BindParamString(Handle statement, int param, const char* value, bool copy) { ExecFunc(s_SQL_BindParamStringFunc, statement, param, value, copy); }
+	static void SQL_BindParamString(Handle statement, int param, const char* value, bool copy)
+	{
+		ExecFunc(s_SQL_BindParamStringFunc, statement, param, value, copy);
+	}
 
 	/**
 	 * @brief Executes a prepared statement.  All parameters must be bound beforehand.
@@ -490,7 +623,10 @@ public:
 	 * @return              True on success, false on failure.
 	 * @error               Invalid statement Handle.
 	 */
-	static bool SQL_Execute(Handle statement) { return ExecFunc(s_SQL_ExecuteFunc, statement); }
+	static bool SQL_Execute(Handle statement)
+	{
+		return ExecFunc(s_SQL_ExecuteFunc, statement);
+	}
 
 	/**
 	 * @brief Locks a database so threading operations will not interrupt.
@@ -509,7 +645,10 @@ public:
 	 * @param database      A database Handle.
 	 * @error               Invalid database Handle.
 	 */
-	static void SQL_LockDatabase(Handle database) { ExecFunc(s_SQL_LockDatabaseFunc, database); }
+	static void SQL_LockDatabase(Handle database)
+	{
+		ExecFunc(s_SQL_LockDatabaseFunc, database);
+	}
 
 	/**
 	 * @brief Unlocks a database so threading operations may continue.
@@ -517,7 +656,10 @@ public:
 	 * @param database      A database Handle.
 	 * @error               Invalid database Handle.
 	 */
-	static void SQL_UnlockDatabase(Handle database) { ExecFunc(s_SQL_UnlockDatabaseFunc, database); }
+	static void SQL_UnlockDatabase(Handle database)
+	{
+		ExecFunc(s_SQL_UnlockDatabaseFunc, database);
+	}
 
 	/**
 	 * @brief Tells whether two database handles both point to the same database
@@ -529,7 +671,10 @@ public:
 	 *                      connection, false otherwise.
 	 * @error               Invalid Handle.
 	 */
-	static bool SQL_IsSameConnection(Handle hndl1, Handle hndl2) { return ExecFunc(s_SQL_IsSameConnectionFunc, hndl1, hndl2); }
+	static bool SQL_IsSameConnection(Handle hndl1, Handle hndl2)
+	{
+		return ExecFunc(s_SQL_IsSameConnectionFunc, hndl1, hndl2);
+	}
 
 	/**
 	 * @brief Connects to a database via a thread.  This can be used instead of
@@ -587,7 +732,10 @@ public:
 	 *
 	 * @return              A transaction handle.
 	 */
-	static transaction_t SQL_CreateTransaction() { return ExecFunc(s_SQL_CreateTransactionFunc); }
+	static transaction_t SQL_CreateTransaction()
+	{
+		return ExecFunc(s_SQL_CreateTransactionFunc);
+	}
 
 	/**
 	 * @brief Adds a query to a transaction object.
@@ -598,7 +746,10 @@ public:
 	 * @return              The index of the query in the transaction's query list.
 	 * @error               Invalid transaction handle.
 	 */
-	static int SQL_AddQuery(transaction_t txn, const char* query, int data) { return ExecFunc(s_SQL_AddQueryFunc, txn, query, data); }
+	static int SQL_AddQuery(transaction_t txn, const char* query, int data)
+	{
+		return ExecFunc(s_SQL_AddQueryFunc, txn, query, data);
+	}
 
 	// TODO: Callbacks
 	/**
@@ -614,4 +765,7 @@ public:
 	 * @param prio          Priority queue to use.
 	 * @error               An invalid handle.
 	 */
-	static void SQL_ExecuteTransaction(Handle db, transaction_t txn, int data, DBPriority priority) { ExecFunc(s_SQL_ExecuteTransactionFunc, db, txn, data, priority); }
+	static void SQL_ExecuteTransaction(Handle db, transaction_t txn, int data, DBPriority priority)
+	{
+		ExecFunc(s_SQL_ExecuteTransactionFunc, db, txn, data, priority);
+	}

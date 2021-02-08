@@ -2,22 +2,23 @@
 
 #include "PublicManager.h"
 
+using PM = PublicManager;
+
 void MainPlugin::OnPluginStart()
 {
 	rootconsole->ConsolePrint("Plugin Start");
 
-	PublicManager::HookEvent(MainPlugin::OnEventHookPre, "round_start", EventHookMode::EventHookMode_Pre);
-	PublicManager::HookEvent(MainPlugin::OnEventHookPost, "round_start", EventHookMode::EventHookMode_Post);
+	PM::HookEvent(MainPlugin::OnEventHookPre, "round_start", EventHookMode::EventHookMode_Pre);
+	PM::HookEvent(MainPlugin::OnEventHookPost, "round_start", EventHookMode::EventHookMode_Post);
 
-	PublicManager::RegConsoleCmd("sm_test", "Testing...", 0);
+	PM::RegConsoleCmd("sm_test", "Testing...", 0);
 
-	PublicManager::SDKHook(1, SDKHookType::SDKHook_SpawnPost, MainPlugin::SDKHookCallback1);
-	for (int i = 1; i <= PublicManager::GetMaxClients(); ++i)
-		if (PublicManager::IsClientInGame(i))
+	for (int i = 1; i <= PM::GetMaxClients(); ++i)
+		if (PM::IsClientInGame(i))
 			OnClientPutInServer(i);
 
-	/*PublicManager::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackBanlist, "banlist", 0);
-	PublicManager::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackDefault, "default", 0);*/
+	// PM::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackBanlist, "banlist", 0);
+	// PM::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackDefault, "default", 0);
 }
 
 void MainPlugin::OnPluginEnd()
@@ -49,10 +50,51 @@ Action MainPlugin::ConCmdCallback(int client, char* command, char* args)
 	PublicManager::FakeClientCommand(client + 1, "say_team WTF %s", "TEAM");
 	PublicManager::CS_RespawnPlayer(client + 1);*/
 
+	++client;
+	float pos[3];
+	PM::GetClientEyePosition(client, pos);
+	float angles[3];
+	PM::GetClientEyeAngles(client, angles);
+
+	Handle trace = PM::TR_TraceRayFilterEx(pos, angles, MASK_SHOT, RayType::RayType_Infinite, FilterClientsFunc, reinterpret_cast<void*>(client));
+	if (PM::TR_DidHit(trace))
+	{
+		int hitClient = PM::TR_GetEntityIndex(trace);
+		rootconsole->ConsolePrint("Hit %d", hitClient);
+		if (hitClient > 0 && hitClient <= PM::GetMaxClients() && PM::IsClientInGame(hitClient))
+		{
+			char name[MAX_NAME_LENGTH];
+			PM::GetClientName(hitClient, name, sizeof(name));
+			PM::PrintToChatAll(name);
+		}
+	}
+
+	PM::CloseHandle(trace);
+
+	/*float origin[3];
+	PM::GetClientAbsOrigin(client + 1, origin);
+	int* clients = new int[PM::GetMaxClients()];
+	PM::GetClientsInRange(origin, ClientRangeType::RangeType_Audibility, clients, PM::GetMaxClients());
+
+	for (int i = 0; i < PM::GetMaxClients(); ++i)
+	{
+		int c = clients[i];
+		if (c > 0 && c <= PM::GetMaxClients() && PM::IsClientInGame(c))
+		{
+			char name[MAX_PLAYER_NAME_LENGTH];
+			PM::GetClientName(c, name, sizeof(name));
+			rootconsole->ConsolePrint(name);
+		}
+	}
+
+	delete[] clients;
+
 	PublicManager::SetClientName(client + 1, "LOOLUNOOB");
 	PublicManager::ForcePlayerSuicide(client + 2);
 	PublicManager::IgniteEntity(client + 1, 5.0f);
 	PublicManager::SlapPlayer(client + 1, 20);
+
+	PublicManager::SetEntityHealth(client + 1, 300);
 
 	char className[64];
 	PublicManager::GetEdictClassname(client + 1, className, sizeof(className));
@@ -76,6 +118,7 @@ Action MainPlugin::ConCmdCallback(int client, char* command, char* args)
 	PublicManager::SetMenuExitButton(menu, false);
 	PublicManager::DisplayMenu(menu, client + 1, 20);
 
+	rootconsole->ConsolePrint("Sizeof(KeyValues) = %d", sizeof(KeyValues));*/
 
 	return Plugin_Handled;
 }

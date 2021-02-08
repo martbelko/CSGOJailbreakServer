@@ -70,12 +70,6 @@ enum OverrideRule
 	Command_Allow = 1
 };
 
-enum ImmunityType
-{
-	Immunity_Default = 1,   // Deprecated.
-	Immunity_Global         // Deprecated.
-};
-
 enum GroupId
 {
 	INVALID_GROUP_ID = -1   // An invalid/non-existent group
@@ -159,14 +153,6 @@ enum ReplySource
 {
 	SM_REPLY_TO_CONSOLE = 0,
 	SM_REPLY_TO_CHAT = 1
-};
-
-enum Action
-{
-	Plugin_Continue = 0, /**< Continue with the original action */
-	Plugin_Changed = 1, /**< Inputs or outputs have been overridden with new values */
-	Plugin_Handled = 3, /**< Handle the action at the end (don't call it) */
-	Plugin_Stop = 4, /**< Immediately stop the hook chain and handle the original */
 };
 
 #define FCVAR_PLUGIN           0       // Actual value is same as FCVAR_SS_ADDED in Left 4 Dead and later.
@@ -634,3 +620,356 @@ using Address = int;
 #define TIMER_REPEAT            (1<<0)      /**< Timer will repeat until it returns Plugin_Stop */
 #define TIMER_FLAG_NO_MAPCHANGE (1<<1)      /**< Timer will not carry over mapchanges */
 #define TIMER_DATA_HNDL_CLOSE   (1<<9)      /**< Timer will automatically call CloseHandle() on its data when finished */
+
+// HALFLIFE.INC
+#define SOURCE_SDK_UNKNOWN           0      /**< Could not determine the engine version */
+#define SOURCE_SDK_ORIGINAL         10      /**< Original Source engine (still used by "The Ship") */
+#define SOURCE_SDK_DARKMESSIAH      15      /**< Modified version of original engine used by Dark Messiah (no SDK) */
+#define SOURCE_SDK_EPISODE1         20      /**< SDK+Engine released after Episode 1 */
+#define SOURCE_SDK_EPISODE2         30      /**< SDK+Engine released after Episode 2/Orange Box */
+#define SOURCE_SDK_BLOODYGOODTIME   32      /**< Modified version of ep2 engine used by Bloody Good Time (no SDK) */
+#define SOURCE_SDK_EYE              33      /**< Modified version of ep2 engine used by E.Y.E Divine Cybermancy (no SDK) */
+#define SOURCE_SDK_CSS              34      /**< Sometime-older version of Source 2009 SDK+Engine, used for Counter-Strike: Source */
+#define SOURCE_SDK_EPISODE2VALVE    35      /**< SDK+Engine released after Episode 2/Orange Box, "Source 2009" or "Source MP" */
+#define SOURCE_SDK_LEFT4DEAD        40      /**< Engine released after Left 4 Dead (no SDK yet) */
+#define SOURCE_SDK_LEFT4DEAD2       50      /**< Engine released after Left 4 Dead 2 (no SDK yet) */
+#define SOURCE_SDK_ALIENSWARM       60      /**< SDK+Engine released after Alien Swarm */
+#define SOURCE_SDK_CSGO             80      /**< Engine released after CS:GO (no SDK yet) */
+#define SOURCE_SDK_DOTA             90      /**< Engine released after Dota 2 (no SDK) */
+
+#define MOTDPANEL_TYPE_TEXT          0      /**< Treat msg as plain text */
+#define MOTDPANEL_TYPE_INDEX         1      /**< Msg is auto determined by the engine */
+#define MOTDPANEL_TYPE_URL           2      /**< Treat msg as an URL link */
+#define MOTDPANEL_TYPE_FILE          3      /**< Treat msg as a filename to be opened */
+
+enum DialogType
+{
+	DialogType_Msg = 0,     /**< just an on screen message */
+	DialogType_Menu,        /**< an options menu */
+	DialogType_Text,        /**< a richtext dialog */
+	DialogType_Entry,       /**< an entry box */
+	DialogType_AskConnect   /**< ask the client to connect to a specified IP */
+};
+
+enum EngineVersion
+{
+	Engine_Unknown,             /**< Could not determine the engine version */
+	Engine_Original,            /**< Original Source Engine (used by The Ship) */
+	Engine_SourceSDK2006,       /**< Episode 1 Source Engine (second major SDK) */
+	Engine_SourceSDK2007,       /**< Orange Box Source Engine (third major SDK) */
+	Engine_Left4Dead,           /**< Left 4 Dead */
+	Engine_DarkMessiah,         /**< Dark Messiah Multiplayer (based on original engine) */
+	Engine_Left4Dead2 = 7,      /**< Left 4 Dead 2 */
+	Engine_AlienSwarm,          /**< Alien Swarm (and Alien Swarm SDK) */
+	Engine_BloodyGoodTime,      /**< Bloody Good Time */
+	Engine_EYE,                 /**< E.Y.E Divine Cybermancy */
+	Engine_Portal2,             /**< Portal 2 */
+	Engine_CSGO,                /**< Counter-Strike: Global Offensive */
+	Engine_CSS,                 /**< Counter-Strike: Source */
+	Engine_DOTA,                /**< Dota 2 */
+	Engine_HL2DM,               /**< Half-Life 2 Deathmatch */
+	Engine_DODS,                /**< Day of Defeat: Source */
+	Engine_TF2,                 /**< Team Fortress 2 */
+	Engine_NuclearDawn,         /**< Nuclear Dawn */
+	Engine_SDK2013,             /**< Source SDK 2013 */
+	Engine_Blade,               /**< Blade Symphony */
+	Engine_Insurgency,          /**< Insurgency (2013 Retail version)*/
+	Engine_Contagion,           /**< Contagion */
+	Engine_BlackMesa,           /**< Black Mesa Multiplayer */
+	Engine_DOI                  /**< Day of Infamy */
+};
+
+enum FindMapResult
+{
+	// A direct match for this name was found
+	FindMap_Found,
+	// No match for this map name could be found.
+	FindMap_NotFound,
+	// A fuzzy match for this map name was found.
+	// Ex: cp_dust -> cp_dustbowl, c1m1 -> c1m1_hotel
+	// Only supported for maps that the engine knows about. (This excludes workshop maps on Orangebox).
+	FindMap_FuzzyMatch,
+	// A non-canonical match for this map name was found.
+	// Ex: workshop/1234 -> workshop/cp_qualified_name.ugc1234
+	// Only supported on "Orangebox" games with workshop support.
+	FindMap_NonCanonical,
+	// No currently available match for this map name could be found, but it may be possible to load
+	// Only supported on "Orangebox" games with workshop support.
+	FindMap_PossiblyAvailable
+};
+
+#define INVALID_ENT_REFERENCE 0xFFFFFFFF
+
+enum ClientRangeType
+{
+	RangeType_Visibility = 0,
+	RangeType_Audibility
+};
+
+static int NOALPHA_COLOR[4] = { 255, 255, 255, 0 };
+
+// ENTITY_PROP_STOCKS.INC
+using MoveType = MoveType_t;
+
+enum RenderMode
+{
+	RENDER_NORMAL,              /**< src */
+	RENDER_TRANSCOLOR,          /**< c*a+dest*(1-a) */
+	RENDER_TRANSTEXTURE,        /**< src*a+dest*(1-a) */
+	RENDER_GLOW,                /**< src*a+dest -- No Z buffer checks -- Fixed size in screen space */
+	RENDER_TRANSALPHA,          /**< src*srca+dest*(1-srca) */
+	RENDER_TRANSADD,            /**< src*a+dest */
+	RENDER_ENVIRONMENTAL,       /**< not drawn, used for environmental effects */
+	RENDER_TRANSADDFRAMEBLEND,  /**< use a fractional frame value to blend between animation frames */
+	RENDER_TRANSALPHAADD,       /**< src + dest*(1-a) */
+	RENDER_WORLDGLOW,           /**< Same as kRenderGlow but not fixed size in screen space */
+	RENDER_NONE                 /**< Don't render. */
+};
+
+enum RenderFx
+{
+	RENDERFX_NONE = 0,
+	RENDERFX_PULSE_SLOW,
+	RENDERFX_PULSE_FAST,
+	RENDERFX_PULSE_SLOW_WIDE,
+	RENDERFX_PULSE_FAST_WIDE,
+	RENDERFX_FADE_SLOW,
+	RENDERFX_FADE_FAST,
+	RENDERFX_SOLID_SLOW,
+	RENDERFX_SOLID_FAST,
+	RENDERFX_STROBE_SLOW,
+	RENDERFX_STROBE_FAST,
+	RENDERFX_STROBE_FASTER,
+	RENDERFX_FLICKER_SLOW,
+	RENDERFX_FLICKER_FAST,
+	RENDERFX_NO_DISSIPATION,
+	RENDERFX_DISTORT,           /**< Distort/scale/translate flicker */
+	RENDERFX_HOLOGRAM,          /**< kRenderFxDistort + distance fade */
+	RENDERFX_EXPLODE,           /**< Scale up really big! */
+	RENDERFX_GLOWSHELL,         /**< Glowing Shell */
+	RENDERFX_CLAMP_MIN_SCALE,   /**< Keep this sprite from getting very small (SPRITES only!) */
+	RENDERFX_ENV_RAIN,          /**< for environmental rendermode, make rain */
+	RENDERFX_ENV_SNOW,          /**<  "        "            "    , make snow */
+	RENDERFX_SPOTLIGHT,         /**< TEST CODE for experimental spotlight */
+	RENDERFX_RAGDOLL,           /**< HACKHACK: TEST CODE for signalling death of a ragdoll character */
+	RENDERFX_PULSE_FAST_WIDER,
+	RENDERFX_MAX
+};
+
+// These defines are for client button presses.
+#define IN_ATTACK                (1 << 0)
+#define IN_JUMP                  (1 << 1)
+#define IN_DUCK                  (1 << 2)
+#define IN_FORWARD               (1 << 3)
+#define IN_BACK                  (1 << 4)
+#define IN_USE                   (1 << 5)
+#define IN_CANCEL                (1 << 6)
+#define IN_LEFT                  (1 << 7)
+#define IN_RIGHT                 (1 << 8)
+#define IN_MOVELEFT              (1 << 9)
+#define IN_MOVERIGHT             (1 << 10)
+#define IN_ATTACK2               (1 << 11)
+#define IN_RUN                   (1 << 12)
+#define IN_RELOAD                (1 << 13)
+#define IN_ALT1                  (1 << 14)
+#define IN_ALT2                  (1 << 15)
+#define IN_SCORE                 (1 << 16)   /**< Used by client.dll for when scoreboard is held down */
+#define IN_SPEED                 (1 << 17)   /**< Player is holding the speed key */
+#define IN_WALK                  (1 << 18)   /**< Player holding walk key */
+#define IN_ZOOM                  (1 << 19)   /**< Zoom key for HUD zoom */
+#define IN_WEAPON1               (1 << 20)   /**< weapon defines these bits */
+#define IN_WEAPON2               (1 << 21)   /**< weapon defines these bits */
+#define IN_BULLRUSH              (1 << 22)
+#define IN_GRENADE1              (1 << 23)   /**< grenade 1 */
+#define IN_GRENADE2              (1 << 24)   /**< grenade 2 */
+#define IN_ATTACK3               (1 << 25)
+
+// SDKTOOLS_GAMERULES.INC
+enum RoundState
+{
+	// initialize the game, create teams
+	RoundState_Init,
+
+	//Before players have joined the game. Periodically checks to see if enough players are ready
+	//to start a game. Also reverts to this when there are no active players
+	RoundState_Pregame,
+
+	//The game is about to start, wait a bit and spawn everyone
+	RoundState_StartGame,
+
+	//All players are respawned, frozen in place
+	RoundState_Preround,
+
+	//Round is on, playing normally
+	RoundState_RoundRunning,
+
+	//Someone has won the round
+	RoundState_TeamWin,
+
+	//Noone has won, manually restart the game, reset scores
+	RoundState_Restart,
+
+	//Noone has won, restart the game
+	RoundState_Stalemate,
+
+	//Game is over, showing the scoreboard etc
+	RoundState_GameOver,
+
+	//Game is over, doing bonus round stuff
+	RoundState_Bonus,
+
+	//Between rounds
+	RoundState_BetweenRounds
+};
+
+// SDKTOOLS_TEMPENTS_STOCKS.INC
+
+#define TE_EXPLFLAG_NONE            0x0   /**< all flags clear makes default Half-Life explosion */
+#define TE_EXPLFLAG_NOADDITIVE      0x1   /**< sprite will be drawn opaque (ensure that the sprite you send is a non-additive sprite) */
+#define TE_EXPLFLAG_NODLIGHTS       0x2   /**< do not render dynamic lights */
+#define TE_EXPLFLAG_NOSOUND         0x4   /**< do not play client explosion sound */
+#define TE_EXPLFLAG_NOPARTICLES     0x8   /**< do not draw particles */
+#define TE_EXPLFLAG_DRAWALPHA       0x10  /**< sprite will be drawn alpha */
+#define TE_EXPLFLAG_ROTATE          0x20  /**< rotate the sprite randomly */
+#define TE_EXPLFLAG_NOFIREBALL      0x40  /**< do not draw a fireball */
+#define TE_EXPLFLAG_NOFIREBALLSMOKE 0x80  /**< do not draw smoke with the fireball */
+
+#define FBEAM_STARTENTITY   0x00000001
+#define FBEAM_ENDENTITY     0x00000002
+#define FBEAM_FADEIN        0x00000004
+#define FBEAM_FADEOUT       0x00000008
+#define FBEAM_SINENOISE     0x00000010
+#define FBEAM_SOLID         0x00000020
+#define FBEAM_SHADEIN       0x00000040
+#define FBEAM_SHADEOUT      0x00000080
+#define FBEAM_ONLYNOISEONCE 0x00000100  /**< Only calculate our noise once */
+#define FBEAM_NOTILE        0x00000200
+#define FBEAM_USE_HITBOXES  0x00000400  /**< Attachment indices represent hitbox indices instead when this is set. */
+#define FBEAM_STARTVISIBLE  0x00000800  /**< Has this client actually seen this beam's start entity yet? */
+#define FBEAM_ENDVISIBLE    0x00001000  /**< Has this client actually seen this beam's end entity yet? */
+#define FBEAM_ISACTIVE      0x00002000
+#define FBEAM_FOREVER       0x00004000
+#define FBEAM_HALOBEAM      0x00008000  /**< When drawing a beam with a halo, don't ignore the segments and endwidth */
+
+// CORE.INC
+
+#define SOURCEMOD_PLUGINAPI_VERSION     5
+
+/**
+ * Specifies what to do after a hook completes.
+ */
+enum Action
+{
+	Plugin_Continue = 0,    /**< Continue with the original action */
+	Plugin_Changed = 1,     /**< Inputs or outputs have been overridden with new values */
+	Plugin_Handled = 3,     /**< Handle the action at the end (don't call it) */
+	Plugin_Stop = 4         /**< Immediately stop the hook chain and handle the original */
+};
+
+/**
+ * Specifies identity types.
+ */
+enum Identity
+{
+	Identity_Core = 0,
+	Identity_Extension = 1,
+	Identity_Plugin = 2
+};
+
+/**
+ * Plugin status values.
+ */
+enum PluginStatus
+{
+	Plugin_Running = 0,       /**< Plugin is running */
+	/* All states below are "temporarily" unexecutable */
+	Plugin_Paused,          /**< Plugin is loaded but paused */
+	Plugin_Error,           /**< Plugin is loaded but errored/locked */
+	/* All states below do not have all natives */
+	Plugin_Loaded,          /**< Plugin has passed loading and can be finalized */
+	Plugin_Failed,          /**< Plugin has a fatal failure */
+	Plugin_Created,         /**< Plugin is created but not initialized */
+	Plugin_Uncompiled,      /**< Plugin is not yet compiled by the JIT */
+	Plugin_BadLoad,         /**< Plugin failed to load */
+	Plugin_Evicted          /**< Plugin was unloaded due to an error */
+};
+
+/**
+ * Plugin information properties. Plugins can declare a global variable with
+ * their info. Example,
+ *
+ *   public Plugin myinfo = {
+ *   	name = "Admin Help",
+ *   	author = "AlliedModders LLC",
+ *   	description = "Display command information",
+ *   	version = "1.0",
+ *   	url = "http://www.sourcemod.net/"
+ *   };
+ *
+ * SourceMod will display this information when a user inspects plugins in the
+ * console.
+ */
+enum PluginInfo
+{
+	PlInfo_Name,            /**< Plugin name */
+	PlInfo_Author,          /**< Plugin author */
+	PlInfo_Description,     /**< Plugin description */
+	PlInfo_Version,         /**< Plugin version */
+	PlInfo_URL              /**< Plugin URL */
+};
+
+// SDKTOOLS_TRACE.INC
+
+#define CONTENTS_CURRENT_0      0x40000
+#define CONTENTS_CURRENT_90     0x80000
+#define CONTENTS_CURRENT_180    0x100000
+#define CONTENTS_CURRENT_270    0x200000
+#define CONTENTS_CURRENT_UP     0x400000
+#define CONTENTS_CURRENT_DOWN   0x800000
+
+#define CONTENTS_ORIGIN         0x1000000   /**< removed before bsp-ing an entity. */
+#define CONTENTS_MONSTER        0x2000000   /**< should never be on a brush, only in game. */
+#define CONTENTS_DEBRIS         0x4000000
+#define CONTENTS_DETAIL         0x8000000   /**< brushes to be added after vis leafs. */
+#define CONTENTS_TRANSLUCENT    0x10000000  /**< auto set if any surface has trans. */
+#define CONTENTS_LADDER         0x20000000
+#define CONTENTS_HITBOX         0x40000000  /**< use accurate hitboxes on trace. */
+
+#define SURF_LIGHT       0x0001      /**< value will hold the light strength */
+#define SURF_SKY2D       0x0002      /**< don't draw, indicates we should skylight + draw 2d sky but not draw the 3D skybox */
+#define SURF_SKY         0x0004      /**< don't draw, but add to skybox */
+#define SURF_WARP        0x0008      /**< turbulent water warp */
+#define SURF_TRANS       0x0010
+#define SURF_NOPORTAL    0x0020      /**< the surface can not have a portal placed on it */
+#define SURF_TRIGGER     0x0040      /**< This is an xbox hack to work around elimination of trigger surfaces, which breaks occluders */
+#define SURF_NODRAW      0x0080      /**< don't bother referencing the texture */
+
+#define SURF_HINT        0x0100      /**< make a primary bsp splitter */
+
+#define SURF_SKIP        0x0200      /**< completely ignore, allowing non-closed brushes */
+#define SURF_NOLIGHT     0x0400      /**< Don't calculate light */
+#define SURF_BUMPLIGHT   0x0800      /**< calculate three lightmaps for the surface for bumpmapping */
+#define SURF_NOSHADOWS   0x1000      /**< Don't receive shadows */
+#define SURF_NODECALS    0x2000      /**< Don't receive decals */
+#define SURF_NOCHOP      0x4000      /**< Don't subdivide patches on this surface */
+#define SURF_HITBOX      0x8000      /**< surface is part of a hitbox */
+
+#define PARTITION_SOLID_EDICTS        (1 << 1) /**< every edict_t that isn't SOLID_TRIGGER or SOLID_NOT (and static props) */
+#define PARTITION_TRIGGER_EDICTS      (1 << 2) /**< every edict_t that IS SOLID_TRIGGER */
+#define PARTITION_NON_STATIC_EDICTS   (1 << 5) /**< everything in solid & trigger except the static props, includes SOLID_NOTs */
+#define PARTITION_STATIC_PROPS        (1 << 7)
+
+#define DISPSURF_FLAG_SURFACE         (1<<0)
+#define DISPSURF_FLAG_WALKABLE        (1<<1)
+#define DISPSURF_FLAG_BUILDABLE       (1<<2)
+#define DISPSURF_FLAG_SURFPROP1       (1<<3)
+#define DISPSURF_FLAG_SURFPROP2       (1<<4)
+
+enum RayType
+{
+	RayType_EndPoint,   /**< The trace ray will go from the start position to the end position. */
+	RayType_Infinite    /**< The trace ray will go from the start position to infinity using a direction vector. */
+};
+
+// SDKTOOLS_ENGINE.INC
+#define MAX_LIGHTSTYLES 64

@@ -16,42 +16,24 @@ public:
 	static Action SrvCmdCallback(char* command, char* args);
 	static Action CmdListenerCallback(int client, char* command, int argc);
 
-	/* TIMERS.INC */
-	/**
-	 * Notification that the map's time left has changed via a change in the time
-	 * limit or a change in the game rules (such as mp_restartgame).  This is useful
-	 * for plugins trying to create timers based on the time left in the map.
-	 *
-	 * Calling ExtendMapTimeLimit() from here, without proper precaution, will
-	 * cause infinite recursion.
-	 *
-	 * If the operation is not supported, this will never be called.
+	static bool FilterClientsFunc(int entity, int contentsMask, void* data)
+	{
+		if (entity > PublicManager::GetMaxClients())
+			return false;
+		int caller = reinterpret_cast<int>(data);
+		return caller != entity;
+	}
 
-	 * If the server has not yet processed any frames (i.e. no players have joined
-	 * the map yet), then this will be called once the server begins ticking, even
-	 * if there is no time limit set.
-	 */
+	// LOGGING.INC
+	static Action OnLogAction(Handle source, Identity ident, int client, int target, const char* message)
+	{
+		return Plugin_Continue;
+	}
+
+	// TIMERS.INC
 	static void OnMapTimeLeftChanged() {}
 
 	// SDKTOOLS_HOOKS.INC
-	/**
-	 * @brief Called when a clients movement buttons are being processed
-	 *
-	 * @param client        Index of the client.
-	 * @param buttons       Copyback buffer containing the current commands (as bitflags - see entity_prop_stocks.inc).
-	 * @param impulse       Copyback buffer containing the current impulse command.
-	 * @param velocity      Players desired velocity.
-	 * @param angles        Players desired view angles.
-	 * @param weapon        Entity index of the new weapon if player switches weapon, 0 otherwise.
-	 * @param subtype       Weapon subtype when selected from a menu.
-	 * @param cmdnum        Command number. Increments from the first command sent.
-	 * @param tickcount     Tick count. A client's prediction based on the server's GetGameTickCount value.
-	 * @param seed          Random seed. Used to determine weapon recoil, spread, and other predicted elements.
-	 * @param mouse         Mouse direction (x, y).
-	 * @return              Plugin_Handled to block the commands from being processed, Plugin_Continue otherwise.
-	 *
-	 * @note To see if all 11 params are available, use FeatureType_Capability and FEATURECAP_PLAYERRUNCMD_11PARAMS.
-	 */
 	static Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float velocity[3],
 		float angles[3], int& weapon, int& subtype, int& cmdnum, int& tickcount,
 		int& seed, int mouse[2])
@@ -59,48 +41,17 @@ public:
 		return Plugin_Continue;
 	}
 
-	/**
-	 * @brief Called after a clients movement buttons were processed.
-	 *
-	 * @param client        Index of the client.
-	 * @param buttons       The current commands (as bitflags - see entity_prop_stocks.inc).
-	 * @param impulse       The current impulse command.
-	 * @param velocity      Players desired velocity.
-	 * @param angles        Players desired view angles.
-	 * @param weapon        Entity index of the new weapon if player switches weapon, 0 otherwise.
-	 * @param subtype       Weapon subtype when selected from a menu.
-	 * @param cmdnum        Command number. Increments from the first command sent.
-	 * @param tickcount     Tick count. A client's prediction based on the server's GetGameTickCount value.
-	 * @param seed          Random seed. Used to determine weapon recoil, spread, and other predicted elements.
-	 * @param mouse         Mouse direction (x, y).
-	 */
 	static void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float velocity[3],
 		const float angles[3], int weapon, int subtype, int cmdnum, int tickcount,
 		int seed, const int mouse[2])
 	{
 	}
 
-	/**
-	 * @brief Called when a client requests a file from the server.
-	 *
-	 * @param client        Client index.
-	 * @param filepath      Requested file path.
-	 *
-	 * @return              Plugin_Handled to block the transfer, Plugin_Continue to let it proceed.
-	 */
 	static Action OnFileSend(int client, const char* filepath)
 	{
 		return Plugin_Continue;
 	}
 
-	/**
-	 * @brief Called when a client sends a file to the server.
-	 *
-	 * @param client        Client index.
-	 * @param filepath      Requested file path.
-	 *
-	 * @return              Plugin_Handled to block the transfer, Plugin_Continue to let it proceed.
-	 */
 	static Action OnFileReceive(int client, const char* filepath)
 	{
 		return Plugin_Continue;

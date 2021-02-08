@@ -11,29 +11,29 @@ public:
 
 	static bool GetClientName(int client, char* name, int maxlen)
 	{
-		s_GetClientNameFunc->PushCell(client);
-		s_GetClientNameFunc->PushStringEx(name, maxlen, 0, 1);
-		s_GetClientNameFunc->PushCell(maxlen);
-		return ExecAndReturn(s_GetClientNameFunc);
+		PushArg(s_GetClientNameFunc, client);
+		PushArg(s_GetClientNameFunc, name, maxlen);
+		PushArg(s_GetClientNameFunc, maxlen);
+		return ExecFunc(s_GetClientNameFunc);
 	}
 
 	static bool GetClientIP(int client, char* ip, int maxlen, bool remport)
 	{
-		s_GetClientIPFunc->PushCell(client);
-		s_GetClientIPFunc->PushStringEx(ip, maxlen, 0, 1);
-		s_GetClientIPFunc->PushCell(maxlen);
-		s_GetClientIPFunc->PushCell(remport);
-		return ExecAndReturn(s_GetClientIPFunc);
+		PushArg(s_GetClientIPFunc, client);
+		PushArg(s_GetClientIPFunc, ip, maxlen);
+		PushArg(s_GetClientIPFunc, maxlen);
+		PushArg(s_GetClientIPFunc, remport);
+		return ExecFunc(s_GetClientIPFunc);
 	}
 
 	static bool GetClientAuthId(int client, AuthIdType authType, char* auth, int maxlen, bool validate)
 	{
-		s_GetClientAuthIdFunc->PushCell(client);
-		s_GetClientAuthIdFunc->PushCell(authType);
-		s_GetClientAuthIdFunc->PushStringEx(auth, maxlen, 0, 1);
-		s_GetClientAuthIdFunc->PushCell(maxlen);
-		s_GetClientAuthIdFunc->PushCell(validate);
-		return ExecAndReturn(s_GetClientAuthIdFunc);
+		PushArg(s_GetClientAuthIdFunc, client);
+		PushArg(s_GetClientAuthIdFunc, authType);
+		PushArg(s_GetClientAuthIdFunc, auth, maxlen);
+		PushArg(s_GetClientAuthIdFunc, maxlen);
+		PushArg(s_GetClientAuthIdFunc, validate);
+		return ExecFunc(s_GetClientAuthIdFunc);
 	}
 
 	static int GetSteamAccountID(int client, bool validate)
@@ -93,11 +93,11 @@ public:
 
 	static bool GetClientInfo(int client, const char* key, char* value, int maxlen)
 	{
-		s_GetClientInfoFunc->PushCell(client);
-		s_GetClientInfoFunc->PushString(key);
-		s_GetClientInfoFunc->PushStringEx(value, maxlen, 0, 1);
-		s_GetClientInfoFunc->PushCell(maxlen);
-		return ExecAndReturn(s_GetClientInfoFunc);
+		PushArg(s_GetClientInfoFunc, client);
+		PushArg(s_GetClientInfoFunc, key);
+		PushArg(s_GetClientInfoFunc, value, maxlen);
+		PushArg(s_GetClientInfoFunc, maxlen);
+		return ExecFunc(s_GetClientInfoFunc);
 	}
 
 	static int GetClientTeam(int client)
@@ -115,6 +115,44 @@ public:
 		return ExecFunc(s_GetUserAdminFunc, client);
 	}
 
+	template<typename ... Args>
+	static void AddUserFlags(int client, Args ... args)
+	{
+		PushArg(s_AddUserFlagsFunc, client);
+		AddUserFlagsSub(args...);
+	}
+private:
+	static void AddUserFlagsSub(AdminFlag flag)
+	{
+		ExecFunc(s_AddUserFlagsFunc, flag);
+	}
+
+	template<typename ... Args>
+	static void AddUserFlagsSub(AdminFlag flag, Args ... args)
+	{
+		ExecFunc(s_AddUserFlagsFunc, flag);
+		AddUserFlagsSub(args...);
+	}
+public:
+	template<typename ... Args>
+	static void RemoveUserFlags(int client, Args ... args)
+	{
+		PushArg(s_RemoveUserFlagsFunc, client);
+		RemoveUserFlagsSub(args...);
+	}
+private:
+	static void RemoveUserFlagsSub(AdminFlag flag)
+	{
+		ExecFunc(s_RemoveUserFlagsFunc, flag);
+	}
+
+	template<typename ... Args>
+	static void RemoveUserFlagsSub(AdminFlag flag, Args ... args)
+	{
+		ExecFunc(s_RemoveUserFlagsFunc, flag);
+		AddUserFlagsSub(args...);
+	}
+public:
 	static void SetUserFlagBits(int client, int flags)
 	{
 		ExecFunc(s_SetUserFlagBitsFunc, client, flags);
@@ -157,17 +195,17 @@ public:
 	static void GetClientModel(int client, char* model, int maxlen)
 	{
 		PushArg(s_GetClientModelFunc, client);
-		s_GetClientModelFunc->PushStringEx(model, maxlen, 0, 1);
+		PushArg(s_GetClientModelFunc, model, maxlen);
 		PushArg(s_GetClientModelFunc, maxlen);
-		ExecAndReturn(s_GetClientModelFunc);
+		ExecFunc(s_GetClientModelFunc);
 	}
 
 	static void GetClientWeapon(int client, char* weapon, int maxlen)
 	{
 		PushArg(s_GetClientWeaponFunc, client);
-		s_GetClientWeaponFunc->PushStringEx(weapon, maxlen, 0, 1);
+		PushArg(s_GetClientWeaponFunc, weapon, maxlen);
 		PushArg(s_GetClientWeaponFunc, maxlen);
-		ExecAndReturn(s_GetClientWeaponFunc);
+		ExecFunc(s_GetClientWeaponFunc);
 	}
 
 	static void GetClientMaxs(int client, float vec[3])
@@ -182,12 +220,16 @@ public:
 
 	static void GetClientAbsAngles(int client, float ang[3])
 	{
-		ExecFunc(s_GetClientAbsAnglesFunc, client, ang);
+		PushArg(s_GetClientAbsAnglesFunc, client);
+		PushArg(s_GetClientAbsAnglesFunc, ang, 3);
+		ExecFunc(s_GetClientAbsAnglesFunc);
 	}
 
 	static void GetClientAbsOrigin(int client, float vec[3])
 	{
-		ExecFunc(s_GetClientAbsOriginFunc, client, vec);
+		PushArg(s_GetClientAbsOriginFunc, client);
+		PushArg(s_GetClientAbsOriginFunc, vec, 3);
+		ExecFunc(s_GetClientAbsOriginFunc);
 	}
 
 	static int GetClientArmor(int client)

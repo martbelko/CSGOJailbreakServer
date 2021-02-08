@@ -9,7 +9,7 @@ public:
 	 *                      the only default actions.
 	 * @return              A new menu Handle.
 	 */
-	static MenuHandle CreateMenu(MenuHandler handler, MenuAction actions)
+	static MenuHandle CreateMenu(MenuHandler handler, MenuAction actions = MENU_ACTIONS_DEFAULT)
 	{
 		MenuHandle handle = ExecFunc(s_CreateMenuFunc, actions);
 		s_MenuHandlers[handle] = handler;
@@ -25,19 +25,25 @@ public:
 	 * @return              True on success, false on failure.
 	 * @error               Invalid Handle or client not in game.
 	 */
-	static bool DisplayMenu(Handle menu, int client, int time) { return ExecFunc(s_DisplayMenuFunc, menu, client, time); }
+	static bool DisplayMenu(Handle menu, int client, int time)
+	{
+		return ExecFunc(s_DisplayMenuFunc, menu, client, time);
+	}
 
 	/**
 	 * @brief Displays a menu to a client, starting from the given item.
 	 *
 	 * @param menu          Menu Handle.
 	 * @param client        Client index.
-	 * @param first_item    First item to begin drawing from.
+	 * @param firstItem     First item to begin drawing from.
 	 * @param time          Maximum time to leave menu on the screen.
 	 * @return              True on success, false on failure.
 	 * @error               Invalid Handle or client not in game.
 	 */
-	static bool DisplayMenuAtItem(Handle menu, int client, int firstItem, int time) { return ExecFunc(s_DisplayMenuAtItemFunc, menu, client, firstItem, time); }
+	static bool DisplayMenuAtItem(Handle menu, int client, int firstItem, int time)
+	{
+		return ExecFunc(s_DisplayMenuAtItemFunc, menu, client, firstItem, time);
+	}
 
 	/**
 	 * @brief Appends a new item to the end of a menu.
@@ -50,7 +56,10 @@ public:
 	 * @return              True on success, false on failure.
 	 * @error               Invalid Handle or item limit reached.
 	 */
-	static bool AddMenuItem(Handle menu, const char* info, const char* display, int style) { return ExecFunc(s_AddMenuItemFunc, menu, info, display, style); }
+	static bool AddMenuItem(Handle menu, const char* info, const char* display, int style = ITEMDRAW_DEFAULT)
+	{
+		return ExecFunc(s_AddMenuItemFunc, menu, info, display, style);
+	}
 
 	/**
 	* @brief Inserts an item into the menu before a certain position; the new item will
@@ -65,7 +74,10 @@ public:
 	* @return              True on success, false on failure.
 	* @error               Invalid Handle or menu position.
 	*/
-	static bool InsertMenuItem(Handle menu, int position, const char* info, const char* display, int style) { return ExecFunc(s_InsertMenuItemFunc, menu, position, info, display, style); }
+	static bool InsertMenuItem(Handle menu, int position, const char* info, const char* display, int style = ITEMDRAW_DEFAULT)
+	{
+		return ExecFunc(s_InsertMenuItemFunc, menu, position, info, display, style);
+	}
 
 	/**
 	 * @brief Removes an item from the menu.
@@ -75,7 +87,10 @@ public:
 	 * @return              True on success, false on failure.
 	 * @error               Invalid Handle or menu position.
 	 */
-	static bool RemoveMenuItem(Handle menu, int position) { return ExecFunc(s_RemoveMenuItemFunc, menu, position); }
+	static bool RemoveMenuItem(Handle menu, int position)
+	{
+		return ExecFunc(s_RemoveMenuItemFunc, menu, position);
+	}
 
 	/**
 	 * @brief Removes all items from a menu.
@@ -83,7 +98,10 @@ public:
 	 * @param menu          Menu Handle.
 	 * @error               Invalid Handle or menu position.
 	 */
-	static void RemoveAllMenuItems(Handle menu) { ExecFunc(s_RemoveAllMenuItemsFunc, menu); }
+	static void RemoveAllMenuItems(Handle menu)
+	{
+		ExecFunc(s_RemoveAllMenuItemsFunc, menu);
+	}
 
 	/**
 	 * @brief Retrieves information about a menu item.
@@ -99,12 +117,18 @@ public:
 	 * @return              True on success, false if position is invalid.
 	 * @error               Invalid Handle.
 	 */
-	static bool GetMenuItem(Handle menu, int position, char* infoBuf, int infoBufLen, int& style, char* dispBuf, int dispBufLen, int client)
+	static bool GetMenuItem(Handle menu, int position, char* infoBuf, int infoBufLen, int& style = NULL_VALUE,
+		char* dispBuf = "", int dispBufLen = 0, int client = 0)
 	{
-		PushArg(s_GetMenuItemFunc, menu); PushArg(s_GetMenuItemFunc, position); PushArg(s_GetMenuItemFunc, infoBuf);
-		PushArg(s_GetMenuItemFunc, infoBufLen); PushArgRef(s_GetMenuItemFunc, style); PushArg(s_GetMenuItemFunc, dispBuf);
-		PushArg(s_GetMenuItemFunc, dispBufLen); PushArg(s_GetMenuItemFunc, client);
-		return ExecAndReturn(s_GetMenuItemFunc);
+		PushArg(s_GetMenuItemFunc, menu);
+		PushArg(s_GetMenuItemFunc, position);
+		PushArg(s_GetMenuItemFunc, infoBuf, infoBufLen);
+		PushArg(s_GetMenuItemFunc, infoBufLen);
+		PushArgRef(s_GetMenuItemFunc, style);
+		PushArg(s_GetMenuItemFunc, dispBuf, dispBufLen);
+		PushArg(s_GetMenuItemFunc, dispBufLen);
+		PushArg(s_GetMenuItemFunc, client);
+		return ExecFunc(s_GetMenuItemFunc);
 	}
 
 	/**
@@ -114,7 +138,10 @@ public:
 	 * @param start         Menu item index to start randomizing from.
 	 * @param stop          Menu item index to stop randomizing at. -1 = infinite
 	 */
-	static void MenuShufflePerClient(Handle menu, int start, int stop) { ExecFunc(s_MenuShufflePerClientFunc, menu, start, stop); }
+	static void MenuShufflePerClient(Handle menu, int start = 0, int stop = -1)
+	{
+		ExecFunc(s_MenuShufflePerClientFunc, menu, start, stop);
+	}
 
 	/*
 	 * @brief Fills the client vote option mapping with user supplied values.
@@ -126,9 +153,11 @@ public:
 	 */
 	static void MenuSetClientMapping(Handle menu, int client, int arr[], int length)
 	{
-		PushArg(s_MenuSetClientMappingFunc, menu); PushArg(s_MenuSetClientMappingFunc, client);
-		PushArg(s_MenuSetClientMappingFunc, arr, length); PushArg(s_MenuSetClientMappingFunc, length);
-		ExecAndReturn(s_MenuSetClientMappingFunc);
+		PushArg(s_MenuSetClientMappingFunc, menu);
+		PushArg(s_MenuSetClientMappingFunc, client);
+		PushArg(s_MenuSetClientMappingFunc, arr, length);
+		PushArg(s_MenuSetClientMappingFunc, length);
+		ExecFunc(s_MenuSetClientMappingFunc);
 	}
 
 	/**
@@ -142,7 +171,10 @@ public:
 	 *                      position.
 	 * @error               Not called from inside a MenuAction_Select callback.
 	 */
-	static int GetMenuSelectionPosition() { return ExecFunc(s_GetMenuSelectionPositionFunc); }
+	static int GetMenuSelectionPosition()
+	{
+		return ExecFunc(s_GetMenuSelectionPositionFunc);
+	}
 
 	/**
 	 * @brief Returns the number of items in a menu.
@@ -152,7 +184,10 @@ public:
 	 * @error               Invalid Handle.
 	 */
 
-	static int GetMenuItemCount(Handle menu) { return ExecFunc(s_GetMenuItemCountFunc, menu); }
+	static int GetMenuItemCount(Handle menu)
+	{
+		return ExecFunc(s_GetMenuItemCountFunc, menu);
+	}
 	/**
 	 * @brief Sets whether the menu should be paginated or not.
 	 *
@@ -165,7 +200,10 @@ public:
 	 *                      low.
 	 * @error               Invalid Handle.
 	 */
-	static bool SetMenuPagination(Handle menu, int itemsPerPage) { return ExecFunc(s_SetMenuPaginationFunc, menu, itemsPerPage); }
+	static bool SetMenuPagination(Handle menu, int itemsPerPage)
+	{
+		return ExecFunc(s_SetMenuPaginationFunc, menu, itemsPerPage);
+	}
 
 	/**
 	 * @brief Returns a menu's pagination setting.
@@ -174,7 +212,10 @@ public:
 	 * @return              Pagination setting.
 	 * @error               Invalid Handle.
 	 */
-	static int GetMenuPagination(Handle menu) { return ExecFunc(s_GetMenuPaginationFunc, menu); }
+	static int GetMenuPagination(Handle menu)
+	{
+		return ExecFunc(s_GetMenuPaginationFunc, menu);
+	}
 
 	/**
 	 * @brief Returns a menu's MenuStyle Handle.  The Handle
@@ -184,16 +225,10 @@ public:
 	 * @return              Handle to the menu's draw style.
 	 * @error               Invalid Handle.
 	 */
-	static Handle GetMenuStyle(Handle menu) { return ExecFunc(s_GetMenuStyleFunc, menu); }
-
-	/**
-	 * @brief Sets the menu's default title/instruction message.
-	 *
-	 * @param menu          Menu Handle.
-	 * @param format        Message string format
-	 * @error               Invalid Handle.
-	 */
-	static void SetMenuTitle(Handle menu, const char* format) { ExecFunc(s_GetMenuTitleFunc, menu, format); }
+	static Handle GetMenuStyle(Handle menu)
+	{
+		return ExecFunc(s_GetMenuStyleFunc, menu);
+	}
 
 	/**
 	 * @brief Sets the menu's default title/instruction message.
@@ -204,24 +239,23 @@ public:
 	 * @error               Invalid Handle.
 	 */
 	template<typename ... Args>
-	void SetMenuTitle(Handle menu, const char* format, Args ... args)
+	static void SetMenuTitle(Handle menu, const char* format, Args ... args)
 	{
-		PushArg(s_SetMenuTitleFunc, menu); PushArg(s_SetMenuTitleFunc, format);
+		PushArg(s_SetMenuTitleFunc, menu);
+		PushArg(s_SetMenuTitleFunc, format);
 		SetMenuTitleSub(args...);
 	}
 private:
+	static void SetMenuTitleSub()
+	{
+		ExecFunc(s_SetMenuTitleFunc);
+	}
+
 	template<typename T, typename ... Args>
 	static void SetMenuTitleSub(T arg, Args ... args)
 	{
-		PushArg(s_SetMenuTitleFunc, arg);
+		PushArgRef(s_SetMenuTitleFunc, arg);
 		SetMenuTitleSub(args...);
-	}
-
-	template<typename T1>
-	static void SetMenuTitleSub(T1 arg)
-	{
-		PushArg(s_SetMenuTitleFunc, arg);
-		ExecAndReturn(s_SetMenuTitleFunc);
 	}
 public:
 
@@ -234,7 +268,13 @@ public:
 	 * @return              Number of bytes written.
 	 * @error               Invalid Handle/
 	 */
-	static int GetMenuTitle(Handle menu, char* buffer, int maxlength) { return ExecFunc(s_GetMenuStyleFunc, menu, buffer, maxlength); }
+	static int GetMenuTitle(Handle menu, char* buffer, int maxlength)
+	{
+		PushArg(s_GetMenuStyleFunc, menu);
+		PushArg(s_GetMenuStyleFunc, buffer, maxlength);
+		PushArg(s_GetMenuStyleFunc, maxlength);
+		return ExecFunc(s_GetMenuStyleFunc);
+	}
 
 	/**
 	 * @brief Creates a raw MenuPanel based off the menu's style.
@@ -244,7 +284,10 @@ public:
 	 * @return              A new MenuPanel Handle.
 	 * @error               Invalid Handle.
 	 */
-	static PanelHandle CreatePanelFromMenu(Handle menu) { return ExecFunc(s_CreatePanelFromMenuFunc, menu); }
+	static PanelHandle CreatePanelFromMenu(Handle menu)
+	{
+		return ExecFunc(s_CreatePanelFromMenuFunc, menu);
+	}
 
 	/**
 	 * @brief Returns whether or not the menu has an exit button.
@@ -254,7 +297,10 @@ public:
 	 * @return              True if the menu has an exit button; false otherwise.
 	 * @error               Invalid Handle.
 	 */
-	static bool GetMenuExitButton(Handle menu) { return ExecFunc(s_GetMenuExitButtonFunc, menu); }
+	static bool GetMenuExitButton(Handle menu)
+	{
+		return ExecFunc(s_GetMenuExitButtonFunc, menu);
+	}
 
 	/**
 	 * @brief Sets whether or not the menu has an exit button.  By default, paginated menus
@@ -272,7 +318,10 @@ public:
 	 * @return              True if allowed; false on failure.
 	 * @error               Invalid Handle.
 	 */
-	static bool SetMenuExitButton(Handle menu, bool button) { return ExecFunc(s_SetMenuExitButtonFunc, menu, button); }
+	static bool SetMenuExitButton(Handle menu, bool button)
+	{
+		return ExecFunc(s_SetMenuExitButtonFunc, menu, button);
+	}
 
 	/**
 	 * @brief Returns whether or not the menu has an "exit back" button.  By default,
@@ -285,7 +334,10 @@ public:
 	 * @return              True if the menu has an exit back button; false otherwise.
 	 * @error               Invalid Handle.
 	 */
-	static bool GetMenuExitBackButton(Handle menu) { return ExecFunc(s_GetMenuExitBackButtonFunc, menu); }
+	static bool GetMenuExitBackButton(Handle menu)
+	{
+		return ExecFunc(s_GetMenuExitBackButtonFunc, menu);
+	}
 
 	/**
 	 * @brief Sets whether or not the menu has an "exit back" button. By default, menus
@@ -298,7 +350,10 @@ public:
 	 * @param button        True to enable the button, false to remove it.
 	 * @error               Invalid Handle.
 	 */
-	static void SetMenuExitBackButton(Handle menu, bool button) { ExecFunc(s_SetMenuExitBackButtonFunc, menu, button); }
+	static void SetMenuExitBackButton(Handle menu, bool button)
+	{
+		ExecFunc(s_SetMenuExitBackButtonFunc, menu, button);
+	}
 
 	/**
 	 * @brief Sets whether or not the menu has a "no vote" button in slot 1.
@@ -309,7 +364,10 @@ public:
 	 * @return              True if allowed; false on failure.
 	 * @error               Invalid Handle.
 	 */
-	static bool SetMenuNoVoteButton(Handle menu, bool button) { return ExecFunc(s_SetMenuNoVoteButtonFunc, menu, button); }
+	static bool SetMenuNoVoteButton(Handle menu, bool button)
+	{
+		return ExecFunc(s_SetMenuNoVoteButtonFunc, menu, button);
+	}
 
 	/**
 	 * @brief Cancels a menu from displaying on all clients.  While the
@@ -324,7 +382,10 @@ public:
 	 * @param menu          Menu Handle.
 	 * @error               Invalid Handle.
 	 */
-	static void CancelMenu(Handle menu) { ExecFunc(s_CancelMenuFunc, menu); }
+	static void CancelMenu(Handle menu)
+	{
+		ExecFunc(s_CancelMenuFunc, menu);
+	}
 
 	/**
 	 * @brief Retrieves a menu's option flags.
@@ -333,7 +394,10 @@ public:
 	 * @return              A bitstring of MENUFLAG bits.
 	 * @error               Invalid Handle.
 	 */
-	static int GetMenuOptionFlags(Handle menu) { return ExecFunc(s_GetMenuOptionFlagsFunc, menu); }
+	static int GetMenuOptionFlags(Handle menu)
+	{
+		return ExecFunc(s_GetMenuOptionFlagsFunc, menu);
+	}
 
 	/**
 	 * @brief Sets a menu's option flags.
@@ -346,7 +410,10 @@ public:
 	 * @param flags         A new bitstring of MENUFLAG bits.
 	 * @error               Invalid Handle.
 	 */
-	static void SetMenuOptionFlags(Handle menu, int flags) { ExecFunc(s_SetMenuOptionFlagsFunc, menu, flags); }
+	static void SetMenuOptionFlags(Handle menu, int flags)
+	{
+		ExecFunc(s_SetMenuOptionFlagsFunc, menu, flags);
+	}
 
 	/**
 	 * @brief Returns whether a vote is in progress.
@@ -354,14 +421,20 @@ public:
 	 * @param menu          Deprecated; no longer used.
 	 * @return              True if a vote is in progress, false otherwise.
 	 */
-	static bool IsVoteInProgress(Handle menu) { return ExecFunc(s_IsVoteInProgressFunc, menu); }
+	static bool IsVoteInProgress(Handle menu = INVALID_HANDLE)
+	{
+		return ExecFunc(s_IsVoteInProgressFunc, menu);
+	}
 
 	/**
 	 * @brief Cancels the vote in progress.
 	 *
 	 * @error               If no vote is in progress.
 	 */
-	static void CancelVote() { ExecFunc(s_CancelVoteFunc); }
+	static void CancelVote()
+	{
+		ExecFunc(s_CancelVoteFunc);
+	}
 
 	/**
 	 * @brief Broadcasts a menu to a list of clients.  The most selected item will be
@@ -380,11 +453,38 @@ public:
 	 *                      in progress.
 	 * @error               Invalid Handle, or a vote is already in progress.
 	 */
-	static bool VoteMenu(Handle menu, int clients[], int numClients, int time, int flags)
+	static bool VoteMenu(Handle menu, int clients[], int numClients, int time, int flags = 0)
 	{
-		PushArg(s_VoteMenuFunc, menu); PushArg(s_VoteMenuFunc, clients, numClients); PushArg(s_VoteMenuFunc, numClients);
-		PushArg(s_VoteMenuFunc, time); PushArg(s_VoteMenuFunc, flags);
-		return ExecAndReturn(s_VoteMenuFunc);
+		PushArg(s_VoteMenuFunc, menu);
+		PushArg(s_VoteMenuFunc, clients, numClients);
+		PushArg(s_VoteMenuFunc, numClients);
+		PushArg(s_VoteMenuFunc, time);
+		PushArg(s_VoteMenuFunc, flags);
+		return ExecFunc(s_VoteMenuFunc);
+	}
+
+	/**
+	 * @brief Sends a vote menu to all clients.  See VoteMenu() for more information.
+	 *
+	 * @param menu          Menu Handle.
+	 * @param time          Maximum time to leave menu on the screen.
+	 * @param flags         Optional voting flags.
+	 * @return              True on success, false if this menu already has a vote session
+	 *                      in progress.
+	 * @error               Invalid Handle.
+	 */
+	static bool VoteMenuToAll(Handle menu, int time, int flags = 0)
+	{
+		int total;
+		int* players = new int[s_MaxClients];
+		for (int i = 1; i <= s_MaxClients; ++i)
+		{
+			if (!IsClientInGame(i) || IsFakeClient(i))
+				continue;
+			players[total++] = i;
+		}
+
+		return VoteMenu(menu, players, total, time, flags);
 	}
 
 	/**
@@ -408,7 +508,10 @@ public:
 	 *
 	 * @return              Number of seconds to wait, or 0 for none.
 	 */
-	static int CheckVoteDelay() { return ExecFunc(s_CheckVoteDelayFunc); }
+	static int CheckVoteDelay()
+	{
+		return ExecFunc(s_CheckVoteDelayFunc);
+	}
 
 	/**
 	 * @brief Returns whether a client is in the pool of clients allowed
@@ -419,7 +522,10 @@ public:
 	 * @return              True if client is allowed to vote, false otherwise.
 	 * @error               If no vote is in progress or client index is invalid.
 	 */
-	static bool IsClientInVotePool(int client) { return ExecFunc(s_IsClientInVotePoolFunc, client); }
+	static bool IsClientInVotePool(int client)
+	{
+		return ExecFunc(s_IsClientInVotePoolFunc, client);
+	}
 
 	/**
 	 * @brief Redraws the current vote menu to a client in the voting pool.
@@ -431,7 +537,10 @@ public:
 	 * @error               No vote in progress, int client is not in the voting pool,
 	 *                      or client index is invalid.
 	 */
-	static bool RedrawClientVoteMenu(int client, bool revotes) { return ExecFunc(s_RedrawClientVoteMenuFunc, client, revotes); }
+	static bool RedrawClientVoteMenu(int client, bool revotes = true)
+	{
+		return ExecFunc(s_RedrawClientVoteMenuFunc, client, revotes);
+	}
 
 	/**
 	 * @brief Returns a style's global Handle.
@@ -439,7 +548,10 @@ public:
 	 * @param style         Menu Style.
 	 * @return              A Handle, or INVALID_HANDLE if not found or unusable.
 	 */
-	static Handle GetMenuStyleHandle(MenuStyle style) { return ExecFunc(s_GetMenuStyleHandleFunc, style); }
+	static Handle GetMenuStyleHandle(MenuStyle style)
+	{
+		return ExecFunc(s_GetMenuStyleHandleFunc, style);
+	}
 
 	/**
 	 * @brief Creates a MenuPanel from a MenuStyle.  Panels are used for drawing raw
@@ -450,7 +562,10 @@ public:
 	 * @return              A new MenuPanel Handle.
 	 * @error               Invalid Handle other than INVALID_HANDLE.
 	 */
-	static PanelHandle CreatePanel(Handle hStyle) { return ExecFunc(s_CreatePanelFunc, hStyle); }
+	static PanelHandle CreatePanel(Handle hStyle = INVALID_HANDLE)
+	{
+		return ExecFunc(s_CreatePanelFunc, hStyle);
+	}
 
 	/**
 	 * @brief Creates a Menu from a MenuStyle.  The Handle must be closed with
@@ -465,7 +580,10 @@ public:
 	 * @return              A new menu Handle.
 	 * @error               Invalid Handle other than INVALID_HANDLE.
 	 */
-	static MenuHandle CreateMenuEx(Handle hStyle, MenuAction actions) { return ExecFunc(s_CreateMenuExFunc, hStyle, actions); }
+	static MenuHandle CreateMenuEx(Handle hStyle = INVALID_HANDLE, MenuAction actions = MENU_ACTIONS_DEFAULT)
+	{
+		return ExecFunc(s_CreateMenuExFunc, hStyle, actions);
+	}
 
 	/**
 	 * @brief Returns whether a client is viewing a menu.
@@ -475,7 +593,10 @@ public:
 	 * @return              A MenuSource value.
 	 * @error               Invalid Handle other than null.
 	 */
-	static MenuSource GetClientMenu(int client, Handle hStyle) { return static_cast<MenuSource>(ExecFunc(s_GetClientMenuFunc, client, hStyle)); }
+	static MenuSource GetClientMenu(int client, Handle hStyle = INVALID_HANDLE)
+	{
+		return static_cast<MenuSource>(ExecFunc(s_GetClientMenuFunc, client, hStyle));
+	}
 
 	/**
 	 * @brief Cancels a menu on a client.  This will only affect non-external menus.
@@ -486,7 +607,10 @@ public:
 	 * @param hStyle        MenuStyle Handle, or INVALID_HANDLE to use the default style.
 	 * @return              True if a menu was cancelled, false otherwise.
 	 */
-	static bool CancelClientMenu(int client, bool autoIgnore, Handle hStyle) { return ExecFunc(s_CancelClientMenuFunc, client, autoIgnore, hStyle); }
+	static bool CancelClientMenu(int client, bool autoIgnore = false, Handle hStyle = INVALID_HANDLE)
+	{
+		return ExecFunc(s_CancelClientMenuFunc, client, autoIgnore, hStyle);
+	}
 
 	/**
 	 * @brief Returns a style's maximum items per page.
@@ -495,7 +619,10 @@ public:
 	 * @return              Maximum items per page.
 	 * @error               Invalid Handle other than INVALID_HANDLE.
 	 */
-	static int GetMaxPageItems(Handle hStyle) { return ExecFunc(s_GetMaxPageItemsFunc, hStyle); }
+	static int GetMaxPageItems(Handle hStyle = INVALID_HANDLE)
+	{
+		return ExecFunc(s_GetMaxPageItemsFunc, hStyle);
+	}
 
 	/**
 	 * @brief Returns a MenuPanel's parent style.
@@ -504,7 +631,10 @@ public:
 	 * @return              The MenuStyle Handle that created the panel.
 	 * @error               Invalid Handle.
 	 */
-	static Handle GetPanelStyle(Handle panel) { return ExecFunc(s_GetPanelStyleFunc, panel); }
+	static Handle GetPanelStyle(Handle panel)
+	{
+		return ExecFunc(s_GetPanelStyleFunc, panel);
+	}
 
 	/**
 	 * @brief Sets the panel's title.
@@ -514,7 +644,10 @@ public:
 	 * @param onlyIfEmpty   If true, the title will only be set if no title is set.
 	 * @error               Invalid Handle.
 	 */
-	static void SetPanelTitle(Handle panel, const char* text, bool onlyIfEmpty) { ExecFunc(s_SetPanelTitleFunc, panel, text, onlyIfEmpty); }
+	static void SetPanelTitle(Handle panel, const char* text, bool onlyIfEmpty = false)
+	{
+		ExecFunc(s_SetPanelTitleFunc, panel, text, onlyIfEmpty);
+	}
 
 	/**
 	 * @brief Draws an item on a panel.  If the item takes up a slot, the position
@@ -528,7 +661,10 @@ public:
 	 * @return              A slot position, or 0 if item was a rawline or could not be drawn.
 	 * @error               Invalid Handle.
 	 */
-	static int DrawPanelItem(Handle panel, const char* text, int style) { return ExecFunc(s_DrawPanelItemFunc, panel, text, style); }
+	static int DrawPanelItem(Handle panel, const char* text, int style = ITEMDRAW_DEFAULT)
+	{
+		return ExecFunc(s_DrawPanelItemFunc, panel, text, style);
+	}
 
 	/**
 	 * @brief Draws a raw line of text on a panel, without any markup other than a newline.
@@ -539,7 +675,10 @@ public:
 	 * @return              True on success, false if raw lines are not supported.
 	 * @error               Invalid Handle.
 	 */
-	static bool DrawPanelText(Handle panel, const char* text) { return ExecFunc(s_DrawPanelTextFunc, panel, text); }
+	static bool DrawPanelText(Handle panel, const char* text)
+	{
+		return ExecFunc(s_DrawPanelTextFunc, panel, text);
+	}
 
 	/**
 	 * @brief Returns whether or not the given drawing flags are supported by
@@ -550,7 +689,10 @@ public:
 	 * @return              True if item is drawable, false otherwise.
 	 * @error               Invalid Handle.
 	 */
-	static bool CanPanelDrawFlags(Handle panel, int style) { return ExecFunc(s_CanPanelDrawFlagsFunc, panel, style); }
+	static bool CanPanelDrawFlags(Handle panel, int style)
+	{
+		return ExecFunc(s_CanPanelDrawFlagsFunc, panel, style);
+	}
 
 	/**
 	 * @brief Sets the selectable key map of a panel.  This is not supported by
@@ -562,7 +704,10 @@ public:
 	 *                      then key 0 (bit 9) is automatically set.
 	 * @return              True if supported, false otherwise.
 	 */
-	static bool SetPanelKeys(Handle panel, int keys) { return ExecFunc(s_SetPanelKeysFunc, panel, keys); }
+	static bool SetPanelKeys(Handle panel, int keys)
+	{
+		return ExecFunc(s_SetPanelKeysFunc, panel, keys);
+	}
 
 	/**
 	 * @brief Sends a panel to a client.  Unlike full menus, the handler
@@ -601,7 +746,10 @@ public:
 	 *                      or -1 if there is no known limit.
 	 * @error               Invalid Handle.
 	 */
-	static int GetPanelTextRemaining(Handle panel) { return ExecFunc(s_GetPanelTextRemainingFunc, panel); }
+	static int GetPanelTextRemaining(Handle panel)
+	{
+		return ExecFunc(s_GetPanelTextRemainingFunc, panel);
+	}
 
 	/**
 	 * @brief Returns the current key position.
@@ -610,7 +758,10 @@ public:
 	 * @return              Current key position starting at 1.
 	 * @error               Invalid Handle.
 	 */
-	static int GetPanelCurrentKey(Handle panel) { return ExecFunc(s_GetPanelCurrentKeyFunc, panel); }
+	static int GetPanelCurrentKey(Handle panel)
+	{
+		return ExecFunc(s_GetPanelCurrentKeyFunc, panel);
+	}
 
 	/**
 	 * @brief Sets the next key position.  This cannot be used
@@ -622,7 +773,10 @@ public:
 	 * @return              True on success, false otherwise.
 	 * @error               Invalid Handle.
 	 */
-	static bool SetPanelCurrentKey(Handle panel, int key) { return ExecFunc(s_SetPanelCurrentKeyFunc, panel, key); }
+	static bool SetPanelCurrentKey(Handle panel, int key)
+	{
+		return ExecFunc(s_SetPanelCurrentKeyFunc, panel, key);
+	}
 
 	/**
 	 * @brief Redraws menu text from inside a MenuAction_DisplayItem callback.
@@ -630,7 +784,10 @@ public:
 	 * @param text          Menu text to draw.
 	 * @return              Item position; must be returned via the callback.
 	 */
-	static int RedrawMenuItem(const char* text) { return ExecFunc(s_RedrawMenuItemFunc, text); }
+	static int RedrawMenuItem(const char* text)
+	{
+		return ExecFunc(s_RedrawMenuItemFunc, text);
+	}
 
 	/**
 	 * @brief This function is provided for legacy code only.  Some older plugins may use
@@ -645,9 +802,38 @@ public:
 	 * @param str           Full menu string as would be passed over the network.
 	 * @param time          Time to hold the menu for.
 	 * @param keys          Selectable key bitstring.
-	 * @param handler       Optional handler function, with the same rules as
-	 *                      SendPanelToClient().
 	 * @return              True on success, false on failure.
 	 * @error               Invalid client index, or radio menus not supported.
 	 */
-	static bool InternalShowMenu(int client, const char* str, int time, int keys) { return ExecFunc(s_InternalShowMenuFunc, client, str, time, keys); }
+	static bool InternalShowMenu(int client, const char* str, int time, int keys = -1)
+	{
+		return ExecFunc(s_InternalShowMenuFunc, client, str, time, keys);
+	}
+
+	/**
+	 * @brief Retrieves voting information from MenuAction_VoteEnd.
+	 *
+	 * @param param2        Second parameter of MenuAction_VoteEnd.
+	 * @param winningVotes  Number of votes received by the winning option.
+	 * @param totalVotes    Number of total votes received.
+	 */
+	static void GetMenuVoteInfo(int param2, int& winningVotes, int& totalVotes)
+	{
+		winningVotes = param2 & 0xFFFF;
+		totalVotes = param2 >> 16;
+	}
+
+	/**
+	 * @brief Quick stock to determine whether voting is allowed. This doesn't let you
+	 * fine-tune a reason for not voting, so it's not recommended for lazily
+	 * telling clients that voting isn't allowed.
+	 *
+	 * @return              True if voting is allowed, false if voting is in progress
+	 *                      or the cooldown is active.
+	 */
+	static bool IsNewVoteAllowed()
+	{
+		if (IsVoteInProgress() || CheckVoteDelay() != 0)
+			return false;
+		return true;
+	}

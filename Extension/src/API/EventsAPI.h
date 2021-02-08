@@ -29,30 +29,80 @@ public:
 		return ExecFunc(s_HookEventExFunc, name, mode);
 	}
 
-	static void UnhookEvent(const char* name, EventHookMode mode) { ExecFunc(s_UnhookEventFunc, name, mode); }
+	static void UnhookEvent(const char* name, EventHookMode mode)
+	{
+		ExecFunc(s_UnhookEventFunc, name, mode);
+	}
 
-	static EventHandle CreateEvent(const char* name, bool force) { return ExecFunc(s_CreateEventFunc, name, force); }
+	static EventHandle CreateEvent(const char* name, bool force)
+	{
+		return ExecFunc(s_CreateEventFunc, name, force);
+	}
 
-	static void FireEvent(Handle eventHandle, bool dontBroadcast) { ExecFunc(s_FireEventFunc, eventHandle, dontBroadcast); }
+	static void FireEvent(Handle eventHandle, bool dontBroadcast)
+	{
+		ExecFunc(s_FireEventFunc, eventHandle, dontBroadcast);
+	}
 
-	static void CancelCreatedEvent(Handle eventHandle) { ExecFunc(s_CancelCreatedEventFunc, eventHandle); }
+	static void CancelCreatedEvent(Handle eventHandle)
+	{
+		ExecFunc(s_CancelCreatedEventFunc, eventHandle);
+	}
 
-	static bool GetEventBool(Handle eventHandle, const char* key, bool defValue) { return ExecFunc(s_GetEventBoolFunc, eventHandle, key, defValue); }
+	static bool GetEventBool(Handle eventHandle, const char* key, bool defValue)
+	{
+		return ExecFunc(s_GetEventBoolFunc, eventHandle, key, defValue);
+	}
 
-	static void SetEventBool(Handle eventHandle, const char* key, bool value) { ExecFunc(s_SetEventBoolFunc, eventHandle, key, value); }
+	static void SetEventBool(Handle eventHandle, const char* key, bool value)
+	{
+		ExecFunc(s_SetEventBoolFunc, eventHandle, key, value);
+	}
 
-	static int GetEventInt(Handle eventHandle, const char* key, int defValue) { return ExecFunc(s_GetEventIntFunc, eventHandle, key, defValue); }
+	static int GetEventInt(Handle eventHandle, const char* key, int defValue)
+	{
+		return ExecFunc(s_GetEventIntFunc, eventHandle, key, defValue);
+	}
 
-	static void SetEventInt(Handle eventHandle, const char* key, int value) { ExecFunc(s_SetEventIntFunc, eventHandle, key, value); }
+	static void SetEventInt(Handle eventHandle, const char* key, int value)
+	{
+		ExecFunc(s_SetEventIntFunc, eventHandle, key, value);
+	}
 
-	static float GetEventFloat(Handle eventHandle, const char* key, float defValue) { return ExecFunc(s_GetEventFloatFunc, eventHandle, key, defValue); }
+	static float GetEventFloat(Handle eventHandle, const char* key, float defValue)
+	{
+		return ExecFunc(s_GetEventFloatFunc, eventHandle, key, defValue);
+	}
 
-	static void SetEventFloat(Handle eventHandle, const char* key, float value) { ExecFunc(s_SetEventFloatFunc, eventHandle, key, value); }
+	static void SetEventFloat(Handle eventHandle, const char* key, float value)
+	{
+		ExecFunc(s_SetEventFloatFunc, eventHandle, key, value);
+	}
 
-	static void GetEventString(Handle eventHandle, const char* key, char* value, int maxlength, const char* defValue) { ExecFunc(s_GetEventStringFunc, eventHandle, key, value, maxlength, defValue); }
+	static void GetEventString(Handle eventHandle, const char* key, char* value, int maxlength, const char* defValue)
+	{
+		PushArg(s_GetEventStringFunc, eventHandle);
+		PushArg(s_GetEventStringFunc, key);
+		PushArg(s_GetEventStringFunc, value, maxlength);
+		PushArg(s_GetEventStringFunc, maxlength);
+		PushArg(s_GetEventStringFunc, defValue);
+		ExecFunc(s_GetEventStringFunc);
+	}
 
-	static void SetEventString(Handle eventHandle, const char* key, const char* value) { ExecFunc(s_SetEventStringFunc, eventHandle, key, value); }
+	static void SetEventString(Handle eventHandle, const char* key, const char* value)
+	{
+		ExecFunc(s_SetEventStringFunc, eventHandle, key, value);
+	}
 
-	static void GetEventName(Handle eventHandle, char* name, int maxlength) { ExecFunc(s_GetEventNameFunc, eventHandle, name, maxlength); }
+	static void GetEventName(Handle eventHandle, char* name, int maxlength)
+	{
+		PushArg(s_GetEventNameFunc, eventHandle);
+		PushArg(s_GetEventNameFunc, name, maxlength);
+		PushArg(s_GetEventNameFunc, maxlength);
+		ExecFunc(s_GetEventNameFunc);
+	}
 
-	static void SetEventBroadcast(Handle eventHandle, bool dontBroadcast) { ExecFunc(s_SetEventBroadcastFunc, eventHandle, dontBroadcast); }
+	static void SetEventBroadcast(Handle eventHandle, bool dontBroadcast)
+	{
+		ExecFunc(s_SetEventBroadcastFunc, eventHandle, dontBroadcast);
+	}

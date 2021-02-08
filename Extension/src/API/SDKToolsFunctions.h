@@ -237,7 +237,10 @@ public:
 	 */
 	static void GetTeamName(int index, char* name, int maxLength)
 	{
-		ExecFunc(s_GetTeamNameFunc, index, name, maxLength);
+		PushArg(s_GetTeamNameFunc, index);
+		s_GetTeamNameFunc->PushStringEx(name, maxLength, 0, 1);
+		PushArg(s_GetTeamNameFunc, maxLength);
+		ExecFunc(s_GetTeamNameFunc);
 	}
 
 	/**
@@ -314,7 +317,10 @@ public:
 	 */
 	static bool GetPlayerDecalFile(int client, char* hex, int maxLength)
 	{
-		return ExecFunc(s_GetPlayerDecalFileFunc, client, hex, maxLength);
+		PushArg(s_GetPlayerDecalFileFunc, client);
+		s_GetPlayerDecalFileFunc->PushStringEx(hex, maxLength, 0, 1);
+		PushArg(s_GetPlayerDecalFileFunc, maxLength);
+		return ExecFunc(s_GetPlayerDecalFileFunc);
 	}
 
 	/**
@@ -328,7 +334,10 @@ public:
 	 */
 	static bool GetPlayerJingleFile(int client, char* hex, int maxLength)
 	{
-		return ExecFunc(s_GetPlayerJingleFileFunc, client, hex, maxLength);
+		PushArg(s_GetPlayerJingleFileFunc, client);
+		s_GetPlayerJingleFileFunc->PushStringEx(hex, maxLength, 0, 1);
+		PushArg(s_GetPlayerJingleFileFunc, maxLength);
+		return ExecFunc(s_GetPlayerJingleFileFunc);
 	}
 
 	/**
@@ -341,7 +350,7 @@ public:
 	{
 		PushArgRef(s_GetServerNetStatsFunc, inAmount);
 		PushArgRef(s_GetServerNetStatsFunc, outAmount);
-		ExecAndReturn(s_GetServerNetStatsFunc);
+		ExecFunc(s_GetServerNetStatsFunc);
 	}
 
 	/**

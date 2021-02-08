@@ -2,6 +2,189 @@
 
 int PublicManager::s_MaxClients = 0;
 
+// SDKTOOLS_ENGINE.INC
+IPluginFunction* PublicManager::s_SetClientViewEntityFunc;
+IPluginFunction* PublicManager::s_SetLightStyleFunc;
+IPluginFunction* PublicManager::s_GetClientEyePositionFunc;
+
+// SDKTOOLS_TRACE.INC
+IPluginFunction* PublicManager::s_TR_GetPointContentsFunc;
+IPluginFunction* PublicManager::s_TR_GetPointContentsEntFunc;
+IPluginFunction* PublicManager::s_TR_TraceRayFunc;
+IPluginFunction* PublicManager::s_TR_TraceHullFunc;
+IPluginFunction* PublicManager::s_TR_EnumerateEntitiesFunc;
+IPluginFunction* PublicManager::s_TR_EnumerateEntitiesHullFunc;
+IPluginFunction* PublicManager::s_TR_EnumerateEntitiesSphereFunc;
+IPluginFunction* PublicManager::s_TR_EnumerateEntitiesBoxFunc;
+IPluginFunction* PublicManager::s_TR_EnumerateEntitiesPointFunc;
+IPluginFunction* PublicManager::s_TR_TraceRayFilterFunc;
+IPluginFunction* PublicManager::s_TR_TraceHullFilterFunc;
+IPluginFunction* PublicManager::s_TR_ClipRayToEntityFunc;
+IPluginFunction* PublicManager::s_TR_ClipRayHullToEntityFunc;
+IPluginFunction* PublicManager::s_TR_ClipCurrentRayToEntityFunc;
+IPluginFunction* PublicManager::s_TR_TraceRayExFunc;
+IPluginFunction* PublicManager::s_TR_TraceHullExFunc;
+IPluginFunction* PublicManager::s_TR_TraceRayFilterExFunc;
+IPluginFunction* PublicManager::s_TR_TraceHullFilterExFunc;
+IPluginFunction* PublicManager::s_TR_ClipRayToEntityExFunc;
+IPluginFunction* PublicManager::s_TR_ClipRayHullToEntityExFunc;
+IPluginFunction* PublicManager::s_TR_ClipCurrentRayToEntityExFunc;
+IPluginFunction* PublicManager::s_TR_GetFractionFunc;
+IPluginFunction* PublicManager::s_TR_GetFractionLeftSolidFunc;
+IPluginFunction* PublicManager::s_TR_GetStartPositionFunc;
+IPluginFunction* PublicManager::s_TR_GetEndPositionFunc;
+IPluginFunction* PublicManager::s_TR_GetEntityIndexFunc;
+IPluginFunction* PublicManager::s_TR_GetDisplacementFlagsFunc;
+IPluginFunction* PublicManager::s_TR_GetSurfaceNameFunc;
+IPluginFunction* PublicManager::s_TR_GetSurfacePropsFunc;
+IPluginFunction* PublicManager::s_TR_GetSurfaceFlagsFunc;
+IPluginFunction* PublicManager::s_TR_GetPhysicsBoneFunc;
+IPluginFunction* PublicManager::s_TR_AllSolidFunc;
+IPluginFunction* PublicManager::s_TR_StartSolidFunc;
+IPluginFunction* PublicManager::s_TR_DidHitFunc;
+IPluginFunction* PublicManager::s_TR_GetHitGroupFunc;
+IPluginFunction* PublicManager::s_TR_GetHitBoxIndexFunc;
+IPluginFunction* PublicManager::s_TR_GetPlaneNormalFunc;
+IPluginFunction* PublicManager::s_TR_PointOutsideWorldFunc;
+
+// BITBUFFER.INC
+IPluginFunction* PublicManager::s_BfWriteBoolFunc;
+IPluginFunction* PublicManager::s_BfWriteByteFunc;
+IPluginFunction* PublicManager::s_BfWriteCharFunc;
+IPluginFunction* PublicManager::s_BfWriteShortFunc;
+IPluginFunction* PublicManager::s_BfWriteWordFunc;
+IPluginFunction* PublicManager::s_BfWriteNumFunc;
+IPluginFunction* PublicManager::s_BfWriteFloatFunc;
+IPluginFunction* PublicManager::s_BfWriteStringFunc;
+IPluginFunction* PublicManager::s_BfWriteEntityFunc;
+IPluginFunction* PublicManager::s_BfWriteAngleFunc;
+IPluginFunction* PublicManager::s_BfWriteCoordFunc;
+IPluginFunction* PublicManager::s_BfWriteVecCoordFunc;
+IPluginFunction* PublicManager::s_BfWriteVecNormalFunc;
+IPluginFunction* PublicManager::s_BfWriteAnglesFunc;
+IPluginFunction* PublicManager::s_BfReadBoolFunc;
+IPluginFunction* PublicManager::s_BfReadByteFunc;
+IPluginFunction* PublicManager::s_BfReadCharFunc;
+IPluginFunction* PublicManager::s_BfReadShortFunc;
+IPluginFunction* PublicManager::s_BfReadWordFunc;
+IPluginFunction* PublicManager::s_BfReadNumFunc;
+IPluginFunction* PublicManager::s_BfReadFloatFunc;
+IPluginFunction* PublicManager::s_BfReadStringFunc;
+IPluginFunction* PublicManager::s_BfReadEntityFunc;
+IPluginFunction* PublicManager::s_BfReadAngleFunc;
+IPluginFunction* PublicManager::s_BfReadCoordFunc;
+IPluginFunction* PublicManager::s_BfReadVecCoordFunc;
+IPluginFunction* PublicManager::s_BfReadVecNormalFunc;
+IPluginFunction* PublicManager::s_BfReadAnglesFunc;
+IPluginFunction* PublicManager::s_BfGetNumBytesLeftFunc;
+
+// LOGGING.INC
+IPluginFunction* PublicManager::s_LogMessageFunc;
+IPluginFunction* PublicManager::s_LogToFileFunc;
+IPluginFunction* PublicManager::s_LogToFileExFunc;
+IPluginFunction* PublicManager::s_LogActionFunc;
+IPluginFunction* PublicManager::s_LogErrorFunc;
+IPluginFunction* PublicManager::s_AddGameLogHookFunc;
+IPluginFunction* PublicManager::s_RemoveGameLogHookFunc;
+
+// SDKTOOLS_TEMPENTS.INC
+IPluginFunction* PublicManager::s_AddTempEntHookFunc;
+IPluginFunction* PublicManager::s_RemoveTempEntHookFunc;
+IPluginFunction* PublicManager::s_TE_StartFunc;
+IPluginFunction* PublicManager::s_TE_IsValidPropFunc;
+IPluginFunction* PublicManager::s_TE_WriteNumFunc;
+IPluginFunction* PublicManager::s_TE_ReadNumFunc;
+IPluginFunction* PublicManager::s_TE_WriteFloatFunc;
+IPluginFunction* PublicManager::s_TE_ReadFloatFunc;
+IPluginFunction* PublicManager::s_TE_WriteVectorFunc;
+IPluginFunction* PublicManager::s_TE_ReadVectorFunc;
+IPluginFunction* PublicManager::s_TE_WriteAnglesFunc;
+IPluginFunction* PublicManager::s_TE_WriteFloatArrayFunc;
+IPluginFunction* PublicManager::s_TE_SendFunc;
+
+// SDKTOOLS_GAMERULES.INC
+IPluginFunction* PublicManager::s_GameRules_GetPropFunc;
+IPluginFunction* PublicManager::s_GameRules_SetPropFunc;
+IPluginFunction* PublicManager::s_GameRules_GetPropFloatFunc;
+IPluginFunction* PublicManager::s_GameRules_SetPropFloatFunc;
+IPluginFunction* PublicManager::s_GameRules_GetPropEntFunc;
+IPluginFunction* PublicManager::s_GameRules_SetPropEntFunc;
+IPluginFunction* PublicManager::s_GameRules_GetPropVectorFunc;
+IPluginFunction* PublicManager::s_GameRules_SetPropVectorFunc;
+IPluginFunction* PublicManager::s_GameRules_GetPropStringFunc;
+IPluginFunction* PublicManager::s_GameRules_SetPropStringFunc;
+
+// SDKTOOLS_ENTINPUT.INC
+IPluginFunction* PublicManager::s_AcceptEntityInputFunc;
+
+// SDKTOOLS_ENTOUTPUT.INC
+IPluginFunction* PublicManager::s_HookEntityOutputFunc;
+IPluginFunction* PublicManager::s_UnhookEntityOutputFunc;
+IPluginFunction* PublicManager::s_HookSingleEntityOutputFunc;
+IPluginFunction* PublicManager::s_UnhookSingleEntityOutputFunc;
+IPluginFunction* PublicManager::s_FireEntityOutputFunc;
+
+// HANDLES.INC
+IPluginFunction* PublicManager::s_CloseHandleFunc;
+IPluginFunction* PublicManager::s_CloneHandleFunc;
+
+// ENTITY_PROP_STOCKS.INC
+IPluginFunction* PublicManager::s_GetEntityFlagsFunc;
+IPluginFunction* PublicManager::s_SetEntityFlagsFunc;
+IPluginFunction* PublicManager::s_GetEntityMoveTypeFunc;
+IPluginFunction* PublicManager::s_SetEntityMoveTypeFunc;
+IPluginFunction* PublicManager::s_GetEntityRenderModeFunc;
+IPluginFunction* PublicManager::s_SetEntityRenderModeFunc;
+IPluginFunction* PublicManager::s_GetEntityRenderFxFunc;
+IPluginFunction* PublicManager::s_SetEntityRenderFxFunc;
+IPluginFunction* PublicManager::s_GetEntityRenderColorFunc;
+IPluginFunction* PublicManager::s_SetEntityRenderColorFunc;
+IPluginFunction* PublicManager::s_GetEntityGravityFunc;
+IPluginFunction* PublicManager::s_SetEntityGravityFunc;
+IPluginFunction* PublicManager::s_SetEntityHealthFunc;
+IPluginFunction* PublicManager::s_GetClientButtonsFunc;
+
+// HALFLIFE.INC
+IPluginFunction* PublicManager::s_LogToGameFunc;
+IPluginFunction* PublicManager::s_SetRandomSeedFunc;
+IPluginFunction* PublicManager::s_IsMapValidFunc;
+IPluginFunction* PublicManager::s_FindMapFunc;
+IPluginFunction* PublicManager::s_GetMapDisplayNameFunc;
+IPluginFunction* PublicManager::s_IsDedicatedServerFunc;
+IPluginFunction* PublicManager::s_GetEngineTimeFunc;
+IPluginFunction* PublicManager::s_GetGameTimeFunc;
+IPluginFunction* PublicManager::s_GetGameTickCountFunc;
+IPluginFunction* PublicManager::s_GetGameFrameTimeFunc;
+IPluginFunction* PublicManager::s_GetGameDescriptionFunc;
+IPluginFunction* PublicManager::s_GetGameFolderNameFunc;
+IPluginFunction* PublicManager::s_GetCurrentMapFunc;
+IPluginFunction* PublicManager::s_PrecacheModelFunc;
+IPluginFunction* PublicManager::s_PrecacheSentenceFileFunc;
+IPluginFunction* PublicManager::s_PrecacheDecalFunc;
+IPluginFunction* PublicManager::s_PrecacheGenericFunc;
+IPluginFunction* PublicManager::s_IsModelPrecachedFunc;
+IPluginFunction* PublicManager::s_IsDecalPrecachedFunc;
+IPluginFunction* PublicManager::s_IsGenericPrecachedFunc;
+IPluginFunction* PublicManager::s_PrecacheSoundFunc;
+IPluginFunction* PublicManager::s_CreateDialogFunc;
+IPluginFunction* PublicManager::s_GetEngineVersionFunc;
+IPluginFunction* PublicManager::s_PrintToChatFunc;
+IPluginFunction* PublicManager::s_PrintCenterTextFunc;
+IPluginFunction* PublicManager::s_PrintHintTextFunc;
+IPluginFunction* PublicManager::s_ShowVGUIPanelFunc;
+IPluginFunction* PublicManager::s_CreateHudSynchronizerFunc;
+IPluginFunction* PublicManager::s_SetHudTextParamsFunc;
+IPluginFunction* PublicManager::s_SetHudTextParamsExFunc;
+IPluginFunction* PublicManager::s_ShowSyncHudTextFunc;
+IPluginFunction* PublicManager::s_ClearSyncHudFunc;
+IPluginFunction* PublicManager::s_ShowHudTextFunc;
+IPluginFunction* PublicManager::s_EntIndexToEntRefFunc;
+IPluginFunction* PublicManager::s_EntRefToEntIndexFunc;
+IPluginFunction* PublicManager::s_MakeCompatEntRefFunc;
+IPluginFunction* PublicManager::s_GetClientsInRangeFunc;
+IPluginFunction* PublicManager::s_GetServerAuthIdFunc;
+IPluginFunction* PublicManager::s_GetServerSteamAccountIdFunc;
+
 // TIMERS.INC
 IPluginFunction* PublicManager::s_CreateTimerFunc;
 IPluginFunction* PublicManager::s_KillTimerFunc;
@@ -325,6 +508,21 @@ IPluginFunction* PublicManager::s_ChangeClientTeamFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientSerialFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientFromSerialFunc = nullptr;
 
+int PublicManager::s_TraceEntityFilterIndex = 0;
+std::unordered_map<int, TraceEntityFilterFunc> PublicManager::s_TraceEntityFilterCallbacks;
+std::unordered_map<int, void*> PublicManager::s_TraceEntityFilterData;
+
+int PublicManager::s_TraceEntityEnumeratorIndex = 0;
+std::unordered_map<int, TraceEntityEnumeratorFunc> PublicManager::s_TraceEntityEnumeratorCallbacks;
+std::unordered_map<int, void*> PublicManager::s_TraceEntityEnumeratorData;
+
+GameLogHookFunc PublicManager::s_GameLogHookCallback;
+
+std::unordered_map<std::string, TEHookFunc> PublicManager::s_TEHooksCallbacks;
+
+std::unordered_map<std::pair<std::string, std::string>, EntityOutputFunc, pair_hash> PublicManager::s_EntityOutputCallbacks;
+std::unordered_map<std::pair<int, std::string>, EntityOutputFunc, pair_hash> PublicManager::s_SingleEntityOutputCallbacks;
+
 std::unordered_map<Handle, TimerCallbackFunc> PublicManager::s_TimerCallbacks;
 
 std::unordered_map<std::pair<int, SDKHookType>, void*, pair_hash> PublicManager::s_SDKHooksCallbacks;
@@ -348,6 +546,190 @@ void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 {
 	IPluginFunction* GetMaxClientsFunc = pContext->GetFunctionByName("public_GetMaxClients");
 	GetMaxClientsFunc->Execute(&s_MaxClients);
+
+	// SDKTOOLS_ENGINE.INC
+	LOAD_PTR(SetClientViewEntity);
+	LOAD_PTR(SetLightStyle);
+	LOAD_PTR(GetClientEyePosition);
+
+	// SDKTOOLS_TRACE.INC
+	LOAD_PTR(TR_GetPointContents);
+	LOAD_PTR(TR_GetPointContentsEnt);
+	LOAD_PTR(TR_TraceRay);
+	LOAD_PTR(TR_TraceHull);
+	LOAD_PTR(TR_EnumerateEntities);
+	LOAD_PTR(TR_EnumerateEntitiesHull);
+	LOAD_PTR(TR_EnumerateEntitiesSphere);
+	LOAD_PTR(TR_EnumerateEntitiesBox);
+	LOAD_PTR(TR_EnumerateEntitiesPoint);
+	LOAD_PTR(TR_TraceRayFilter);
+	LOAD_PTR(TR_TraceHullFilter);
+	LOAD_PTR(TR_ClipRayToEntity);
+	LOAD_PTR(TR_ClipRayHullToEntity);
+	LOAD_PTR(TR_ClipCurrentRayToEntity);
+	LOAD_PTR(TR_TraceRayEx);
+	LOAD_PTR(TR_TraceHullEx);
+	LOAD_PTR(TR_TraceRayFilterEx);
+	LOAD_PTR(TR_TraceHullFilterEx);
+	LOAD_PTR(TR_ClipRayToEntityEx);
+	LOAD_PTR(TR_ClipRayHullToEntityEx);
+	LOAD_PTR(TR_ClipCurrentRayToEntityEx);
+	LOAD_PTR(TR_GetFraction);
+	LOAD_PTR(TR_GetFractionLeftSolid);
+	LOAD_PTR(TR_GetStartPosition);
+	LOAD_PTR(TR_GetEndPosition);
+	LOAD_PTR(TR_GetEntityIndex);
+	LOAD_PTR(TR_GetDisplacementFlags);
+	LOAD_PTR(TR_GetSurfaceName);
+	LOAD_PTR(TR_GetSurfaceProps);
+	LOAD_PTR(TR_GetSurfaceFlags);
+	LOAD_PTR(TR_GetPhysicsBone);
+	LOAD_PTR(TR_AllSolid);
+	LOAD_PTR(TR_StartSolid);
+	LOAD_PTR(TR_DidHit);
+	LOAD_PTR(TR_GetHitGroup);
+	LOAD_PTR(TR_GetHitBoxIndex);
+	LOAD_PTR(TR_GetPlaneNormal);
+	LOAD_PTR(TR_PointOutsideWorld);
+
+	// BITBUFFER.INC
+	LOAD_PTR(BfWriteBool);
+	LOAD_PTR(BfWriteByte);
+	LOAD_PTR(BfWriteChar);
+	LOAD_PTR(BfWriteShort);
+	LOAD_PTR(BfWriteWord);
+	LOAD_PTR(BfWriteNum);
+	LOAD_PTR(BfWriteFloat);
+	LOAD_PTR(BfWriteString);
+	LOAD_PTR(BfWriteEntity);
+	LOAD_PTR(BfWriteAngle);
+	LOAD_PTR(BfWriteCoord);
+	LOAD_PTR(BfWriteVecCoord);
+	LOAD_PTR(BfWriteVecNormal);
+	LOAD_PTR(BfWriteAngles);
+	LOAD_PTR(BfReadBool);
+	LOAD_PTR(BfReadByte);
+	LOAD_PTR(BfReadChar);
+	LOAD_PTR(BfReadShort);
+	LOAD_PTR(BfReadWord);
+	LOAD_PTR(BfReadNum);
+	LOAD_PTR(BfReadFloat);
+	LOAD_PTR(BfReadString);
+	LOAD_PTR(BfReadEntity);
+	LOAD_PTR(BfReadAngle);
+	LOAD_PTR(BfReadCoord);
+	LOAD_PTR(BfReadVecCoord);
+	LOAD_PTR(BfReadVecNormal);
+	LOAD_PTR(BfReadAngles);
+	LOAD_PTR(BfGetNumBytesLeft);
+
+
+	// LOGGING.INC
+	LOAD_PTR(LogMessage);
+	LOAD_PTR(LogToFile);
+	LOAD_PTR(LogToFileEx);
+	LOAD_PTR(LogAction);
+	LOAD_PTR(LogError);
+	LOAD_PTR(AddGameLogHook);
+	LOAD_PTR(RemoveGameLogHook);
+
+	// SDKTOOLS_TEMPENTS.INC
+	LOAD_PTR(AddTempEntHook);
+	LOAD_PTR(RemoveTempEntHook);
+	LOAD_PTR(TE_Start);
+	LOAD_PTR(TE_IsValidProp);
+	LOAD_PTR(TE_WriteNum);
+	LOAD_PTR(TE_ReadNum);
+	LOAD_PTR(TE_WriteFloat);
+	LOAD_PTR(TE_ReadFloat);
+	LOAD_PTR(TE_WriteVector);
+	LOAD_PTR(TE_ReadVector);
+	LOAD_PTR(TE_WriteAngles);
+	LOAD_PTR(TE_WriteFloatArray);
+	LOAD_PTR(TE_Send);
+
+	// SDKTOOLS_GAMERULES.INC
+	LOAD_PTR(GameRules_GetProp);
+	LOAD_PTR(GameRules_SetProp);
+	LOAD_PTR(GameRules_GetPropFloat);
+	LOAD_PTR(GameRules_SetPropFloat);
+	LOAD_PTR(GameRules_GetPropEnt);
+	LOAD_PTR(GameRules_SetPropEnt);
+	LOAD_PTR(GameRules_GetPropVector);
+	LOAD_PTR(GameRules_SetPropVector);
+	LOAD_PTR(GameRules_GetPropString);
+	LOAD_PTR(GameRules_SetPropString);
+
+	// SDKTOOLS_ENTINPUT.INC
+	LOAD_PTR(AcceptEntityInput);
+
+	// SDKTOOLS_ENTOUTPUT.INC
+	LOAD_PTR(HookEntityOutput);
+	LOAD_PTR(UnhookEntityOutput);
+	LOAD_PTR(HookSingleEntityOutput);
+	LOAD_PTR(UnhookSingleEntityOutput);
+	LOAD_PTR(FireEntityOutput);
+
+	// HANDLES.INC
+	LOAD_PTR(CloseHandle);
+	LOAD_PTR(CloneHandle);
+
+	// ENTITY_PROP_STOCKS.INC
+	LOAD_PTR(GetEntityFlags);
+	LOAD_PTR(SetEntityFlags);
+	LOAD_PTR(GetEntityMoveType);
+	LOAD_PTR(SetEntityMoveType);
+	LOAD_PTR(GetEntityRenderMode);
+	LOAD_PTR(SetEntityRenderMode);
+	LOAD_PTR(GetEntityRenderFx);
+	LOAD_PTR(SetEntityRenderFx);
+	LOAD_PTR(GetEntityRenderColor);
+	LOAD_PTR(SetEntityRenderColor);
+	LOAD_PTR(GetEntityGravity);
+	LOAD_PTR(SetEntityGravity);
+	LOAD_PTR(SetEntityHealth);
+	LOAD_PTR(GetClientButtons);
+
+	// HALFLIFE.INC
+	LOAD_PTR(LogToGame);
+	LOAD_PTR(SetRandomSeed);
+	LOAD_PTR(IsMapValid);
+	LOAD_PTR(FindMap);
+	LOAD_PTR(GetMapDisplayName);
+	LOAD_PTR(IsDedicatedServer);
+	LOAD_PTR(GetEngineTime);
+	LOAD_PTR(GetGameTime);
+	LOAD_PTR(GetGameTickCount);
+	LOAD_PTR(GetGameFrameTime);
+	LOAD_PTR(GetGameDescription);
+	LOAD_PTR(GetGameFolderName);
+	LOAD_PTR(GetCurrentMap);
+	LOAD_PTR(PrecacheModel);
+	LOAD_PTR(PrecacheSentenceFile);
+	LOAD_PTR(PrecacheDecal);
+	LOAD_PTR(PrecacheGeneric);
+	LOAD_PTR(IsModelPrecached);
+	LOAD_PTR(IsDecalPrecached);
+	LOAD_PTR(IsGenericPrecached);
+	LOAD_PTR(PrecacheSound);
+	LOAD_PTR(CreateDialog);
+	LOAD_PTR(GetEngineVersion);
+	LOAD_PTR(PrintToChat);
+	LOAD_PTR(PrintCenterText);
+	LOAD_PTR(PrintHintText);
+	LOAD_PTR(ShowVGUIPanel);
+	LOAD_PTR(CreateHudSynchronizer);
+	LOAD_PTR(SetHudTextParams);
+	LOAD_PTR(SetHudTextParamsEx);
+	LOAD_PTR(ShowSyncHudText);
+	LOAD_PTR(ClearSyncHud);
+	LOAD_PTR(ShowHudText);
+	LOAD_PTR(EntIndexToEntRef);
+	LOAD_PTR(EntRefToEntIndex);
+	LOAD_PTR(MakeCompatEntRef);
+	LOAD_PTR(GetClientsInRange);
+	LOAD_PTR(GetServerAuthId);
+	LOAD_PTR(GetServerSteamAccountId);
 
 	// TIMERS.INC
 	LOAD_PTR(CreateTimer);
@@ -664,92 +1046,3 @@ void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 	LOAD_PTR(GetClientSerial);
 	LOAD_PTR(GetClientFromSerial);
 }
-
-// CSTRIKE.INC
-void PublicManager::CS_RespawnPlayer(int client) { ExecFunc(s_CS_RespawnPlayerFunc, client); }
-void PublicManager::CS_SwitchTeam(int client, int team) { ExecFunc(s_CS_SwitchTeamFunc, client, team); }
-void PublicManager::CS_DropWeapon(int client, int weaponIndex, bool toss, bool blockhook) { ExecFunc(s_CS_DropWeaponFunc, client, weaponIndex, toss, blockhook); }
-void PublicManager::CS_TerminateRound(float delay, CSRoundEndReason reason, bool blockhook) { ExecFunc(s_CS_TerminateRoundFunc, delay, reason, blockhook); }
-void PublicManager::CS_GetTranslatedWeaponAlias(const char* alias, char* weapon, int size)
-{
-	s_CS_GetTranslatedWeaponAliasFunc->PushString(alias);
-	s_CS_GetTranslatedWeaponAliasFunc->PushStringEx(weapon, size, 0, 1);
-	s_CS_GetTranslatedWeaponAliasFunc->PushCell(size);
-	ExecAndReturn(s_CS_GetTranslatedWeaponAliasFunc);
-}
-int PublicManager::CS_GetWeaponPrice(int client, CSWeaponID id, bool defaultprice) { return ExecFunc(s_CS_GetWeaponPriceFunc, client, id, defaultprice); }
-int PublicManager::CS_GetClientClanTag(int client, char* buffer, int size)
-{
-	s_CS_GetClientClanTagFunc->PushCell(client);
-	s_CS_GetClientClanTagFunc->PushStringEx(buffer, size, 0, 1);
-	s_CS_GetClientClanTagFunc->PushCell(size);
-	return ExecAndReturn(s_CS_GetClientClanTagFunc);
-}
-void PublicManager::CS_SetClientClanTag(int client, const char* tag) { ExecFunc(s_CS_SetClientClanTagFunc, client, tag); }
-int PublicManager::CS_GetTeamScore(int team) { return ExecFunc(s_CS_GetTeamScoreFunc, team); }
-void PublicManager::CS_SetTeamScore(int team, int value) { ExecFunc(s_CS_SetTeamScoreFunc, team, value); }
-int PublicManager::CS_GetMVPCount(int client) { return ExecFunc(s_CS_GetMVPCountFunc, client); }
-void PublicManager::CS_SetMVPCount(int client, int value) { ExecFunc(s_CS_SetMVPCountFunc, client, value); }
-int PublicManager::CS_GetClientContributionScore(int client) { return ExecFunc(s_CS_GetClientContributionScoreFunc, client); }
-void PublicManager::CS_SetClientContributionScore(int client, int value) { ExecFunc(s_CS_SetClientContributionScoreFunc, client, value); }
-int PublicManager::CS_GetClientAssists(int client) { return ExecFunc(s_CS_GetClientAssistsFunc, client); }
-void PublicManager::CS_SetClientAssists(int client, int value) { ExecFunc(s_CS_SetClientAssistsFunc, client, value); }
-CSWeaponID PublicManager::CS_AliasToWeaponID(const char* alias) { return static_cast<CSWeaponID>(ExecFunc(s_CS_AliasToWeaponIDFunc, alias)); }
-int PublicManager::CS_WeaponIDToAlias(CSWeaponID weaponID, char* destination, int len) { return ExecFunc(s_CS_WeaponIDToAliasFunc, weaponID, destination, len); }
-bool PublicManager::CS_IsValidWeaponID(CSWeaponID id) { return static_cast<bool>(ExecFunc(s_CS_IsValidWeaponIDFunc, id)); }
-void PublicManager::CS_UpdateClientModel(int client) { ExecFunc(s_CS_UpdateClientModelFunc, client); }
-CSWeaponID PublicManager::CS_ItemDefIndexToID(int iDefIndex) { return static_cast<CSWeaponID>(ExecFunc(s_CS_ItemDefIndexToIDFunc, iDefIndex)); }
-int PublicManager::CS_WeaponIDToItemDefIndex(CSWeaponID id) { return ExecFunc(s_CS_WeaponIDToItemDefIndexFunc, id); }
-
-// CONSOLE.INC
-void PublicManager::ServerExecute() { ExecFunc(s_ServerExecuteFunc); }
-ReplySource PublicManager::GetCmdReplySource() { return static_cast<ReplySource>(ExecFunc(s_GetCmdReplySourceFunc)); }
-ReplySource PublicManager::SetCmdReplySource(ReplySource source) { return static_cast<ReplySource>(ExecFunc(s_SetCmdReplySourceFunc, source)); }
-bool PublicManager::IsChatTrigger() { return ExecFunc(s_IsChatTriggerFunc); }
-bool PublicManager::FormatActivitySource(int client, int target, const char* namebuf, int maxlength) { return ExecFunc(s_FormatActivitySourceFunc, client, target, namebuf, maxlength); }
-void PublicManager::RegServerCmd(const char* cmd, const char* description, int flags) { ExecFunc(s_RegServerCmdFunc, cmd, description, flags); }
-void PublicManager::RegConsoleCmd(const char* command, const char* description, int flags) { ExecFunc(s_RegConsoleCmdFunc, command, description, flags); }
-void PublicManager::RegAdminCmd(const char* cmd, int adminflags, const char* description, const char* group, int flags) { ExecFunc(s_RegAdminCmdFunc, cmd, adminflags, description, group, flags); }
-int PublicManager::GetCmdArgs() { return ExecFunc(s_GetCmdArgsFunc); }
-int PublicManager::GetCmdArg(int argnum, char* buffer, int maxlength) { return ExecFunc(s_GetCmdArgFunc, argnum, buffer, maxlength); }
-int PublicManager::GetCmdArgString(char* buffer, int maxlength) { return ExecFunc(s_GetCmdArgStringFunc, buffer, maxlength); }
-Handle PublicManager::GetCommandIterator() { return ExecFunc(s_GetCommandIteratorFunc); }
-bool PublicManager::ReadCommandIterator(Handle iter, char* name, int nameLen, int& eflags, char* desc, int descLen)
-{
-	PushArg(s_ReadCommandIteratorFunc, iter);
-	PushArg(s_ReadCommandIteratorFunc, name);
-	PushArg(s_ReadCommandIteratorFunc, nameLen);
-	PushArgRef(s_ReadCommandIteratorFunc, eflags);
-	PushArg(s_ReadCommandIteratorFunc, desc);
-	PushArg(s_ReadCommandIteratorFunc, descLen);
-	return ExecAndReturn(s_ReadCommandIteratorFunc);
-}
-bool PublicManager::CheckCommandAccess(int client, const char* command, int flags, bool override_only) { return ExecFunc(s_CheckCommandAccessFunc, client, command, flags, override_only); }
-bool PublicManager::CheckAccess(AdminId id, const char* command, int flags, bool override_only) { return ExecFunc(s_CheckAccessFunc, id, command, flags, override_only); }
-int PublicManager::GetCommandFlags(const char* name) { return ExecFunc(s_GetCommandFlagsFunc, name); }
-bool PublicManager::SetCommandFlags(const char* name, int flags) { return ExecFunc(s_SetCommandFlagsFunc, name, flags); }
-Handle PublicManager::FindFirstConCommand(char* buffer, int max_size, bool& isCommand, int& flags, char* description, int descrmax_size)
-{
-	PushArg(s_FindFirstConCommandFunc, buffer);
-	PushArg(s_FindFirstConCommandFunc, max_size);
-	PushArgRef(s_FindFirstConCommandFunc, reinterpret_cast<int&>(isCommand));
-	PushArgRef(s_FindFirstConCommandFunc, flags);
-	PushArg(s_FindFirstConCommandFunc, description);
-	PushArg(s_FindFirstConCommandFunc, descrmax_size);
-	return ExecAndReturn(s_FindFirstConCommandFunc);
-}
-bool PublicManager::FindNextConCommand(Handle search, char* buffer, int max_size, bool& isCommand, int& flags, char* description, int descrmax_size)
-{
-	PushArg(s_FindFirstConCommandFunc, search);
-	PushArg(s_FindFirstConCommandFunc, buffer);
-	PushArg(s_FindFirstConCommandFunc, max_size);
-	PushArgRef(s_FindFirstConCommandFunc, reinterpret_cast<int&>(isCommand));
-	PushArgRef(s_FindFirstConCommandFunc, flags);
-	PushArg(s_FindFirstConCommandFunc, description);
-	PushArg(s_FindFirstConCommandFunc, descrmax_size);
-	return ExecAndReturn(s_FindNextConCommandFunc);
-}
-void PublicManager::AddServerTag(const char* tag) { ExecFunc(s_AddServerTagFunc, tag); }
-void PublicManager::RemoveServerTag(const char* tag) { ExecFunc(s_RemoveServerTagFunc, tag); }
-bool PublicManager::AddCommandListener(const char* command) { return ExecFunc(s_AddCommandListenerFunc, command); }
-void PublicManager::RemoveCommandListener(const char* command) { ExecFunc(s_RemoveCommandListenerFunc, command); }

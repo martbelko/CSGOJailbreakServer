@@ -127,10 +127,10 @@ public:
 	 */
 	static bool GetEdictClassname(int edict, char* className, int maxLength)
 	{
-		s_GetEdictClassnameFunc->PushCell(edict);
-		s_GetEdictClassnameFunc->PushStringEx(className, maxLength, 0, 1);
-		s_GetEdictClassnameFunc->PushCell(maxLength);
-		return ExecAndReturn(s_GetEdictClassnameFunc);
+		PushArg(s_GetEdictClassnameFunc, edict);
+		PushArg(s_GetEdictClassnameFunc, className, maxLength);
+		PushArg(s_GetEdictClassnameFunc, maxLength);
+		return ExecFunc(s_GetEdictClassnameFunc);
 	}
 
 	/**
@@ -145,10 +145,10 @@ public:
 	 */
 	static bool GetEntityNetClass(int edict, char* className, int maxLength)
 	{
-		s_GetEntityNetClassFunc->PushCell(edict);
-		s_GetEntityNetClassFunc->PushStringEx(className, maxLength, 0, 1);
-		s_GetEntityNetClassFunc->PushCell(maxLength);
-		return ExecAndReturn(s_GetEntityNetClassFunc);
+		PushArg(s_GetEntityNetClassFunc, edict);
+		PushArg(s_GetEntityNetClassFunc, className, maxLength);
+		PushArg(s_GetEntityNetClassFunc, maxLength);
+		return ExecFunc(s_GetEntityNetClassFunc);
 	}
 
 	/**
@@ -311,7 +311,11 @@ public:
 	 */
 	static int GetEntDataString(int entity, int offset, char* buffer, int maxLength)
 	{
-		return ExecFunc(s_GetEntDataStringFunc, entity, offset, buffer, maxLength);
+		PushArg(s_GetEntDataStringFunc, entity);
+		PushArg(s_GetEntDataStringFunc, offset);
+		PushArg(s_GetEntDataStringFunc, buffer, maxLength);
+		PushArg(s_GetEntDataStringFunc, maxLength);
+		return ExecFunc(s_GetEntDataStringFunc);
 	}
 
 	/**
@@ -355,7 +359,7 @@ public:
 		PushArgRef(s_FindSendPropInfoFunc, reinterpret_cast<int&>(type));
 		PushArgRef(s_FindSendPropInfoFunc, numBits);
 		PushArgRef(s_FindSendPropInfoFunc, localOffset);
-		return ExecAndReturn(s_FindSendPropInfoFunc);
+		return ExecFunc(s_FindSendPropInfoFunc);
 	}
 
 	/**
@@ -379,7 +383,7 @@ public:
 		PushArgRef(s_FindDataMapInfoFunc, reinterpret_cast<int&>(type));
 		PushArgRef(s_FindDataMapInfoFunc, numBits);
 		PushArgRef(s_FindDataMapInfoFunc, localOffset);
-		return ExecAndReturn(s_FindDataMapInfoFunc);
+		return ExecFunc(s_FindDataMapInfoFunc);
 	}
 
 	/**
@@ -600,7 +604,13 @@ public:
 	 */
 	static int GetEntPropString(int entity, PropType type, const char* propName, char* buffer, int maxLength, int element = 0)
 	{
-		return ExecFunc(s_GetEntPropStringFunc, entity, type, propName, buffer, maxLength, element);
+		PushArg(s_GetEntPropStringFunc, entity);
+		PushArg(s_GetEntPropStringFunc, type);
+		PushArg(s_GetEntPropStringFunc, propName);
+		PushArg(s_GetEntPropStringFunc, buffer, maxLength);
+		PushArg(s_GetEntPropStringFunc, maxLength);
+		PushArg(s_GetEntPropStringFunc, element);
+		return ExecFunc(s_GetEntPropStringFunc);
 	}
 
 	/**
