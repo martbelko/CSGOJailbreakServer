@@ -691,7 +691,7 @@ public:
 	 */
 	static Address GetEntityAddress(int entity)
 	{
-		return ExecFunc(s_GetEntityAddressFunc, entity);
+		return static_cast<Address>(ExecFunc(s_GetEntityAddressFunc, entity));
 	}
 
 	/**

@@ -64,12 +64,34 @@ native Action native_EventHookCallbackPostNoCopy(Event event, const char[] name,
 native int native_MenuHandlerCallback(Menu menu, MenuAction action, int param1, int param2);
 native void native_VoteHandlerCallback(Menu menu, int num_votes, int num_clients, const int[][] client_info, int num_items, const int[][] item_info);
 
-// TODO
-// Not known for now
+// SOURCEMOD.INC - Natives declaration
 native int native_OnPluginStart();
-native int native_OnPluginEnd();
-native int native_OnMapStart();
-native int native_OnMapEnd();
+native void native_OnPluginEnd();
+native void native_OnPluginPauseChange(bool pause);
+native void native_OnGameFrame();
+native void native_OnMapStart();
+native void native_OnMapEnd();
+native void native_OnConfigsExecuted();
+native void native_OnAutoConfigsBuffered();
+native void native_OnAllPluginsLoaded();
+native void native_OnLibraryAdded(const char[] name);
+native void native_OnLibraryRemoved(const char[] name);
+native bool native_OnClientFloodCheck(int client);
+native void native_OnClientFloodResult(int client, bool blocked);
+
+// SDKTOOLS_SOUND.INC - Natives declaration
+native Action native_AmbientSHookCallback(char sample[PLATFORM_MAX_PATH], int &entity, float &volume, int &level, int &pitch,
+	float pos[3], int &flags, float &delay);
+
+native Action native_NormalSHookCallback(int clients[MAXPLAYERS], int &numClients, char sample[PLATFORM_MAX_PATH], int &entity,
+	int &channel, float &volume, int &level, int &pitch, int &flags, char soundEntry[PLATFORM_MAX_PATH], int &seed);
+
+// COMMANDFILTERS.INC - Natives declaration
+native bool native_MultiTargetFilterCallback(const char[] pattern, Handle clients);
+
+// SDKTOOLS_VOICE.INC - Natives declaration
+native void native_OnClientSpeaking(int client);
+native void native_OnClientSpeakingEnd(int client);
 
 // SDKTOOLS_TRACE.INC - Natives declaration
 native bool native_TraceEntityFilterCallback(int entity, int contentsMask, int data);
@@ -97,17 +119,17 @@ native void native_OnEntityDestroyed(int entity);
 native Action native_OnGetGameDescription(char gameDesc[64]);
 native Action native_OnLevelInit(const char[] mapName, char mapEntities[2097152]);
 
-// cstrike.inc - Natives declaration
+// CSTRIKE.INC - Natives declaration
 native Action native_CS_OnBuyCommand(int client, const char[] weapon);
 native Action native_CS_OnCSWeaponDrop(int client, int weaponIndex);
 native Action native_CS_OnGetWeaponPrice(int client, const char[] weapon, int &price);
 native Action native_CS_OnTerminateRound(float &delay, CSRoundEndReason &reason);
 
-// Console.inc - Natives declaration
+// CONSOLE.INC - Natives declaration
 native Action native_OnClientSayCommand(int client, const char[] command, const char[] sArgs);
 native int native_OnClientSayCommand_Post(int client, const char[] command, const char[] sArgs);
 
-// Client.inc - Natives declaration
+// CLIENTS.INC - Natives declaration
 native bool native_OnClientConnect(int client, char[] rejectmsg, int maxlen);
 native int native_OnClientConnected(int client);
 native int native_OnClientPutInServer(int client);
@@ -121,72 +143,6 @@ native int native_OnClientAuthorized(int client, const char[] auth);
 native Action native_OnClientPreAdminCheck(int client);
 native int native_OnClientPostAdminFilter(int client);
 native int native_OnClientPostAdminCheck(int client);
-
-public Action DoorOpenCallback(const char[] output, int caller, int activator, float delay)
-{
-	PrintToConsoleAll("Opened DOORS!");
-	return Plugin_Continue;
-}
-
-// TODO
-public void OnPluginStart()
-{
-	HookEntityOutput("func_door", "open", DoorOpenCallback);
-	HookEntityOutput("func_door", "toggle", DoorOpenCallback);
-	HookEntityOutput("func_door_rotating", "open", DoorOpenCallback);
-	HookEntityOutput("func_door_rotating", "toggle", DoorOpenCallback);
-	HookEntityOutput("dz_door", "open", DoorOpenCallback);
-	HookEntityOutput("dz_door", "toggle", DoorOpenCallback);
-	HookEntityOutput("prop_door_rotating", "open", DoorOpenCallback);
-	HookEntityOutput("prop_door_rotating", "toggle", DoorOpenCallback);
-
-	s_SDKHookCallbacks[SDKHook_EndTouch] = SDKHooksEndTouch;
-	s_SDKHookCallbacks[SDKHook_FireBulletsPost] = SDKHooksFireBulletsPost;
-	s_SDKHookCallbacks[SDKHook_OnTakeDamage] = SDKHooksOnTakeDamage;
-	s_SDKHookCallbacks[SDKHook_OnTakeDamagePost] = SDKHooksOnTakeDamagePost;
-	s_SDKHookCallbacks[SDKHook_PreThink] = SDKHooksPreThink;
-	s_SDKHookCallbacks[SDKHook_PostThink] = SDKHooksPostThink;
-	s_SDKHookCallbacks[SDKHook_SetTransmit] = SDKHooksSetTransmit;
-	s_SDKHookCallbacks[SDKHook_Spawn] = SDKHooksSpawn;
-	s_SDKHookCallbacks[SDKHook_StartTouch] = SDKHooksStartTouch;
-	s_SDKHookCallbacks[SDKHook_Think] = SDKHooksThink;
-	s_SDKHookCallbacks[SDKHook_Touch] = SDKHooksTouch;
-	s_SDKHookCallbacks[SDKHook_TraceAttack] = SDKHooksTraceAttack;
-	s_SDKHookCallbacks[SDKHook_TraceAttackPost] = SDKHooksTraceAttackPost;
-	s_SDKHookCallbacks[SDKHook_WeaponCanSwitchTo] = SDKHooksWeaponCanSwitchTo;
-	s_SDKHookCallbacks[SDKHook_WeaponCanUse] = SDKHooksWeaponCanUse;
-	s_SDKHookCallbacks[SDKHook_WeaponDrop] = SDKHooksWeaponDrop;
-	s_SDKHookCallbacks[SDKHook_WeaponEquip] = SDKHooksWeaponEquip;
-	s_SDKHookCallbacks[SDKHook_WeaponSwitch] = SDKHooksWeaponSwitch;
-	s_SDKHookCallbacks[SDKHook_ShouldCollide] = SDKHooksShouldCollide;
-	s_SDKHookCallbacks[SDKHook_PreThinkPost] = SDKHooksPreThinkPost;
-	s_SDKHookCallbacks[SDKHook_PostThinkPost] = SDKHooksPostThinkPost;
-	s_SDKHookCallbacks[SDKHook_ThinkPost] = SDKHooksThinkPost;
-	s_SDKHookCallbacks[SDKHook_EndTouchPost] = SDKHooksEndTouchPost;
-	s_SDKHookCallbacks[SDKHook_GroundEntChangedPost] = SDKHooksGroundEntChanged;
-	s_SDKHookCallbacks[SDKHook_SpawnPost] = SDKHooksSpawnPost;
-	s_SDKHookCallbacks[SDKHook_StartTouchPost] = SDKHooksStartTouchPost;
-	s_SDKHookCallbacks[SDKHook_TouchPost] = SDKHooksTouchPost;
-	s_SDKHookCallbacks[SDKHook_VPhysicsUpdate] = SDKHooksVPhysicsUpdate;
-	s_SDKHookCallbacks[SDKHook_VPhysicsUpdatePost] = SDKHooksVPhysicsUpdatePost;
-	s_SDKHookCallbacks[SDKHook_WeaponCanSwitchToPost] = SDKHooksWeaponCanSwitchToPost;
-	s_SDKHookCallbacks[SDKHook_WeaponCanUsePost] = SDKHooksWeaponCanUsePost;
-	s_SDKHookCallbacks[SDKHook_WeaponDropPost] = SDKHooksWeaponDropPost;
-	s_SDKHookCallbacks[SDKHook_WeaponEquipPost] = SDKHooksWeaponEquipPost;
-	s_SDKHookCallbacks[SDKHook_WeaponSwitchPost] = SDKHooksWeaponSwitchPost;
-	s_SDKHookCallbacks[SDKHook_Use] = SDKHooksUse;
-	s_SDKHookCallbacks[SDKHook_UsePost] = SDKHooksUsePost;
-	s_SDKHookCallbacks[SDKHook_Reload] = SDKHooksReload;
-	s_SDKHookCallbacks[SDKHook_ReloadPost] = SDKHooksReloadPost;
-	s_SDKHookCallbacks[SDKHook_GetMaxHealth] = SDKHooksGetMaxHealth;
-	s_SDKHookCallbacks[SDKHook_Blocked] = SDKHooksBlocked;
-	s_SDKHookCallbacks[SDKHook_BlockedPost] = SDKHooksBlockedPost;
-	s_SDKHookCallbacks[SDKHook_OnTakeDamageAlive] = SDKHooksOnTakeDamageAlive;
-	s_SDKHookCallbacks[SDKHook_OnTakeDamageAlivePost] = SDKHooksOnTakeDamageAlivePost;
-	s_SDKHookCallbacks[SDKHook_CanBeAutobalanced] = SDKHooksCanBeAutobalanced;
-	
-	native_OnPluginStart();
-}
 
 // SDKHooks Callbacks
 public void SDKHooksPreThink(int client)
@@ -319,13 +275,319 @@ public Action GameLogHookCallback(const char[] message) { return native_GameLogH
 public bool TraceEntityFilterCallback(int entity, int contentsMask, int data) { return native_TraceEntityFilterCallback(entity, contentsMask, data); }
 public bool TraceEntityEnumeratorCallback(int entity, int data) { return native_TraceEntityEnumeratorCallback(entity, data); }
 
-// TODO
-public void OnPluginEnd() { native_OnPluginEnd(); }
+public bool MultiTargetFilterCallback(const char[] pattern, Handle clients) { return native_MultiTargetFilterCallback(pattern, clients); }
 
+public Action AmbientSHookCallback(char sample[PLATFORM_MAX_PATH], int &entity, float &volume, int &level, int &pitch,
+	float pos[3], int &flags, float &delay)
+{
+	return native_AmbientSHookCallback(sample, entity, volume, level, pitch, pos, flags, delay);
+}
+
+public Action NormalSHookCallback(int clients[MAXPLAYERS], int &numClients, char sample[PLATFORM_MAX_PATH], int &entity,
+	int &channel, float &volume, int &level, int &pitch, int &flags, char soundEntry[PLATFORM_MAX_PATH], int &seed)
+{
+	return native_NormalSHookCallback(clients, numClients, sample, entity, channel, volume, level, pitch, flags, soundEntry, seed);
+}
+
+/* OWN */
+public bool public_SDKCallSmoke3(Handle call, Address addr, float[] from, float[] to)
+{
+	return SDKCall(call, addr, from, to);
+}
+public bool public_SDKCallSmoke4(Handle call, Address addr, float[] from, float[] to, float arg)
+{
+	return SDKCall(call, addr, from, to, arg);
+}
+
+/* SOURCEMOD.INC */
+// SOURCEMOD.INC - Natives
+public void OnPluginStart()
+{
+	s_SDKHookCallbacks[SDKHook_EndTouch] = SDKHooksEndTouch;
+	s_SDKHookCallbacks[SDKHook_FireBulletsPost] = SDKHooksFireBulletsPost;
+	s_SDKHookCallbacks[SDKHook_OnTakeDamage] = SDKHooksOnTakeDamage;
+	s_SDKHookCallbacks[SDKHook_OnTakeDamagePost] = SDKHooksOnTakeDamagePost;
+	s_SDKHookCallbacks[SDKHook_PreThink] = SDKHooksPreThink;
+	s_SDKHookCallbacks[SDKHook_PostThink] = SDKHooksPostThink;
+	s_SDKHookCallbacks[SDKHook_SetTransmit] = SDKHooksSetTransmit;
+	s_SDKHookCallbacks[SDKHook_Spawn] = SDKHooksSpawn;
+	s_SDKHookCallbacks[SDKHook_StartTouch] = SDKHooksStartTouch;
+	s_SDKHookCallbacks[SDKHook_Think] = SDKHooksThink;
+	s_SDKHookCallbacks[SDKHook_Touch] = SDKHooksTouch;
+	s_SDKHookCallbacks[SDKHook_TraceAttack] = SDKHooksTraceAttack;
+	s_SDKHookCallbacks[SDKHook_TraceAttackPost] = SDKHooksTraceAttackPost;
+	s_SDKHookCallbacks[SDKHook_WeaponCanSwitchTo] = SDKHooksWeaponCanSwitchTo;
+	s_SDKHookCallbacks[SDKHook_WeaponCanUse] = SDKHooksWeaponCanUse;
+	s_SDKHookCallbacks[SDKHook_WeaponDrop] = SDKHooksWeaponDrop;
+	s_SDKHookCallbacks[SDKHook_WeaponEquip] = SDKHooksWeaponEquip;
+	s_SDKHookCallbacks[SDKHook_WeaponSwitch] = SDKHooksWeaponSwitch;
+	s_SDKHookCallbacks[SDKHook_ShouldCollide] = SDKHooksShouldCollide;
+	s_SDKHookCallbacks[SDKHook_PreThinkPost] = SDKHooksPreThinkPost;
+	s_SDKHookCallbacks[SDKHook_PostThinkPost] = SDKHooksPostThinkPost;
+	s_SDKHookCallbacks[SDKHook_ThinkPost] = SDKHooksThinkPost;
+	s_SDKHookCallbacks[SDKHook_EndTouchPost] = SDKHooksEndTouchPost;
+	s_SDKHookCallbacks[SDKHook_GroundEntChangedPost] = SDKHooksGroundEntChanged;
+	s_SDKHookCallbacks[SDKHook_SpawnPost] = SDKHooksSpawnPost;
+	s_SDKHookCallbacks[SDKHook_StartTouchPost] = SDKHooksStartTouchPost;
+	s_SDKHookCallbacks[SDKHook_TouchPost] = SDKHooksTouchPost;
+	s_SDKHookCallbacks[SDKHook_VPhysicsUpdate] = SDKHooksVPhysicsUpdate;
+	s_SDKHookCallbacks[SDKHook_VPhysicsUpdatePost] = SDKHooksVPhysicsUpdatePost;
+	s_SDKHookCallbacks[SDKHook_WeaponCanSwitchToPost] = SDKHooksWeaponCanSwitchToPost;
+	s_SDKHookCallbacks[SDKHook_WeaponCanUsePost] = SDKHooksWeaponCanUsePost;
+	s_SDKHookCallbacks[SDKHook_WeaponDropPost] = SDKHooksWeaponDropPost;
+	s_SDKHookCallbacks[SDKHook_WeaponEquipPost] = SDKHooksWeaponEquipPost;
+	s_SDKHookCallbacks[SDKHook_WeaponSwitchPost] = SDKHooksWeaponSwitchPost;
+	s_SDKHookCallbacks[SDKHook_Use] = SDKHooksUse;
+	s_SDKHookCallbacks[SDKHook_UsePost] = SDKHooksUsePost;
+	s_SDKHookCallbacks[SDKHook_Reload] = SDKHooksReload;
+	s_SDKHookCallbacks[SDKHook_ReloadPost] = SDKHooksReloadPost;
+	s_SDKHookCallbacks[SDKHook_GetMaxHealth] = SDKHooksGetMaxHealth;
+	s_SDKHookCallbacks[SDKHook_Blocked] = SDKHooksBlocked;
+	s_SDKHookCallbacks[SDKHook_BlockedPost] = SDKHooksBlockedPost;
+	s_SDKHookCallbacks[SDKHook_OnTakeDamageAlive] = SDKHooksOnTakeDamageAlive;
+	s_SDKHookCallbacks[SDKHook_OnTakeDamageAlivePost] = SDKHooksOnTakeDamageAlivePost;
+	s_SDKHookCallbacks[SDKHook_CanBeAutobalanced] = SDKHooksCanBeAutobalanced;
+	
+	native_OnPluginStart();
+}
+
+public void OnPluginEnd() { native_OnPluginEnd(); }
+public void OnPluginPauseChange(bool pause) { native_OnPluginPauseChange(pause); }
+public void OnGameFrame() { native_OnGameFrame(); }
 public void OnMapStart() { native_OnMapStart(); }
 public void OnMapEnd() { native_OnMapEnd(); }
+public void OnConfigsExecuted() { native_OnConfigsExecuted(); }
+public void OnAutoConfigsBuffered() { native_OnAutoConfigsBuffered(); }
+public void OnAllPluginsLoaded() { native_OnAllPluginsLoaded(); }
+public void OnLibraryAdded(const char[] name) { native_OnLibraryAdded(name); }
+public void OnLibraryRemoved(const char[] name) { native_OnLibraryRemoved(name); }
+public bool OnClientFloodCheck(int client) { return native_OnClientFloodCheck(client); }
+public void OnClientFloodResult(int client, bool blocked) { native_OnClientFloodResult(client, blocked); }
+// SOURCEMOD.INC - Public
+public Handle public_GetMyHandle() { return GetMyHandle(); }
+public Handle public_GetPluginIterator() { return GetPluginIterator(); }
+public bool public_MorePlugins(Handle iter) { return MorePlugins(iter); }
+public Handle public_ReadPlugin(Handle iter) { return ReadPlugin(iter); }
+public PluginStatus public_GetPluginStatus(Handle plugin) { return GetPluginStatus(plugin); }
+public void public_GetPluginFilename(Handle plugin, char[] buffer, int maxlength) { GetPluginFilename(plugin, buffer, maxlength); }
+public bool public_IsPluginDebugging(Handle plugin) { return IsPluginDebugging(plugin); }
+public bool public_GetPluginInfo(Handle plugin, PluginInfo info, char[] buffer, int maxlength) { return GetPluginInfo(plugin, info, buffer, maxlength); }
+public Handle public_FindPluginByNumber(int order_num) { return FindPluginByNumber(order_num); }
+public void public_SetFailState(const char[] string, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), string, 2);
+	SetFailState(buffer);
+}
+public void public_ThrowError(const char[] fmt, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), fmt, 2);
+	ThrowError(buffer);
+}
+public void public_LogStackTrace(const char[] fmt, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, sizeof(buffer), fmt, 2);
+	LogStackTrace(buffer);
+}
+public int public_GetTime(int bigStamp[2]) { return GetTime(bigStamp); }
+public void public_FormatTime(char[] buffer, int maxlength, const char[] format, int stamp) { FormatTime(buffer, maxlength, format, stamp); }
+public GameData public_LoadGameConfigFile(const char[] file) { return LoadGameConfigFile(file); }
+public int public_GameConfGetOffset(Handle gc, const char[] key) { return GameConfGetOffset(gc, key); }
+public bool public_GameConfGetKeyValue(Handle gc, const char[] key, char[] buffer, int maxlen) { return GameConfGetKeyValue(gc, key, buffer, maxlen); }
+public Address public_GameConfGetAddress(Handle gameconf, const char[] name) { return GameConfGetAddress(gameconf, name); }
+public int public_GetSysTickCount() { return GetSysTickCount(); }
+public void public_AutoExecConfig(bool autoCreate, const char[] name, const char[] folder) { AutoExecConfig(autoCreate, name, folder); }
+public void public_RegPluginLibrary(const char[] name) { RegPluginLibrary(name); }
+public bool public_LibraryExists(const char[] name) { return LibraryExists(name); }
+public int public_GetExtensionFileStatus(const char[] name, char[] error , int maxlength) { return GetExtensionFileStatus(name, error, maxlength); }
+public Handle public_ReadMapList(Handle array, int &serial, const char[] str, int flags) { return ReadMapList(array, serial, str, flags); }
+public void public_SetMapListCompatBind(const char[] name, const char[] file) { SetMapListCompatBind(name, file); }
+public FeatureStatus public_GetFeatureStatus(FeatureType type, const char[] name) { return GetFeatureStatus(type, name); }
+public void public_RequireFeature(FeatureType type, const char[] name, const char[] fmt, any ...)
+{
+	char buffer[128];
+	VFormat(buffer, sizeof(buffer), fmt, 4);
+	RequireFeature(type, name, buffer);
+}
+public any public_LoadFromAddress(Address addr, NumberType size) { return LoadFromAddress(addr, size); }
+public void public_StoreToAddress(Address addr, any data, NumberType size) { StoreToAddress(addr, data, size); }
 
-// SDKTOOLS_ENGINE.INC
+/* SDKTOOLS.INC */
+// SDKTOOLS_INC - Public
+public void public_StartPrepSDKCall(SDKCallType type) { StartPrepSDKCall(type); }
+public void public_PrepSDKCall_SetVirtual(int vtblidx) { PrepSDKCall_SetVirtual(vtblidx); }
+public bool public_PrepSDKCall_SetSignature(SDKLibrary lib, const char[] signature, int bytes) { return PrepSDKCall_SetSignature(lib, signature, bytes); }
+public bool public_PrepSDKCall_SetAddress(Address addr) { return PrepSDKCall_SetAddress(addr); }
+public bool public_PrepSDKCall_SetFromConf(Handle gameconf, SDKFuncConfSource source, const char[] name) { return PrepSDKCall_SetFromConf(gameconf, source, name); }
+public void public_PrepSDKCall_SetReturnInfo(SDKType type, SDKPassMethod pass, int decflags, int encflags) { PrepSDKCall_SetReturnInfo(type, pass, decflags, encflags); }
+public void public_PrepSDKCall_AddParameter(SDKType type, SDKPassMethod pass, int decflags, int encflags) { PrepSDKCall_AddParameter(type, pass, decflags, encflags); }
+public Handle public_EndPrepSDKCall() { return EndPrepSDKCall(); }
+public any public_SDKCall0(Handle call)
+{
+	return SDKCall(call);
+}
+public any public_SDKCall1(Handle call, any arg1)
+{
+	return SDKCall(call, arg1);
+}
+public any public_SDKCall2(Handle call, any arg1, any arg2)
+{
+	return SDKCall(call, arg1, arg2);
+}
+public any public_SDKCall3(Handle call, any arg1, any arg2, any arg3)
+{
+	return SDKCall(call, arg1, arg2, arg3);
+}
+public any public_SDKCall4(Handle call, any arg1, any arg2, any arg3, any arg4)
+{
+	return SDKCall(call, arg1, arg2, arg3, arg4);
+}
+public any public_SDKCall5(Handle call, any arg1, any arg2, any arg3, any arg4, any arg5)
+{
+	return SDKCall(call, arg1, arg2, arg3, arg4, arg5);
+}
+public any public_SDKCall6(Handle call, any arg1, any arg2, any arg3, any arg4, any arg5, any arg6)
+{
+	return SDKCall(call, arg1, arg2, arg3, arg4, arg5, arg6);
+}
+public any public_SDKCall7(Handle call, any arg1, any arg2, any arg3, any arg4, any arg5, any arg6, any arg7)
+{
+	return SDKCall(call, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+}
+public any public_SDKCall8(Handle call, any arg1, any arg2, any arg3, any arg4, any arg5, any arg6, any arg7, any arg8)
+{
+	return SDKCall(call, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+}
+public any public_SDKCall9(Handle call, any arg1, any arg2, any arg3, any arg4, any arg5, any arg6, any arg7, any arg8, any arg9)
+{
+	return SDKCall(call, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+}
+public any public_SDKCall10(Handle call, any arg1, any arg2, any arg3, any arg4, any arg5, any arg6, any arg7, any arg8, any arg9, any arg10)
+{
+	return SDKCall(call, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+}
+public int public_GetPlayerResourceEntity() { return GetPlayerResourceEntity(); }
+
+/* SDKTOOLS_SOUND.INC */
+// SDKTOOLS_SOUND.INC - Public
+public void public_PrefetchSound(const char[] name) { PrefetchSound(name); }
+public void public_EmitAmbientSound(const char[] name, const float pos[3], int entity, int level, int flags, float vol, int pitch, float delay)
+{
+	EmitAmbientSound(name, pos, entity, level, flags, vol, pitch, delay);
+}
+public void public_FadeClientVolume(int client, float percent, float outtime, float holdtime, float intime)
+{
+	FadeClientVolume(client, percent, outtime, holdtime, intime);
+}
+public void public_StopSound(int entity, int channel, const char[] name)
+{
+	StopSound(entity, channel, name);
+}
+public void public_EmitSound(const int[] clients, int numClients, const char[] sample, int entity, int channel, int level, int flags,
+	float volume, int pitch, int speakerentity, const float origin[3], const float dir[3], bool updatePos, float soundtime)
+{
+	EmitSound(clients, numClients, sample, entity, channel, level, flags, volume, pitch, speakerentity, origin, dir, updatePos, soundtime);
+}
+public void public_EmitSoundEntry(const int[] clients, int numClients, const char[] soundEntry, const char[] sample, int entity, int channel,
+	int level, int seed, int flags, float volume, int pitch, int speakerentity, const float origin[3], const float dir[3],
+	bool updatePos, float soundtime)
+{
+	EmitSoundEntry(clients, numClients, soundEntry, sample, entity, channel, level, seed, flags, volume, pitch, speakerentity, origin, dir, updatePos, soundtime);
+}
+public void public_EmitSentence(const int[] clients, int numClients, int sentence, int entity, int channel, int level,
+	int flags, float volume, int pitch, int speakerentity, const float origin[3],
+	const float dir[3], bool updatePos, float soundtime)
+{
+	EmitSentence(clients, numClients, sentence, entity, channel, level, flags, volume, pitch, speakerentity, origin, dir, updatePos, soundtime);
+}
+public float public_GetDistGainFromSoundLevel(int soundlevel, float distance) {}
+public void public_AddAmbientSoundHook() { AddAmbientSoundHook(AmbientSHookCallback); }
+public void public_AddNormalSoundHook() { AddNormalSoundHook(NormalSHookCallback); }
+public void public_RemoveAmbientSoundHook() { RemoveAmbientSoundHook(AmbientSHookCallback); }
+public void public_RemoveNormalSoundHook() { RemoveNormalSoundHook(NormalSHookCallback); }
+public bool public_GetGameSoundParams(const char[] gameSound, int &channel, int &soundLevel, float &volume,
+	int &pitch, char[] sample, int maxlength, int entity)
+{
+	return GetGameSoundParams(gameSound, channel, soundLevel, volume, pitch, sample, maxlength, entity);
+}
+public bool public_PrecacheScriptSound(const char[] soundname) { return PrecacheScriptSound(soundname); }
+
+/* COMMANDFILTERS.INC */
+// COMMANDFILTERS.INC - Public
+public int public_ProcessTargetString(const char[] pattern, int admin,  int[] targets, int max_targets, int filter_flags, char[] target_name, int tn_maxlength, bool &tn_is_ml)
+{
+	return ProcessTargetString(pattern, admin, targets, max_targets, filter_flags, target_name, tn_maxlength, tn_is_ml);
+}
+public void public_AddMultiTargetFilter(const char[] pattern, const char[] phrase, bool phraseIsML)
+{
+	AddMultiTargetFilter(pattern, MultiTargetFilterCallback, phrase, phraseIsML);
+}
+public void public_RemoveMultiTargetFilter(const char[] pattern)
+{
+	RemoveMultiTargetFilter(pattern, MultiTargetFilterCallback);
+}
+
+/* ADT_Array */
+// ADT_Array - Public
+public ArrayList public_CreateArray(int blocksize, int startsize) { return CreateArray(blocksize, startsize); }
+public void public_ClearArray(Handle array) { ClearArray(array); }
+public Handle public_CloneArray(Handle array) { return CloneArray(array); }
+public void public_ResizeArray(Handle array, int newsize) { ResizeArray(array, newsize); }
+public int public_GetArraySize(Handle array) { return GetArraySize(array); }
+public int public_PushArrayCell(Handle array, any value) { return PushArrayCell(array, value); }
+public int public_PushArrayString(Handle array, const char[] value) { return PushArrayString(array, value); }
+public int public_PushArrayArray(Handle array, const any[] values, int size) { return PushArrayArray(array, values, size); }
+public any public_GetArrayCell(Handle array, int index, int block, bool asChar) { return GetArrayCell(array, index, block, asChar); }
+public int public_GetArrayString(Handle array, int index, char[] buffer, int maxlength) { return GetArrayString(array, index, buffer, maxlength); }
+public int public_GetArrayArray(Handle array, int index, any[] buffer, int size) { return GetArrayArray(array, index, buffer, size); }
+public void public_SetArrayCell(Handle array, int index, any value, int block, bool asChar) { SetArrayCell(array, index, value, block, asChar); }
+public int public_SetArrayString(Handle array, int index, const char[] value) { return SetArrayString(array, index, value); }
+public int public_SetArrayArray(Handle array, int index, const any[] values, int size) { return SetArrayArray(array, index, values, size); }
+public void public_ShiftArrayUp(Handle array, int index) { ShiftArrayUp(array, index); }
+public void public_RemoveFromArray(Handle array, int index) { RemoveFromArray(array, index); }
+public void public_SwapArrayItems(Handle array, int index1, int index2) { SwapArrayItems(array, index1, index2); }
+public int public_FindStringInArray(Handle array, const char[] item) { return FindStringInArray(array, item); }
+public int public_FindValueInArray(Handle array, any item, int block) { return FindValueInArray(array, item, block); }
+public int public_GetArrayBlockSize(Handle array) { return GetArrayBlockSize(array); }
+
+/* LANG.INC */
+// LANG.INC - Public
+public void public_LoadTranslations(const char[] file) { LoadTranslations(file); }
+public void public_SetGlobalTransTarget(int client) { SetGlobalTransTarget(client); }
+public int public_GetClientLanguage(int client) { return GetClientLanguage(client); }
+public int public_GetServerLanguage() { return GetServerLanguage(); }
+public int public_GetLanguageCount() { return GetLanguageCount(); }
+public void public_GetLanguageInfo(int language, char[] code, int codeLen, char[] name, int nameLen) { GetLanguageInfo(language, code, codeLen, name, nameLen); }
+public void public_SetClientLanguage(int client, int language) { SetClientLanguage(client, language); }
+public int public_GetLanguageByCode(const char[] code) { return GetLanguageByCode(code); }
+public int public_GetLanguageByName(const char[] name) { return GetLanguageByName(name); }
+public bool public_TranslationPhraseExists(const char[] phrase) { return TranslationPhraseExists(phrase); }
+public bool public_IsTranslatedForLanguage(const char[] phrase, int language) { return IsTranslatedForLanguage(phrase, language); }
+
+/* SDKTOOLS_VOICE.INC */
+// SDKTOOLS_VOICE.INC - Natives
+public void OnClientSpeaking(int client) { native_OnClientSpeaking(client); }
+public void OnClientSpeakingEnd(int client) { native_OnClientSpeakingEnd(client); }
+// SDKTOOLS_VOICE.INC - Public
+public void public_SetClientListeningFlags(int client, int flags) { SetClientListeningFlags(client, flags); }
+public int public_GetClientListeningFlags(int client) { return GetClientListeningFlags(client); }
+public bool public_SetListenOverride(int iReceiver, int iSender, ListenOverride override) { return SetListenOverride(iReceiver, iSender, override); }
+public ListenOverride public_GetListenOverride(int iReceiver, int iSender) { return GetListenOverride(iReceiver, iSender); }
+public bool public_IsClientMuted(int iMuter, int iMutee) { return IsClientMuted(iMuter, iMutee); }
+
+/* STRING.INC */
+// STRING.INC - Public
+public int public_Format(char[] buffer, int maxlength, const char[] format, any ...) { return VFormat(buffer, maxlength, format, 4); }
+
+/* SDKTOOLS_CLIENT.INC */
+// SDKTOOLS_CLIENT.INC - Public
+public void public_InactivateClient(int client) { InactivateClient(client); }
+public void public_ReconnectClient(int client) { ReconnectClient(client); }
+
+/* SDKTOOLS_ENGINE.INC */
+// SDKTOOLS_ENGINE.INC - Public
 public void public_SetClientViewEntity(int client, int entity) { SetClientViewEntity(client, entity); }
 public void public_SetLightStyle(int style, const char[] value) { SetLightStyle(style, value); }
 public void public_GetClientEyePosition(int client, float pos[3]) { GetClientEyePosition(client, pos); }

@@ -31,8 +31,6 @@
 
 #define INVALID_HANDLE 0
 
-#define LANG_SERVER 0
-
 static constexpr float NULL_VECTOR[] = { 0.0f, 0.0f, 0.0f };
 static int NULL_VALUE = 0;
 
@@ -576,15 +574,13 @@ using MenuHandle = int;
 using PanelHandle = int;
 
 // ENTITY.INC
+
 enum PropType
 {
 	Prop_Send = 0,  /**< This property is networked. */
 	Prop_Data = 1   /**< This property is for save game data fields. */
 };
 
-/**
- * @section For more information on these, see the HL2SDK (public/edict.h)
- */
 #define FL_EDICT_CHANGED                (1<<0)  /**< Game DLL sets this when the entity state changes
                                                      Mutually exclusive with FL_EDICT_PARTIAL_CHANGE. */
 #define FL_EDICT_FREE                   (1<<1)  /**< this edict if free for reuse */
@@ -613,15 +609,14 @@ enum PropFieldType
                                      (for this call), but dependent on current field value. */
 };
 
-// ENTITY.INC
-using Address = int;
-
 // TIMERS.INC
+
 #define TIMER_REPEAT            (1<<0)      /**< Timer will repeat until it returns Plugin_Stop */
 #define TIMER_FLAG_NO_MAPCHANGE (1<<1)      /**< Timer will not carry over mapchanges */
 #define TIMER_DATA_HNDL_CLOSE   (1<<9)      /**< Timer will automatically call CloseHandle() on its data when finished */
 
 // HALFLIFE.INC
+
 #define SOURCE_SDK_UNKNOWN           0      /**< Could not determine the engine version */
 #define SOURCE_SDK_ORIGINAL         10      /**< Original Source engine (still used by "The Ship") */
 #define SOURCE_SDK_DARKMESSIAH      15      /**< Modified version of original engine used by Dark Messiah (no SDK) */
@@ -709,6 +704,7 @@ enum ClientRangeType
 static int NOALPHA_COLOR[4] = { 255, 255, 255, 0 };
 
 // ENTITY_PROP_STOCKS.INC
+
 using MoveType = MoveType_t;
 
 enum RenderMode
@@ -785,6 +781,7 @@ enum RenderFx
 #define IN_ATTACK3               (1 << 25)
 
 // SDKTOOLS_GAMERULES.INC
+
 enum RoundState
 {
 	// initialize the game, create teams
@@ -877,24 +874,6 @@ enum Identity
 };
 
 /**
- * Plugin status values.
- */
-enum PluginStatus
-{
-	Plugin_Running = 0,       /**< Plugin is running */
-	/* All states below are "temporarily" unexecutable */
-	Plugin_Paused,          /**< Plugin is loaded but paused */
-	Plugin_Error,           /**< Plugin is loaded but errored/locked */
-	/* All states below do not have all natives */
-	Plugin_Loaded,          /**< Plugin has passed loading and can be finalized */
-	Plugin_Failed,          /**< Plugin has a fatal failure */
-	Plugin_Created,         /**< Plugin is created but not initialized */
-	Plugin_Uncompiled,      /**< Plugin is not yet compiled by the JIT */
-	Plugin_BadLoad,         /**< Plugin failed to load */
-	Plugin_Evicted          /**< Plugin was unloaded due to an error */
-};
-
-/**
  * Plugin information properties. Plugins can declare a global variable with
  * their info. Example,
  *
@@ -972,4 +951,205 @@ enum RayType
 };
 
 // SDKTOOLS_ENGINE.INC
+
 #define MAX_LIGHTSTYLES 64
+
+// SDKTOOLS_VOICE.INC
+
+#define VOICE_NORMAL        0   /**< Allow the client to listen and speak normally. */
+#define VOICE_MUTED         1   /**< Mutes the client from speaking to everyone. */
+#define VOICE_SPEAKALL      2   /**< Allow the client to speak to everyone. */
+#define VOICE_LISTENALL     4   /**< Allow the client to listen to everyone. */
+#define VOICE_TEAM          8   /**< Allow the client to always speak to team, even when dead. */
+#define VOICE_LISTENTEAM    16  /**< Allow the client to always hear teammates, including dead ones. */
+
+enum ListenOverride
+{
+	Listen_Default = 0, /**< Leave it up to the game */
+	Listen_No,          /**< Can't hear */
+	Listen_Yes          /**< Can hear */
+};
+
+// LANG.INC
+
+#define LANG_SERVER 0      /**< Translate using the server's language */
+
+// ADT_ARRAY.INC
+using ArrayListHandle = int;
+
+// COMMANDFILTERS.INC
+
+#define MAX_TARGET_LENGTH           64
+
+#define COMMAND_FILTER_ALIVE        (1<<0)      /**< Only allow alive players */
+#define COMMAND_FILTER_DEAD         (1<<1)      /**< Only filter dead players */
+#define COMMAND_FILTER_CONNECTED    (1<<2)      /**< Allow players not fully in-game */
+#define COMMAND_FILTER_NO_IMMUNITY  (1<<3)      /**< Ignore immunity rules */
+#define COMMAND_FILTER_NO_MULTI     (1<<4)      /**< Do not allow multiple target patterns */
+#define COMMAND_FILTER_NO_BOTS      (1<<5)      /**< Do not allow bots to be targetted */
+
+#define COMMAND_TARGET_NONE          0          /**< No target was found */
+#define COMMAND_TARGET_NOT_ALIVE    -1          /**< Single client is not alive */
+#define COMMAND_TARGET_NOT_DEAD     -2          /**< Single client is not dead */
+#define COMMAND_TARGET_NOT_IN_GAME  -3          /**< Single client is not in game */
+#define COMMAND_TARGET_IMMUNE       -4          /**< Single client is immune */
+#define COMMAND_TARGET_EMPTY_FILTER -5          /**< A multi-filter (such as @all) had no targets */
+#define COMMAND_TARGET_NOT_HUMAN    -6          /**< Target was not human */
+#define COMMAND_TARGET_AMBIGUOUS    -7          /**< Partial name had too many targets */
+
+// SDKTOOLS_SOUND.INC
+
+/**
+ * Sound should be from the target client.
+ */
+#define SOUND_FROM_PLAYER       -2
+
+ /**
+  * Sound should be from the listen server player.
+  */
+#define SOUND_FROM_LOCAL_PLAYER -1
+
+  /**
+   * Sound is from the world.
+   */
+#define SOUND_FROM_WORLD        0
+
+   /**
+	* Sound channels.
+	*/
+enum
+{
+	SNDCHAN_REPLACE = -1,       /**< Unknown */
+	SNDCHAN_AUTO = 0,           /**< Auto */
+	SNDCHAN_WEAPON = 1,         /**< Weapons */
+	SNDCHAN_VOICE = 2,          /**< Voices */
+	SNDCHAN_ITEM = 3,           /**< Items */
+	SNDCHAN_BODY = 4,           /**< Player? */
+	SNDCHAN_STREAM = 5,         /**< "Stream channel from the static or dynamic area" */
+	SNDCHAN_STATIC = 6,         /**< "Stream channel from the static area" */
+	SNDCHAN_VOICE_BASE = 7,     /**< "Channel for network voice data" */
+	SNDCHAN_USER_BASE = 135     /**< Anything >= this is allocated to game code */
+};
+
+/**
+ * Various predefined sound levels in dB.
+ */
+enum
+{
+	SNDLEVEL_NONE = 0,          /**< None */
+	SNDLEVEL_RUSTLE = 20,       /**< Rustling leaves */
+	SNDLEVEL_WHISPER = 25,      /**< Whispering */
+	SNDLEVEL_LIBRARY = 30,      /**< In a library */
+	SNDLEVEL_FRIDGE = 45,       /**< Refrigerator */
+	SNDLEVEL_HOME = 50,         /**< Average home (3.9 attn) */
+	SNDLEVEL_CONVO = 60,        /**< Normal conversation (2.0 attn) */
+	SNDLEVEL_DRYER = 60,        /**< Clothes dryer */
+	SNDLEVEL_DISHWASHER = 65,   /**< Dishwasher/washing machine (1.5 attn) */
+	SNDLEVEL_CAR = 70,          /**< Car or vacuum cleaner (1.0 attn) */
+	SNDLEVEL_NORMAL = 75,       /**< Normal sound level */
+	SNDLEVEL_TRAFFIC = 75,      /**< Busy traffic (0.8 attn) */
+	SNDLEVEL_MINIBIKE = 80,     /**< Mini-bike, alarm clock (0.7 attn) */
+	SNDLEVEL_SCREAMING = 90,    /**< Screaming child (0.5 attn) */
+	SNDLEVEL_TRAIN = 100,       /**< Subway train, pneumatic drill (0.4 attn) */
+	SNDLEVEL_HELICOPTER = 105,  /**< Helicopter */
+	SNDLEVEL_SNOWMOBILE = 110,  /**< Snow mobile */
+	SNDLEVEL_AIRCRAFT = 120,    /**< Auto horn, aircraft */
+	SNDLEVEL_RAIDSIREN = 130,   /**< Air raid siren */
+	SNDLEVEL_GUNFIRE = 140,     /**< Gunshot, jet engine (0.27 attn) */
+	SNDLEVEL_ROCKET = 180       /**< Rocket launching (0.2 attn) */
+};
+
+#define SNDVOL_NORMAL       1.0     /**< Normal volume */
+#define SNDPITCH_NORMAL     100     /**< Normal pitch */
+#define SNDPITCH_LOW        95      /**< A low pitch */
+#define SNDPITCH_HIGH       120     /**< A high pitch */
+#define SNDATTN_NONE        0.0     /**< No attenuation */
+#define SNDATTN_NORMAL      0.8     /**< Normal attenuation */
+#define SNDATTN_STATIC      1.25    /**< Static attenuation? */
+#define SNDATTN_RICOCHET    1.5     /**< Ricochet effect */
+#define SNDATTN_IDLE        2.0     /**< Idle attenuation? */
+
+// SDKTOOLS.INC
+
+enum SDKCallType
+{
+	SDKCall_Static,         /**< Static call */
+	SDKCall_Entity,         /**< CBaseEntity call */
+	SDKCall_Player,         /**< CBasePlayer call */
+	SDKCall_GameRules,      /**< CGameRules call */
+	SDKCall_EntityList,     /**< CGlobalEntityList call */
+	SDKCall_Raw             /**< |this| pointer with an arbitrary address */
+};
+
+enum SDKLibrary
+{
+	SDKLibrary_Server,      /**< server.dll/server_i486.so */
+	SDKLibrary_Engine       /**< engine.dll/engine_*.so */
+};
+
+enum SDKFuncConfSource
+{
+	SDKConf_Virtual = 0,    /**< Read a virtual index from the Offsets section */
+	SDKConf_Signature = 1,  /**< Read a signature from the Signatures section */
+	SDKConf_Address = 2     /**< Read an address from the Addresses section */
+};
+
+enum SDKType
+{
+	SDKType_CBaseEntity,    /**< CBaseEntity (always as pointer) */
+	SDKType_CBasePlayer,    /**< CBasePlayer (always as pointer) */
+	SDKType_Vector,         /**< Vector (pointer, byval, or byref) */
+	SDKType_QAngle,         /**< QAngles (pointer, byval, or byref) */
+	SDKType_PlainOldData,   /**< Integer/generic data <=32bit (any) */
+	SDKType_Float,          /**< Float (any) */
+	SDKType_Edict,          /**< edict_t (always as pointer) */
+	SDKType_String,         /**< NULL-terminated string (always as pointer) */
+	SDKType_Bool            /**< Boolean (any) */
+};
+
+enum SDKPassMethod
+{
+	SDKPass_Pointer,        /**< Pass as a pointer */
+	SDKPass_Plain,          /**< Pass as plain data */
+	SDKPass_ByValue,        /**< Pass an object by value */
+	SDKPass_ByRef           /**< Pass an object by reference */
+};
+
+#define VDECODE_FLAG_ALLOWNULL      (1<<0)    /**< Allow NULL for pointers */
+#define VDECODE_FLAG_ALLOWNOTINGAME (1<<1)    /**< Allow players not in game */
+#define VDECODE_FLAG_ALLOWWORLD     (1<<2)    /**< Allow World entity */
+#define VDECODE_FLAG_BYREF          (1<<3)    /**< Floats/ints by reference */
+
+#define VENCODE_FLAG_COPYBACK       (1<<0)    /**< Copy back data once done */
+
+// SOURCEMOD.INC
+
+enum APLRes
+{
+	APLRes_Success = 0,     /**< Plugin should load */
+	APLRes_Failure,         /**< Plugin shouldn't load and should display an error */
+	APLRes_SilentFailure    /**< Plugin shouldn't load but do so silently */
+};
+
+#define MAPLIST_FLAG_MAPSFOLDER    (1<<0)    /**< On failure, use all maps in the maps folder. */
+#define MAPLIST_FLAG_CLEARARRAY    (1<<1)    /**< If an input array is specified, clear it before adding. */
+#define MAPLIST_FLAG_NO_DEFAULT    (1<<2)    /**< Do not read "default" or "mapcyclefile" on failure. */
+
+/**
+ * Represents how many bytes we can read from an address with one load
+ */
+enum NumberType
+{
+	NumberType_Int8,
+	NumberType_Int16,
+	NumberType_Int32
+};
+
+using Address = int;
+using GameDataHandle = int;
+
+#define Address_Null = 0               // a typical invalid result when an address lookup fails
+
+static int MINUS_ONE = -1;
+
+static int IVEC_2[2] = { 0, 0 };

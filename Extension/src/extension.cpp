@@ -10,10 +10,28 @@ const sp_nativeinfo_t MyNatives[] =
 	{ "native_ConCmdCallback", NativeManager::ConCmdCallback },
 	{ "native_SrvCmdCallback", NativeManager::SrvCmdCallback },
 	{ "native_CmdListenerCallback", NativeManager::CmdListenerCallback },
+	// SOURCEMOD.INC
 	{ "native_OnPluginStart", NativeManager::OnPluginStart },
 	{ "native_OnPluginEnd", NativeManager::OnPluginEnd },
+	{ "native_OnPluginPauseChange", NativeManager::OnPluginPauseChange },
+	{ "native_OnGameFrame", NativeManager::OnGameFrame },
 	{ "native_OnMapStart", NativeManager::OnMapStart },
 	{ "native_OnMapEnd", NativeManager::OnMapEnd },
+	{ "native_OnConfigsExecuted", NativeManager::OnConfigsExecuted },
+	{ "native_OnAutoConfigsBuffered", NativeManager::OnAutoConfigsBuffered },
+	{ "native_OnAllPluginsLoaded", NativeManager::OnAllPluginsLoaded },
+	{ "native_OnLibraryAdded", NativeManager::OnLibraryAdded },
+	{ "native_OnLibraryRemoved", NativeManager::OnLibraryRemoved },
+	{ "native_OnClientFloodCheck", NativeManager::OnClientFloodCheck },
+	{ "native_OnClientFloodResult", NativeManager::OnClientFloodResult },
+	// SDKTOOLS_SOUND.INC
+	{ "native_AmbientSHookCallback", NativeManager::AmbientSHookCallback },
+	{ "native_NormalSHookCallback", NativeManager::NormalSHookCallback },
+	// COMMANDFILTERS.INC
+	{ "native_MultiTargetFilterCallback", NativeManager::MultiTargetFilterCallback },
+	// SDKTOOLS_VOICE.INC
+	{ "native_OnClientSpeaking", NativeManager::OnClientSpeaking },
+	{ "native_OnClientSpeakingEnd", NativeManager::OnClientSpeakingEnd },
 	// SDKTOOLS_TRACE.INC
 	{ "native_TraceEntityFilterCallback", NativeManager::TraceEntityFilterCallback },
 	{ "native_TraceEntityEnumeratorCallback", NativeManager::TraceEntityEnumeratorCallback },

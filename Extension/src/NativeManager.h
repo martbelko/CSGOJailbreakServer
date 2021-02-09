@@ -9,17 +9,216 @@
 class NativeManager
 {
 public:
-	static cell_t OnPluginStart(IPluginContext* pContext, const cell_t* params);
-	static cell_t OnPluginEnd(IPluginContext* pContext, const cell_t* params);
-
-	static cell_t OnMapStart(IPluginContext* pContext, const cell_t* params);
-	static cell_t OnMapEnd(IPluginContext* pContext, const cell_t* params);
-
 	static cell_t ConCmdCallback(IPluginContext* pContext, const cell_t* params);
 	static cell_t SrvCmdCallback(IPluginContext* pContext, const cell_t* params);
 	static cell_t CmdListenerCallback(IPluginContext* pContext, const cell_t* params);
 
+	// SOURCEMOD.INC
+
+	static int OnPluginStart(IPluginContext* pContext, const cell_t* params)
+	{
+		PublicManager::InitOnPluginStart(pContext);
+		MainPlugin::OnPluginStart();
+		return 0;
+	}
+
+	static int OnPluginEnd(IPluginContext* pContext, const cell_t* params)
+	{
+		MainPlugin::OnPluginEnd();
+		return 0;
+	}
+
+	static int OnPluginPauseChange(IPluginContext* pContext, const cell_t* params)
+	{
+		bool pause = params[1];
+		MainPlugin::OnPluginPauseChange(pause);
+		return 0;
+	}
+
+	static int OnGameFrame(IPluginContext* pContext, const cell_t* params)
+	{
+		MainPlugin::OnGameFrame();
+		return 0;
+	}
+
+	static int OnMapStart(IPluginContext* pContext, const cell_t* params)
+	{
+		MainPlugin::OnMapStart();
+		return 0;
+	}
+
+	static int OnMapEnd(IPluginContext* pContext, const cell_t* params)
+	{
+		MainPlugin::OnMapEnd();
+		return 0;
+	}
+
+	static int OnConfigsExecuted(IPluginContext* pContext, const cell_t* params)
+	{
+		MainPlugin::OnConfigsExecuted();
+		return 0;
+	}
+
+	static int OnAutoConfigsBuffered(IPluginContext* pContext, const cell_t* params)
+	{
+		MainPlugin::OnAutoConfigsBuffered();
+		return 0;
+	}
+
+	static int OnAllPluginsLoaded(IPluginContext* pContext, const cell_t* params)
+	{
+		MainPlugin::OnAllPluginsLoaded();
+		return 0;
+	}
+
+	static int OnLibraryAdded(IPluginContext* pContext, const cell_t* params)
+	{
+		char* name;
+		pContext->LocalToString(params[1], &name);
+		MainPlugin::OnLibraryAdded(name);
+		return 0;
+	}
+
+	static int OnLibraryRemoved(IPluginContext* pContext, const cell_t* params)
+	{
+		char* name;
+		pContext->LocalToString(params[1], &name);
+		MainPlugin::OnLibraryRemoved(name);
+		return 0;
+	}
+
+	static int OnClientFloodCheck(IPluginContext* pContext, const cell_t* params)
+	{
+		int client = params[1];
+		return MainPlugin::OnClientFloodCheck(client);
+	}
+
+	static int OnClientFloodResult(IPluginContext* pContext, const cell_t* params)
+	{
+		int client = params[1];
+		bool blocked = params[2];
+		MainPlugin::OnClientFloodResult(client, blocked);
+		return 0;
+	}
+
+	// SDKTOOLS_SOUND.INC
+
+	static int AmbientSHookCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		char* sample;
+		pContext->LocalToString(params[1], &sample);
+
+		int* entityPtr;
+		pContext->LocalToPhysAddr(params[2], &entityPtr);
+
+		int* volumePtr;
+		pContext->LocalToPhysAddr(params[3], &volumePtr);
+		float volume = sp_ctof(*volumePtr);
+
+		int* levelPtr;
+		pContext->LocalToPhysAddr(params[4], &levelPtr);
+
+		int* pitchPtr;
+		pContext->LocalToPhysAddr(params[5], &pitchPtr);
+
+		int* posPtr;
+		pContext->LocalToPhysAddr(params[6], &posPtr);
+		float pos[3] = { sp_ctof(posPtr[0]), sp_ctof(posPtr[1]), sp_ctof(posPtr[2]) };
+
+		int* flagsPtr;
+		pContext->LocalToPhysAddr(params[7], &flagsPtr);
+
+		int* delayPtr;
+		pContext->LocalToPhysAddr(params[8], &delayPtr);
+		float delay = sp_ctof(*delayPtr);
+
+		AmbientSHookFunc callback = PublicManager::s_AmbientSHookCallback;
+		Action ret = callback(sample, *entityPtr, volume, *levelPtr, *pitchPtr, pos, *flagsPtr, delay);
+
+		*delayPtr = delay;
+
+		posPtr[0] = sp_ftoc(pos[0]);
+		posPtr[1] = sp_ftoc(pos[1]);
+		posPtr[2] = sp_ftoc(pos[2]);
+
+		*volumePtr = sp_ftoc(volume);
+
+		return ret;
+	}
+
+	static int NormalSHookCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		int* clients;
+		pContext->LocalToPhysAddr(params[1], &clients);
+
+		int* numClientsPtr;
+		pContext->LocalToPhysAddr(params[2], &numClientsPtr);
+
+		char* sample;
+		pContext->LocalToString(params[3], &sample);
+
+		int* entityPtr;
+		pContext->LocalToPhysAddr(params[4], &entityPtr);
+
+		int* channelPtr;
+		pContext->LocalToPhysAddr(params[5], &channelPtr);
+
+		int* volumePtr;
+		pContext->LocalToPhysAddr(params[6], &volumePtr);
+		float volume = *volumePtr;
+
+		int* levelPtr;
+		pContext->LocalToPhysAddr(params[7], &levelPtr);
+
+		int* pitchPtr;
+		pContext->LocalToPhysAddr(params[8], &pitchPtr);
+
+		int* flagsPtr;
+		pContext->LocalToPhysAddr(params[9], &flagsPtr);
+
+		char* soundEntry;
+		pContext->LocalToString(params[10], &soundEntry);
+
+		int* seedPtr;
+		pContext->LocalToPhysAddr(params[11], &seedPtr);
+
+		NormalSHookFunc callback = PublicManager::s_NormalSHookCallback;
+		Action ret = callback(clients, *numClientsPtr, sample, *entityPtr, *channelPtr, volume, *levelPtr, *pitchPtr, *flagsPtr, soundEntry, *seedPtr);
+		*volumePtr = volume;
+		return ret;
+	}
+
+	// COMMANDFILTERS.INC
+
+	static int MultiTargetFilterCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		char* pattern;
+		pContext->LocalToString(params[1], &pattern);
+		Handle clients = params[2];
+
+		std::string patternStr(pattern);
+		MultiTargetFilterFunc callback = PublicManager::s_MultiTargetFilterCallbacks[patternStr];
+		return callback(pattern, clients);
+	}
+
+	// SDKTOOLS_VOICE.INC
+
+	static int OnClientSpeaking(IPluginContext* pContext, const cell_t* params)
+	{
+		int client = params[1];
+		MainPlugin::OnClientSpeaking(client);
+		return 0;
+	}
+
+	static int OnClientSpeakingEnd(IPluginContext* pContext, const cell_t* params)
+	{
+		int client = params[1];
+		MainPlugin::OnClientSpeakingEnd(client);
+		return 0;
+	}
+
 	// SDKTOOLS_TRACE.INC
+
 	static int TraceEntityFilterCallback(IPluginContext* pContext, const cell_t* params)
 	{
 		int entity = params[1];
@@ -42,6 +241,7 @@ public:
 	}
 
 	// LOGGING.INC
+
 	static int OnLogAction(IPluginContext* pContext, const cell_t* params)
 	{
 		Handle handle = params[1];
@@ -62,6 +262,7 @@ public:
 	}
 
 	// SDKTOOLS_TEMPENTS.INC
+
 	static int TEHookCallback(IPluginContext* pContext, const cell_t* params)
 	{
 		char* teName;
@@ -77,6 +278,7 @@ public:
 	}
 
 	// SDKTOOLS_ENTOUTPUT.INC
+
 	static int EntityOutputCallback(IPluginContext* pContext, const cell_t* params)
 	{
 		char* output;
@@ -108,6 +310,7 @@ public:
 	}
 
 	// TIMERS.INC
+
 	static int TimerCallback(IPluginContext* pContext, const cell_t* params)
 	{
 		Handle timer = params[1];
@@ -123,18 +326,21 @@ public:
 	}
 
 	// SDKTOOLS_HOOKS.INC
+
 	static int OnPlayerRunCmd(IPluginContext* pContext, const cell_t* params);
 	static int OnPlayerRunCmdPost(IPluginContext* pContext, const cell_t* params);
 	static int OnFileSend(IPluginContext* pContext, const cell_t* params);
 	static int OnFileReceive(IPluginContext* pContext, const cell_t* params);
 
 	// SDKHOOKS.INC
+
 	static int OnEntityCreated(IPluginContext* pContext, const cell_t* params);
 	static int OnEntitySpawned(IPluginContext* pContext, const cell_t* params);
 	static int OnEntityDestroyed(IPluginContext* pContext, const cell_t* params);
 	static int OnGetGameDescription(IPluginContext* pContext, const cell_t* params);
 	static int OnLevelInit(IPluginContext* pContext, const cell_t* params);
 	// callbacks
+
 	static int SDKHooksEndTouch(IPluginContext* pContext, const cell_t* params) { return SDKHooksCallback3(SDKHookType::SDKHook_EndTouch, pContext, params); }
 	static int SDKHooksFireBulletsPost(IPluginContext* pContext, const cell_t* params) { return SDKHooksCallback8(SDKHookType::SDKHook_FireBulletsPost, pContext, params); }
 	static int SDKHooksOnTakeDamage(IPluginContext* pContext, const cell_t* params) { return SDKHooksCallback6(SDKHookType::SDKHook_OnTakeDamage, pContext, params); }
@@ -197,31 +403,37 @@ private:
 	static int SDKHooksCallback15(SDKHookType type, IPluginContext* pContext, const cell_t* params);
 public:
 	// MENU.INC
+
 	static int MenuHandlerCallback(IPluginContext* pContext, const cell_t* params);
 	static int VoteHandlerCallback(IPluginContext* pContext, const cell_t* params);
 
 	// EVENTS.INC
+
 	static int EventHookCallbackPre(IPluginContext* pContext, const cell_t* params);
 	static int EventHookCallbackPost(IPluginContext* pContext, const cell_t* params);
 	static int EventHookCallbackPostNoCopy(IPluginContext* pContext, const cell_t* params);
 
 	// DBI.INC
+
 	static int SQLTxnSuccessCallback(IPluginContext* pContext, const cell_t* params);
 	static int SQLTxnFailureCallback(IPluginContext* pContext, const cell_t* params);
 	static int SQLTCallbackConnect(IPluginContext* pContext, const cell_t* params);
 	static int SQLTCallbackQuery(IPluginContext* pContext, const cell_t* params);
 
 	// CSTRIKE.INC
+
 	static int CS_OnBuyCommand(IPluginContext* pContext, const cell_t* params);
 	static int CS_OnCSWeaponDrop(IPluginContext* pContext, const cell_t* params);
 	static int CS_OnGetWeaponPrice(IPluginContext* pContext, const cell_t* params);
 	static int CS_OnTerminateRound(IPluginContext* pContext, const cell_t* params);
 
-	// CONSOLE.inc
+	// CONSOLE.INC
+
 	static int OnClientSayCommand(IPluginContext* pContext, const cell_t* params);
 	static int OnClientSayCommandPost(IPluginContext* pContext, const cell_t* params);
 
-	// CLIENTS.inc
+	// CLIENTS.INC
+
 	static int OnClientConnect(IPluginContext* pContext, const cell_t* params);
 	static int OnClientConnected(IPluginContext* pContext, const cell_t* params);
 	static int OnClientPutInServer(IPluginContext* pContext, const cell_t* params);

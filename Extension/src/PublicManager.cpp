@@ -2,6 +2,138 @@
 
 int PublicManager::s_MaxClients = 0;
 
+// OWN
+IPluginFunction* PublicManager::s_SDKCallSmoke3Func;
+IPluginFunction* PublicManager::s_SDKCallSmoke4Func;
+
+// SOURCEMOD.INC
+IPluginFunction* PublicManager::s_GetMyHandleFunc;
+IPluginFunction* PublicManager::s_GetPluginIteratorFunc;
+IPluginFunction* PublicManager::s_MorePluginsFunc;
+IPluginFunction* PublicManager::s_ReadPluginFunc;
+IPluginFunction* PublicManager::s_GetPluginStatusFunc;
+IPluginFunction* PublicManager::s_GetPluginFilenameFunc;
+IPluginFunction* PublicManager::s_IsPluginDebuggingFunc;
+IPluginFunction* PublicManager::s_GetPluginInfoFunc;
+IPluginFunction* PublicManager::s_FindPluginByNumberFunc;
+IPluginFunction* PublicManager::s_SetFailStateFunc;
+IPluginFunction* PublicManager::s_ThrowErrorFunc;
+IPluginFunction* PublicManager::s_LogStackTraceFunc;
+IPluginFunction* PublicManager::s_GetTimeFunc;
+IPluginFunction* PublicManager::s_FormatTimeFunc;
+IPluginFunction* PublicManager::s_LoadGameConfigFileFunc;
+IPluginFunction* PublicManager::s_GameConfGetOffsetFunc;
+IPluginFunction* PublicManager::s_GameConfGetKeyValueFunc;
+IPluginFunction* PublicManager::s_GameConfGetAddressFunc;
+IPluginFunction* PublicManager::s_GetSysTickCountFunc;
+IPluginFunction* PublicManager::s_AutoExecConfigFunc;
+IPluginFunction* PublicManager::s_RegPluginLibraryFunc;
+IPluginFunction* PublicManager::s_LibraryExistsFunc;
+IPluginFunction* PublicManager::s_GetExtensionFileStatusFunc;
+IPluginFunction* PublicManager::s_ReadMapListFunc;
+IPluginFunction* PublicManager::s_SetMapListCompatBindFunc;
+IPluginFunction* PublicManager::s_GetFeatureStatusFunc;
+IPluginFunction* PublicManager::s_RequireFeatureFunc;
+IPluginFunction* PublicManager::s_LoadFromAddressFunc;
+IPluginFunction* PublicManager::s_StoreToAddressFunc;
+
+// SDKTOOLS.INC
+IPluginFunction* PublicManager::s_StartPrepSDKCallFunc;
+IPluginFunction* PublicManager::s_PrepSDKCall_SetVirtualFunc;
+IPluginFunction* PublicManager::s_PrepSDKCall_SetSignatureFunc;
+IPluginFunction* PublicManager::s_PrepSDKCall_SetAddressFunc;
+IPluginFunction* PublicManager::s_PrepSDKCall_SetFromConfFunc;
+IPluginFunction* PublicManager::s_PrepSDKCall_SetReturnInfoFunc;
+IPluginFunction* PublicManager::s_PrepSDKCall_AddParameterFunc;
+IPluginFunction* PublicManager::s_EndPrepSDKCallFunc;
+IPluginFunction* PublicManager::s_SDKCall0Func;
+IPluginFunction* PublicManager::s_SDKCall1Func;
+IPluginFunction* PublicManager::s_SDKCall2Func;
+IPluginFunction* PublicManager::s_SDKCall3Func;
+IPluginFunction* PublicManager::s_SDKCall4Func;
+IPluginFunction* PublicManager::s_SDKCall5Func;
+IPluginFunction* PublicManager::s_SDKCall6Func;
+IPluginFunction* PublicManager::s_SDKCall7Func;
+IPluginFunction* PublicManager::s_SDKCall8Func;
+IPluginFunction* PublicManager::s_SDKCall9Func;
+IPluginFunction* PublicManager::s_SDKCall10Func;
+IPluginFunction* PublicManager::s_GetPlayerResourceEntityFunc;
+
+// SDKTOOLS_SOUND.INC
+IPluginFunction* PublicManager::s_PrefetchSoundFunc;
+IPluginFunction* PublicManager::s_EmitAmbientSoundFunc;
+IPluginFunction* PublicManager::s_FadeClientVolumeFunc;
+IPluginFunction* PublicManager::s_StopSoundFunc;
+IPluginFunction* PublicManager::s_EmitSoundFunc;
+IPluginFunction* PublicManager::s_EmitSoundEntryFunc;
+IPluginFunction* PublicManager::s_EmitSentenceFunc;
+IPluginFunction* PublicManager::s_GetDistGainFromSoundLevelFunc;
+IPluginFunction* PublicManager::s_AddAmbientSoundHookFunc;
+IPluginFunction* PublicManager::s_AddNormalSoundHookFunc;
+IPluginFunction* PublicManager::s_RemoveAmbientSoundHookFunc;
+IPluginFunction* PublicManager::s_RemoveNormalSoundHookFunc;
+IPluginFunction* PublicManager::s_GetGameSoundParamsFunc;
+IPluginFunction* PublicManager::s_PrecacheScriptSoundFunc;
+
+// COMMANDFILTERS.INC
+IPluginFunction* PublicManager::s_ProcessTargetStringFunc;
+IPluginFunction* PublicManager::s_AddMultiTargetFilterFunc;
+IPluginFunction* PublicManager::s_RemoveMultiTargetFilterFunc;
+
+// ADT_ARRAY.INC
+IPluginFunction* PublicManager::s_CreateArrayFunc;
+IPluginFunction* PublicManager::s_ClearArrayFunc;
+IPluginFunction* PublicManager::s_CloneArrayFunc;
+IPluginFunction* PublicManager::s_ResizeArrayFunc;
+IPluginFunction* PublicManager::s_GetArraySizeFunc;
+IPluginFunction* PublicManager::s_PushArrayCellFunc;
+IPluginFunction* PublicManager::s_PushArrayStringFunc;
+IPluginFunction* PublicManager::s_PushArrayArrayFunc;
+IPluginFunction* PublicManager::s_GetArrayCellFunc;
+IPluginFunction* PublicManager::s_GetArrayStringFunc;
+IPluginFunction* PublicManager::s_GetArrayArrayFunc;
+IPluginFunction* PublicManager::s_SetArrayCellFunc;
+IPluginFunction* PublicManager::s_SetArrayStringFunc;
+IPluginFunction* PublicManager::s_SetArrayArrayFunc;
+IPluginFunction* PublicManager::s_ShiftArrayUpFunc;
+IPluginFunction* PublicManager::s_RemoveFromArrayFunc;
+IPluginFunction* PublicManager::s_SwapArrayItemsFunc;
+IPluginFunction* PublicManager::s_FindStringInArrayFunc;
+IPluginFunction* PublicManager::s_FindValueInArrayFunc;
+IPluginFunction* PublicManager::s_GetArrayBlockSizeFunc;
+
+// LANG.INC
+IPluginFunction* PublicManager::s_LoadTranslationsFunc;
+IPluginFunction* PublicManager::s_SetGlobalTransTargetFunc;
+IPluginFunction* PublicManager::s_GetClientLanguageFunc;
+IPluginFunction* PublicManager::s_GetServerLanguageFunc;
+IPluginFunction* PublicManager::s_GetLanguageCountFunc;
+IPluginFunction* PublicManager::s_GetLanguageInfoFunc;
+IPluginFunction* PublicManager::s_SetClientLanguageFunc;
+IPluginFunction* PublicManager::s_GetLanguageByCodeFunc;
+IPluginFunction* PublicManager::s_GetLanguageByNameFunc;
+IPluginFunction* PublicManager::s_TranslationPhraseExistsFunc;
+IPluginFunction* PublicManager::s_IsTranslatedForLanguageFunc;
+
+// SDKTOOLS_VOICE.INC
+IPluginFunction* PublicManager::s_SetClientListeningFlagsFunc;
+IPluginFunction* PublicManager::s_GetClientListeningFlagsFunc;
+IPluginFunction* PublicManager::s_SetListenOverrideFunc;
+IPluginFunction* PublicManager::s_GetListenOverrideFunc;
+IPluginFunction* PublicManager::s_IsClientMutedFunc;
+
+// STRING.INC
+IPluginFunction* PublicManager::s_FormatFunc;
+
+// GEOIP.INC
+IPluginFunction* PublicManager::s_GeoipCode2Func;
+IPluginFunction* PublicManager::s_GeoipCode3Func;
+IPluginFunction* PublicManager::s_GeoipCountryFunc;
+
+// SDKTOOLS_CLIENT.INC
+IPluginFunction* PublicManager::s_InactivateClientFunc;
+IPluginFunction* PublicManager::s_ReconnectClientFunc;
+
 // SDKTOOLS_ENGINE.INC
 IPluginFunction* PublicManager::s_SetClientViewEntityFunc;
 IPluginFunction* PublicManager::s_SetLightStyleFunc;
@@ -508,6 +640,11 @@ IPluginFunction* PublicManager::s_ChangeClientTeamFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientSerialFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientFromSerialFunc = nullptr;
 
+AmbientSHookFunc PublicManager::s_AmbientSHookCallback;
+NormalSHookFunc PublicManager::s_NormalSHookCallback;
+
+std::unordered_map<std::string, MultiTargetFilterFunc> PublicManager::s_MultiTargetFilterCallbacks;
+
 int PublicManager::s_TraceEntityFilterIndex = 0;
 std::unordered_map<int, TraceEntityFilterFunc> PublicManager::s_TraceEntityFilterCallbacks;
 std::unordered_map<int, void*> PublicManager::s_TraceEntityFilterData;
@@ -546,6 +683,138 @@ void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 {
 	IPluginFunction* GetMaxClientsFunc = pContext->GetFunctionByName("public_GetMaxClients");
 	GetMaxClientsFunc->Execute(&s_MaxClients);
+
+	// OWN
+	LOAD_PTR(SDKCallSmoke3);
+	LOAD_PTR(SDKCallSmoke4);
+
+	// SOURCEMOD.INC
+	LOAD_PTR(GetMyHandle);
+	LOAD_PTR(GetPluginIterator);
+	LOAD_PTR(MorePlugins);
+	LOAD_PTR(ReadPlugin);
+	LOAD_PTR(GetPluginStatus);
+	LOAD_PTR(GetPluginFilename);
+	LOAD_PTR(IsPluginDebugging);
+	LOAD_PTR(GetPluginInfo);
+	LOAD_PTR(FindPluginByNumber);
+	LOAD_PTR(SetFailState);
+	LOAD_PTR(ThrowError);
+	LOAD_PTR(LogStackTrace);
+	LOAD_PTR(GetTime);
+	LOAD_PTR(FormatTime);
+	LOAD_PTR(LoadGameConfigFile);
+	LOAD_PTR(GameConfGetOffset);
+	LOAD_PTR(GameConfGetKeyValue);
+	LOAD_PTR(GameConfGetAddress);
+	LOAD_PTR(GetSysTickCount);
+	LOAD_PTR(AutoExecConfig);
+	LOAD_PTR(RegPluginLibrary);
+	LOAD_PTR(LibraryExists);
+	LOAD_PTR(GetExtensionFileStatus);
+	LOAD_PTR(ReadMapList);
+	LOAD_PTR(SetMapListCompatBind);
+	LOAD_PTR(GetFeatureStatus);
+	LOAD_PTR(RequireFeature);
+	LOAD_PTR(LoadFromAddress);
+	LOAD_PTR(StoreToAddress);
+
+	// SDKTOOLS.INC
+	LOAD_PTR(StartPrepSDKCall);
+	LOAD_PTR(PrepSDKCall_SetVirtual);
+	LOAD_PTR(PrepSDKCall_SetSignature);
+	LOAD_PTR(PrepSDKCall_SetAddress);
+	LOAD_PTR(PrepSDKCall_SetFromConf);
+	LOAD_PTR(PrepSDKCall_SetReturnInfo);
+	LOAD_PTR(PrepSDKCall_AddParameter);
+	LOAD_PTR(EndPrepSDKCall);
+	LOAD_PTR(SDKCall0);
+	LOAD_PTR(SDKCall1);
+	LOAD_PTR(SDKCall2);
+	LOAD_PTR(SDKCall3);
+	LOAD_PTR(SDKCall4);
+	LOAD_PTR(SDKCall5);
+	LOAD_PTR(SDKCall6);
+	LOAD_PTR(SDKCall7);
+	LOAD_PTR(SDKCall8);
+	LOAD_PTR(SDKCall9);
+	LOAD_PTR(SDKCall10);
+	LOAD_PTR(GetPlayerResourceEntity);
+
+	// SDKTOOLS_SOUND.INC
+	LOAD_PTR(PrefetchSound);
+	LOAD_PTR(EmitAmbientSound);
+	LOAD_PTR(FadeClientVolume);
+	LOAD_PTR(StopSound);
+	LOAD_PTR(EmitSound);
+	LOAD_PTR(EmitSoundEntry);
+	LOAD_PTR(EmitSentence);
+	LOAD_PTR(GetDistGainFromSoundLevel);
+	LOAD_PTR(AddAmbientSoundHook);
+	LOAD_PTR(AddNormalSoundHook);
+	LOAD_PTR(RemoveAmbientSoundHook);
+	LOAD_PTR(RemoveNormalSoundHook);
+	LOAD_PTR(GetGameSoundParams);
+	LOAD_PTR(PrecacheScriptSound);
+
+	// COMMANDFILTERS.INC
+	LOAD_PTR(ProcessTargetString);
+	LOAD_PTR(AddMultiTargetFilter);
+	LOAD_PTR(RemoveMultiTargetFilter);
+
+	// ADT_ARRAY.INC
+	LOAD_PTR(CreateArray);
+	LOAD_PTR(ClearArray);
+	LOAD_PTR(CloneArray);
+	LOAD_PTR(ResizeArray);
+	LOAD_PTR(GetArraySize);
+	LOAD_PTR(PushArrayCell);
+	LOAD_PTR(PushArrayString);
+	LOAD_PTR(PushArrayArray);
+	LOAD_PTR(GetArrayCell);
+	LOAD_PTR(GetArrayString);
+	LOAD_PTR(GetArrayArray);
+	LOAD_PTR(SetArrayCell);
+	LOAD_PTR(SetArrayString);
+	LOAD_PTR(SetArrayArray);
+	LOAD_PTR(ShiftArrayUp);
+	LOAD_PTR(RemoveFromArray);
+	LOAD_PTR(SwapArrayItems);
+	LOAD_PTR(FindStringInArray);
+	LOAD_PTR(FindValueInArray);
+	LOAD_PTR(GetArrayBlockSize);
+
+	// LANG.INC
+	LOAD_PTR(LoadTranslations);
+	LOAD_PTR(SetGlobalTransTarget);
+	LOAD_PTR(GetClientLanguage);
+	LOAD_PTR(GetServerLanguage);
+	LOAD_PTR(GetLanguageCount);
+	LOAD_PTR(GetLanguageInfo);
+	LOAD_PTR(SetClientLanguage);
+	LOAD_PTR(GetLanguageByCode);
+	LOAD_PTR(GetLanguageByName);
+	LOAD_PTR(TranslationPhraseExists);
+	LOAD_PTR(IsTranslatedForLanguage);
+
+	// SDKTOOLS_VOICE.INC
+	LOAD_PTR(SetClientListeningFlags);
+	LOAD_PTR(GetClientListeningFlags);
+	LOAD_PTR(SetListenOverride);
+	LOAD_PTR(GetListenOverride);
+	LOAD_PTR(IsClientMuted);
+
+	// STRING.INC
+	LOAD_PTR(Format);
+
+	// GEOIP.INC
+	LOAD_PTR(GeoipCode2);
+	LOAD_PTR(GeoipCode3);
+	LOAD_PTR(GeoipCountry);
+
+	// SDKTOOLS_CLIENT.INC
+	LOAD_PTR(InactivateClient);
+	LOAD_PTR(ReconnectClient);
 
 	// SDKTOOLS_ENGINE.INC
 	LOAD_PTR(SetClientViewEntity);

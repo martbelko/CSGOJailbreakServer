@@ -3,29 +3,6 @@
 #include "PublicManager.h"
 #include "MainPlugin.h"
 
-cell_t NativeManager::OnPluginStart(IPluginContext* pContext, const cell_t* params)
-{
-	PublicManager::InitOnPluginStart(pContext);
-	MainPlugin::OnPluginStart();
-	return 0;
-}
-
-cell_t NativeManager::OnPluginEnd(IPluginContext* pContext, const cell_t* params)
-{
-	MainPlugin::OnPluginEnd();
-	return 0;
-}
-
-cell_t NativeManager::OnMapStart(IPluginContext* pContext, const cell_t* params)
-{
-	return 0;
-}
-
-cell_t NativeManager::OnMapEnd(IPluginContext* pContext, const cell_t* params)
-{
-	return 0;
-}
-
 cell_t NativeManager::ConCmdCallback(IPluginContext* pContext, const cell_t* params)
 {
 	int client = params[1];

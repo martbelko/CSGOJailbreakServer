@@ -4,6 +4,7 @@
 
 #include "Defines.h"
 
+#include <string>
 #include <sstream>
 #include <unordered_map>
 
@@ -211,6 +212,58 @@ using TraceEntityFilterFunc = bool(*)(int entity, int contentsMask, void* data);
  * @return              True to continue enumerating, otherwise false. */
 using TraceEntityEnumeratorFunc = bool(*)(int entity, void* data);
 
+/* COMMANDFILTERS.INC */
+
+/**
+ * Adds clients to a multi-target filter.
+ *
+ * @param pattern       Pattern name.
+ * @param clients       Array to fill with unique, valid client indexes.
+ * @return              True if pattern was recognized, false otherwise.
+ */
+using MultiTargetFilterFunc = bool(*)(const char* pattern, Handle clients);
+
+/* SDKTOOLS_SOUND.INC */
+
+/**
+ * Called when an ambient sound is about to be emitted to one or more clients.
+ *
+ * NOTICE: all parameters can be overwritten to modify the default behavior.
+ *
+ * @param sample        Sound file name relative to the "sound" folder.
+ * @param entity        Entity index associated to the sound.
+ * @param volume        Volume (from 0.0 to 1.0).
+ * @param level         Sound level (from 0 to 255).
+ * @param pitch         Pitch (from 0 to 255).
+ * @param pos           Origin of sound.
+ * @param flags         Sound flags.
+ * @param delay         Play delay.
+ * @return              Plugin_Continue to allow the sound to be played, Plugin_Stop to block it,
+ *                      Plugin_Changed when any parameter has been modified.
+ */
+using AmbientSHookFunc = Action(*)( char sample[PLATFORM_MAX_PATH], int& entity, float& volume,
+	int& level, int& pitch, float pos[3], int& flags, float& delay);
+
+// Called when a sound is going to be emitted to one or more clients.
+// NOTICE: all params can be overwritten to modify the default behavior.
+//
+// @param clients       Array of client indexes.
+// @param numClients    Number of clients in the array (modify this value if you add/remove elements from the client array).
+// @param sample        Sound file name relative to the "sound" folder.
+// @param entity        Entity emitting the sound.
+// @param channel       Channel emitting the sound.
+// @param volume        Sound volume.
+// @param level         Sound level.
+// @param pitch         Sound pitch.
+// @param flags         Sound flags.
+// @param soundEntry    Game sound entry name. (Used in engines newer than Portal 2)
+// @param seed          Sound seed. (Used in engines newer than Portal 2)
+// @return              Plugin_Continue to allow the sound to be played, Plugin_Stop to block it,
+//                      Plugin_Changed when any parameter has been modified.
+using NormalSHookFunc = Action(*)(int clients[MAXPLAYERS], int& numClients, char sample[PLATFORM_MAX_PATH],
+	int& entity, int& channel, float& volume, int& level, int& pitch, int& flags,
+	char soundEntry[PLATFORM_MAX_PATH], int& seed);
+
 struct pair_hash
 {
 	template <class T1, class T2>
@@ -226,6 +279,59 @@ class PublicManager
 {
 public:
 	static void InitOnPluginStart(IPluginContext* pContext);
+
+	// OWN
+	static bool SDKCallSmoke3(Handle call, Address addr, float from[3], float to[3])
+	{
+		PushArg(s_SDKCallSmoke3Func, call);
+		PushArg(s_SDKCallSmoke3Func, addr);
+		PushArg(s_SDKCallSmoke3Func, from, 3);
+		PushArg(s_SDKCallSmoke3Func, to, 3);
+		return ExecFunc(s_SDKCallSmoke3Func);
+	}
+
+	static bool SDKCallSmoke4(Handle call, Address addr, float from[3], float to[3], float arg)
+	{
+		PushArg(s_SDKCallSmoke4Func, call);
+		PushArg(s_SDKCallSmoke4Func, addr);
+		PushArg(s_SDKCallSmoke4Func, from, 3);
+		PushArg(s_SDKCallSmoke4Func, to, 3);
+		PushArg(s_SDKCallSmoke4Func, arg);
+		return ExecFunc(s_SDKCallSmoke4Func);
+	}
+
+	// SOURCEMOD.INC
+	#include "API/SourcemodAPI.h"
+
+	// SDKTOOLS.INC
+	#include "API/SDKToolsAPI.h"
+
+	// SDKTOOLS_SOUND.INC
+	#include "API/SDKToolsSoundAPI.h"
+
+	// HELPERS.INC
+	#include "API/HelpersAPI.h"
+
+	// COMMANDFILTERS.INC
+	#include "API/CommandFiltersAPI.h"
+
+	// ADT_ARRAY.INC
+	#include "API/ADTArrayAPI.h"
+
+	// LANG.INC
+	#include "API/LangAPI.h"
+
+	// SDKTOOLS_VOICE.INC
+	#include "API/SDKToolsVoiceAPI.h"
+
+	// STRING.INC
+	#include "API/StringAPI.h"
+
+	// GEOIP.INC
+	#include "API/GeoIPAPI.h"
+
+	// SDKTOOLS_CLIENT.INC
+	#include "API/SDKToolsClientAPI.h"
 
 	// SDKTOOLS_ENGINE.INC
 	#include "API/SDKToolsEngineAPI.h"
@@ -385,6 +491,47 @@ private:
 private:
 	friend class NativeManager;
 
+	static AmbientSHookFunc s_AmbientSHookCallback;
+	static NormalSHookFunc s_NormalSHookCallback;
+
+	// OWN
+	static IPluginFunction* s_SDKCallSmoke3Func;
+	static IPluginFunction* s_SDKCallSmoke4Func;
+
+	// SOURCEMOD.INC
+	static IPluginFunction* s_GetMyHandleFunc;
+	static IPluginFunction* s_GetPluginIteratorFunc;
+	static IPluginFunction* s_MorePluginsFunc;
+	static IPluginFunction* s_ReadPluginFunc;
+	static IPluginFunction* s_GetPluginStatusFunc;
+	static IPluginFunction* s_GetPluginFilenameFunc;
+	static IPluginFunction* s_IsPluginDebuggingFunc;
+	static IPluginFunction* s_GetPluginInfoFunc;
+	static IPluginFunction* s_FindPluginByNumberFunc;
+	static IPluginFunction* s_SetFailStateFunc;
+	static IPluginFunction* s_ThrowErrorFunc;
+	static IPluginFunction* s_LogStackTraceFunc;
+	static IPluginFunction* s_GetTimeFunc;
+	static IPluginFunction* s_FormatTimeFunc;
+	static IPluginFunction* s_LoadGameConfigFileFunc;
+	static IPluginFunction* s_GameConfGetOffsetFunc;
+	static IPluginFunction* s_GameConfGetKeyValueFunc;
+	static IPluginFunction* s_GameConfGetAddressFunc;
+	static IPluginFunction* s_GetSysTickCountFunc;
+	static IPluginFunction* s_AutoExecConfigFunc;
+	static IPluginFunction* s_RegPluginLibraryFunc;
+	static IPluginFunction* s_LibraryExistsFunc;
+	static IPluginFunction* s_GetExtensionFileStatusFunc;
+	static IPluginFunction* s_ReadMapListFunc;
+	static IPluginFunction* s_SetMapListCompatBindFunc;
+	static IPluginFunction* s_GetFeatureStatusFunc;
+	static IPluginFunction* s_RequireFeatureFunc;
+	static IPluginFunction* s_LoadFromAddressFunc;
+	static IPluginFunction* s_StoreToAddressFunc;
+
+	// COMMANDFILTERS.INC
+	static std::unordered_map<std::string, MultiTargetFilterFunc> s_MultiTargetFilterCallbacks;
+
 	// SDKTOOLS_TRACE.INC
 	static int s_TraceEntityFilterIndex;
 	static std::unordered_map<int, TraceEntityFilterFunc> s_TraceEntityFilterCallbacks;
@@ -426,6 +573,103 @@ private:
 	static std::unordered_map<int, int> s_SQLTQueryCallbacksData;
 private:
 	static int s_MaxClients;
+
+	// SDKTOOLS.INC
+	static IPluginFunction* s_StartPrepSDKCallFunc;
+	static IPluginFunction* s_PrepSDKCall_SetVirtualFunc;
+	static IPluginFunction* s_PrepSDKCall_SetSignatureFunc;
+	static IPluginFunction* s_PrepSDKCall_SetAddressFunc;
+	static IPluginFunction* s_PrepSDKCall_SetFromConfFunc;
+	static IPluginFunction* s_PrepSDKCall_SetReturnInfoFunc;
+	static IPluginFunction* s_PrepSDKCall_AddParameterFunc;
+	static IPluginFunction* s_EndPrepSDKCallFunc;
+	static IPluginFunction* s_SDKCall0Func;
+	static IPluginFunction* s_SDKCall1Func;
+	static IPluginFunction* s_SDKCall2Func;
+	static IPluginFunction* s_SDKCall3Func;
+	static IPluginFunction* s_SDKCall4Func;
+	static IPluginFunction* s_SDKCall5Func;
+	static IPluginFunction* s_SDKCall6Func;
+	static IPluginFunction* s_SDKCall7Func;
+	static IPluginFunction* s_SDKCall8Func;
+	static IPluginFunction* s_SDKCall9Func;
+	static IPluginFunction* s_SDKCall10Func;
+	static IPluginFunction* s_GetPlayerResourceEntityFunc;
+
+	// SDKTOOLS_SOUND.INC
+	static IPluginFunction* s_PrefetchSoundFunc;
+	static IPluginFunction* s_EmitAmbientSoundFunc;
+	static IPluginFunction* s_FadeClientVolumeFunc;
+	static IPluginFunction* s_StopSoundFunc;
+	static IPluginFunction* s_EmitSoundFunc;
+	static IPluginFunction* s_EmitSoundEntryFunc;
+	static IPluginFunction* s_EmitSentenceFunc;
+	static IPluginFunction* s_GetDistGainFromSoundLevelFunc;
+	static IPluginFunction* s_AddAmbientSoundHookFunc;
+	static IPluginFunction* s_AddNormalSoundHookFunc;
+	static IPluginFunction* s_RemoveAmbientSoundHookFunc;
+	static IPluginFunction* s_RemoveNormalSoundHookFunc;
+	static IPluginFunction* s_GetGameSoundParamsFunc;
+	static IPluginFunction* s_PrecacheScriptSoundFunc;
+
+	// COMMANDFILTERS.INC
+	static IPluginFunction* s_ProcessTargetStringFunc;
+	static IPluginFunction* s_AddMultiTargetFilterFunc;
+	static IPluginFunction* s_RemoveMultiTargetFilterFunc;
+
+	// ADT_ARRAY.INC
+	static IPluginFunction* s_CreateArrayFunc;
+	static IPluginFunction* s_ClearArrayFunc;
+	static IPluginFunction* s_CloneArrayFunc;
+	static IPluginFunction* s_ResizeArrayFunc;
+	static IPluginFunction* s_GetArraySizeFunc;
+	static IPluginFunction* s_PushArrayCellFunc;
+	static IPluginFunction* s_PushArrayStringFunc;
+	static IPluginFunction* s_PushArrayArrayFunc;
+	static IPluginFunction* s_GetArrayCellFunc;
+	static IPluginFunction* s_GetArrayStringFunc;
+	static IPluginFunction* s_GetArrayArrayFunc;
+	static IPluginFunction* s_SetArrayCellFunc;
+	static IPluginFunction* s_SetArrayStringFunc;
+	static IPluginFunction* s_SetArrayArrayFunc;
+	static IPluginFunction* s_ShiftArrayUpFunc;
+	static IPluginFunction* s_RemoveFromArrayFunc;
+	static IPluginFunction* s_SwapArrayItemsFunc;
+	static IPluginFunction* s_FindStringInArrayFunc;
+	static IPluginFunction* s_FindValueInArrayFunc;
+	static IPluginFunction* s_GetArrayBlockSizeFunc;
+
+	// LANG.INC
+	static IPluginFunction* s_LoadTranslationsFunc;
+	static IPluginFunction* s_SetGlobalTransTargetFunc;
+	static IPluginFunction* s_GetClientLanguageFunc;
+	static IPluginFunction* s_GetServerLanguageFunc;
+	static IPluginFunction* s_GetLanguageCountFunc;
+	static IPluginFunction* s_GetLanguageInfoFunc;
+	static IPluginFunction* s_SetClientLanguageFunc;
+	static IPluginFunction* s_GetLanguageByCodeFunc;
+	static IPluginFunction* s_GetLanguageByNameFunc;
+	static IPluginFunction* s_TranslationPhraseExistsFunc;
+	static IPluginFunction* s_IsTranslatedForLanguageFunc;
+
+	// SDKTOOLS_VOICE.INC
+	static IPluginFunction* s_SetClientListeningFlagsFunc;
+	static IPluginFunction* s_GetClientListeningFlagsFunc;
+	static IPluginFunction* s_SetListenOverrideFunc;
+	static IPluginFunction* s_GetListenOverrideFunc;
+	static IPluginFunction* s_IsClientMutedFunc;
+
+	// STRING.INC
+	static IPluginFunction* s_FormatFunc;
+
+	// GEOIP.INC
+	static IPluginFunction* s_GeoipCode2Func;
+	static IPluginFunction* s_GeoipCode3Func;
+	static IPluginFunction* s_GeoipCountryFunc;
+
+	// SDKTOOLS_CLIENT.INC
+	static IPluginFunction* s_InactivateClientFunc;
+	static IPluginFunction* s_ReconnectClientFunc;
 
 	// SDKTOOLS_ENGINE.INC
 	static IPluginFunction* s_SetClientViewEntityFunc;

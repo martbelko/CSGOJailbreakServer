@@ -4,28 +4,6 @@
 
 using PM = PublicManager;
 
-void MainPlugin::OnPluginStart()
-{
-	rootconsole->ConsolePrint("Plugin Start");
-
-	PM::HookEvent(MainPlugin::OnEventHookPre, "round_start", EventHookMode::EventHookMode_Pre);
-	PM::HookEvent(MainPlugin::OnEventHookPost, "round_start", EventHookMode::EventHookMode_Post);
-
-	PM::RegConsoleCmd("sm_test", "Testing...", 0);
-
-	for (int i = 1; i <= PM::GetMaxClients(); ++i)
-		if (PM::IsClientInGame(i))
-			OnClientPutInServer(i);
-
-	// PM::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackBanlist, "banlist", 0);
-	// PM::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackDefault, "default", 0);
-}
-
-void MainPlugin::OnPluginEnd()
-{
-	rootconsole->ConsolePrint("Plugin End");
-}
-
 Action MainPlugin::ConCmdCallback(int client, char* command, char* args)
 {
 	/*std::string r = "%d %d %d %N %s %s %f %f";
@@ -56,16 +34,18 @@ Action MainPlugin::ConCmdCallback(int client, char* command, char* args)
 	float angles[3];
 	PM::GetClientEyeAngles(client, angles);
 
-	Handle trace = PM::TR_TraceRayFilterEx(pos, angles, MASK_SHOT, RayType::RayType_Infinite, FilterClientsFunc, reinterpret_cast<void*>(client));
+	Handle trace = PM::TR_TraceRayFilterEx(pos, angles, MASK_VISIBLE, RayType::RayType_Infinite, FilterClientsFunc, reinterpret_cast<void*>(client));
 	if (PM::TR_DidHit(trace))
 	{
+		float endpos[3];
+		PM::TR_GetEndPosition(pos, trace);
+		int ts = LineGoesThroughSmoke(pos, endpos);
 		int hitClient = PM::TR_GetEntityIndex(trace);
-		rootconsole->ConsolePrint("Hit %d", hitClient);
 		if (hitClient > 0 && hitClient <= PM::GetMaxClients() && PM::IsClientInGame(hitClient))
 		{
 			char name[MAX_NAME_LENGTH];
 			PM::GetClientName(hitClient, name, sizeof(name));
-			PM::PrintToChatAll(name);
+			PM::PrintToChatAll("%s, %d", name, ts);
 		}
 	}
 
