@@ -676,6 +676,10 @@ std::unordered_map<int, int> PublicManager::s_SQLTConnectCallbacksData;
 std::unordered_map<int, SQLTCallbackFunc> PublicManager::s_SQLTQueryCallbacks;
 std::unordered_map<int, int> PublicManager::s_SQLTQueryCallbacksData;
 
+std::unordered_map<std::string, ConCmdFunc> PublicManager::s_ConCmdCallbacks;
+std::unordered_map<std::string, SrvCmdFunc> PublicManager::s_SrvCmdCallbacks;
+std::unordered_map<std::string, CommandListenerFunc> PublicManager::s_CommandListenerCallbacks;
+
 #define STR(a) #a
 #define LOAD_PTR(NAME) s_##NAME##Func = pContext->GetFunctionByName(STR(public_##NAME))
 

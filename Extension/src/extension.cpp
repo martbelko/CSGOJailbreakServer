@@ -7,9 +7,6 @@ SMEXT_LINK(&g_Extension);
 
 const sp_nativeinfo_t MyNatives[] =
 {
-	{ "native_ConCmdCallback", NativeManager::ConCmdCallback },
-	{ "native_SrvCmdCallback", NativeManager::SrvCmdCallback },
-	{ "native_CmdListenerCallback", NativeManager::CmdListenerCallback },
 	// SOURCEMOD.INC
 	{ "native_OnPluginStart", NativeManager::OnPluginStart },
 	{ "native_OnPluginEnd", NativeManager::OnPluginEnd },
@@ -46,6 +43,9 @@ const sp_nativeinfo_t MyNatives[] =
 	// TIMERS.INC
 	{ "native_TimerCallback", NativeManager::TimerCallback },
 	{ "native_OnMapTimeLeftChanged", NativeManager::OnMapTimeLeftChanged },
+	// SDKTOOLS_HOOKS.INC
+	{ "native_OnPlayerRunCmd", NativeManager::OnPlayerRunCmd },
+	{ "native_OnPlayerRunCmdPost", NativeManager::OnPlayerRunCmdPost },
 	// SDKHOOKS.INC
 	{ "native_OnEntityCreated", NativeManager::OnEntityCreated },
 	{ "native_OnEntitySpawned", NativeManager::OnEntitySpawned },
@@ -117,6 +117,9 @@ const sp_nativeinfo_t MyNatives[] =
 	// Console.inc
 	{ "native_OnClientSayCommand", NativeManager::OnClientSayCommand },
 	{ "native_OnClientSayCommand_Post", NativeManager::OnClientSayCommandPost },
+	{ "native_ConCmdCallback", NativeManager::ConCmdCallback },
+	{ "native_SrvCmdCallback", NativeManager::SrvCmdCallback },
+	{ "native_CmdListenerCallback", NativeManager::CmdListenerCallback },
 	// Client.inc
 	{ "native_OnClientConnect", NativeManager::OnClientConnect },
 	{ "native_OnClientConnected", NativeManager::OnClientConnected },

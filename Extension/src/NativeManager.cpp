@@ -3,133 +3,6 @@
 #include "PublicManager.h"
 #include "MainPlugin.h"
 
-cell_t NativeManager::ConCmdCallback(IPluginContext* pContext, const cell_t* params)
-{
-	int client = params[1];
-	char* cmd;
-	pContext->LocalToString(params[2], &cmd);
-	char* args;
-	pContext->LocalToString(params[3], &args);
-
-	return MainPlugin::ConCmdCallback(client, cmd, args);
-}
-
-cell_t NativeManager::SrvCmdCallback(IPluginContext* pContext, const cell_t* params)
-{
-	char* cmd;
-	pContext->LocalToString(params[1], &cmd);
-	char* args;
-	pContext->LocalToString(params[2], &args);
-
-	return MainPlugin::SrvCmdCallback(cmd, args);
-}
-
-cell_t NativeManager::CmdListenerCallback(IPluginContext* pContext, const cell_t* params)
-{
-	int client = params[1];
-	char* cmd;
-	pContext->LocalToString(params[2], &cmd);
-	int argc = params[3];
-
-	return MainPlugin::CmdListenerCallback(client, cmd, argc);
-}
-
-int NativeManager::OnPlayerRunCmd(IPluginContext* pContext, const cell_t* params)
-{
-	int client = params[1];
-
-	int* buttonsPtr;
-	pContext->LocalToPhysAddr(params[2], &buttonsPtr);
-
-	int* impulsePtr;
-	pContext->LocalToPhysAddr(params[3], &impulsePtr);
-
-	int* velocityPtr;
-	pContext->LocalToPhysAddr(params[4], &velocityPtr);
-	float velocity[3] = { sp_ctof(velocityPtr[0]), sp_ctof(velocityPtr[1]), sp_ctof(velocityPtr[2]) };
-
-	int* anglesPtr;
-	pContext->LocalToPhysAddr(params[5], &anglesPtr);
-	float angles[3] = { sp_ctof(anglesPtr[0]), sp_ctof(anglesPtr[1]), sp_ctof(anglesPtr[2]) };
-
-	int* weaponPtr;
-	pContext->LocalToPhysAddr(params[6], &weaponPtr);
-
-	int* subTypePtr;
-	pContext->LocalToPhysAddr(params[7], &subTypePtr);
-
-	int* cmdNumPtr;
-	pContext->LocalToPhysAddr(params[8], &cmdNumPtr);
-
-	int* tickCountPtr;
-	pContext->LocalToPhysAddr(params[9], &tickCountPtr);
-
-	int* seedPtr;
-	pContext->LocalToPhysAddr(params[10], &seedPtr);
-
-	int* mousePtr;
-	pContext->LocalToPhysAddr(params[11], &mousePtr);
-
-	Action res = MainPlugin::OnPlayerRunCmd(client, *buttonsPtr, *impulsePtr, velocity,
-		angles, *weaponPtr, *subTypePtr, *cmdNumPtr, *tickCountPtr, *seedPtr, mousePtr);
-
-	anglesPtr[0] = angles[0];
-	anglesPtr[1] = angles[1];
-	anglesPtr[2] = angles[2];
-
-	velocityPtr[0] = velocity[0];
-	velocityPtr[1] = velocity[1];
-	velocityPtr[2] = velocity[2];
-
-	return res;
-}
-
-int NativeManager::OnPlayerRunCmdPost(IPluginContext* pContext, const cell_t* params)
-{
-	int client = params[1];
-	int buttons = params[2];
-	int impulse = params[3];
-
-	int* velocityPtr;
-	pContext->LocalToPhysAddr(params[4], &velocityPtr);
-	const float velocity[3] = { sp_ctof(velocityPtr[0]), sp_ctof(velocityPtr[1]), sp_ctof(velocityPtr[2]) };
-
-	int* anglesPtr;
-	pContext->LocalToPhysAddr(params[5], &anglesPtr);
-	const float angles[3] = { sp_ctof(anglesPtr[0]), sp_ctof(anglesPtr[1]), sp_ctof(anglesPtr[2]) };
-
-	int weapon = params[6];
-	int subType = params[7];
-	int cmdnum = params[8];
-	int tickCount = params[9];
-	int seed = params[10];
-
-	int* mousePtr;
-	pContext->LocalToPhysAddr(params[11], &mousePtr);
-
-	MainPlugin::OnPlayerRunCmdPost(client, buttons, impulse, velocity, angles,
-		weapon, subType, cmdnum, tickCount, seed, mousePtr);
-	return 0;
-}
-
-int NativeManager::OnFileSend(IPluginContext* pContext, const cell_t* params)
-{
-	int client = params[1];
-	char* filepath;
-	pContext->LocalToString(params[2], &filepath);
-
-	return MainPlugin::OnFileSend(client, filepath);
-}
-
-int NativeManager::OnFileReceive(IPluginContext* pContext, const cell_t* params)
-{
-	int client = params[1];
-	char* filepath;
-	pContext->LocalToString(params[2], &filepath);
-
-	return MainPlugin::OnFileReceive(client, filepath);
-}
-
 int NativeManager::OnEntityCreated(IPluginContext* pContext, const cell_t* params)
 {
 	int entity = params[1];
@@ -543,7 +416,7 @@ int NativeManager::CS_OnTerminateRound(IPluginContext* pContext, const cell_t* p
 	CSRoundEndReason reason;
 	pContext->LocalToPhysAddr(params[2], reinterpret_cast<int**>(&reason));
 
-	int res = MainPlugin::CS_OnTerminateRound(delay, reason);
+	Action res = MainPlugin::CS_OnTerminateRound(delay, reason);
 	*delayAddr = delay;
 	return res;
 }

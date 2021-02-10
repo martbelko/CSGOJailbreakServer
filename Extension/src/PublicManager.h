@@ -7,58 +7,17 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
+#include <functional>
 
 #ifdef CreateDialog
 	#undef CreateDialog // Windows function
 #endif
 
-#define VARIADIC_FUNC2(FUNC, FUNC_IMPL, T1) \
-	static void FUNC(T1 arg1) { PushArg(FUNC_IMPL, arg1); ExecFunc(FUNC_IMPL); } \
-	template<typename ... Args> \
-	static void FUNC(T1 arg1, Args ... args) { PushArg(FUNC_IMPL, arg1); FUNC##Sub(args...); } \
-	private: \
-	template<typename P1, typename ... Args> \
-	static void FUNC##Sub(P1 p1, Args ... args) { PushArgRef(FUNC_IMPL, p1); FUNC##Sub(args...); } \
-	static void FUNC##Sub(int& arg) { PushArgRef(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
-	static void FUNC##Sub(float& arg) { PushArgRef(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
-	static void FUNC##Sub(const char* arg) { PushArg(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
-	public:
+/* CONSOLE.INC */
 
-#define VARIADIC_FUNC3(FUNC, FUNC_IMPL, T1, T2) \
-	static void FUNC(T1 arg1, T2 arg2) { PushArg(FUNC_IMPL, arg1); PushArg(FUNC_IMPL, arg2); ExecFunc(FUNC_IMPL); } \
-	template<typename ... Args> \
-	static void FUNC(T1 arg1, T2 arg2, Args ... args) { PushArg(FUNC_IMPL, arg1); PushArg(FUNC_IMPL, arg2); FUNC##Sub(args...); } \
-	private: \
-	template<typename P1, typename ... Args> \
-	static void FUNC##Sub(P1 p1, Args ... args) { PushArgRef(FUNC_IMPL, p1); FUNC##Sub(args...); } \
-	static void FUNC##Sub(int& arg) { PushArgRef(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
-	static void FUNC##Sub(float& arg) { PushArgRef(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
-	static void FUNC##Sub(const char* arg) { PushArg(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
-	public:
-
-#define VARIADIC_FUNC4(FUNC, FUNC_IMPL, T1, T2, T3) \
-	static void FUNC(T1 arg1, T2 arg2, T3 arg3) { PushArg(FUNC_IMPL, arg1); PushArg(FUNC_IMPL, arg2); PushArg(FUNC_IMPL, arg3); ExecFunc(FUNC_IMPL); } \
-	template<typename ... Args> \
-	static void FUNC(T1 arg1, T2 arg2, T3 arg3, Args ... args) { PushArg(FUNC_IMPL, arg1); PushArg(FUNC_IMPL, arg2); PushArg(FUNC_IMPL, arg3); FUNC##Sub(args...); } \
-	private: \
-	template<typename P1, typename ... Args> \
-	static void FUNC##Sub(P1 p1, Args ... args) { PushArgRef(FUNC_IMPL, p1); FUNC##Sub(args...); } \
-	static void FUNC##Sub(int& arg) { PushArgRef(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
-	static void FUNC##Sub(float& arg) { PushArgRef(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
-	static void FUNC##Sub(const char* arg) { PushArg(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
-	public:
-
-#define VARIADIC_FUNC5(FUNC, FUNC_IMPL, T1, T2, T3, T4) \
-	static void FUNC(T1 client, T2 message, T3 arg3, T4 arg4) { PushArg(FUNC_IMPL, client); PushArg(FUNC_IMPL, message); PushArg(FUNC_IMPL, arg3); PushArg(FUNC_IMPL, arg4); ExecFunc(FUNC_IMPL); } \
-	template<typename ... Args> \
-	static void FUNC(T1 client, T2 format, T3 arg3, T4 arg4, Args ... args) { PushArg(FUNC_IMPL, client); PushArg(FUNC_IMPL, format); PushArg(FUNC_IMPL, arg3); PushArg(FUNC_IMPL, arg4); FUNC##Sub(args...); } \
-	private: \
-	template<typename P1, typename ... Args> \
-	static void FUNC##Sub(P1 p1, Args ... args) { PushArgRef(FUNC_IMPL, p1); FUNC##Sub(args...); } \
-	static void FUNC##Sub(int& arg) { PushArgRef(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
-	static void FUNC##Sub(float& arg) { PushArgRef(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
-	static void FUNC##Sub(const char* arg) { PushArg(FUNC_IMPL, arg); ExecFunc(FUNC_IMPL); } \
-	public:
+using ConCmdFunc = Action(*)(int client, std::string& command, int argc);
+using SrvCmdFunc = Action(*)(std::string& command, int argc);
+using CommandListenerFunc = Action(*)(int client, std::string& command, int argc);
 
 /* SDKTOOLS_ENTOUTPUT.INC */
 
@@ -571,6 +530,11 @@ private:
 	static std::unordered_map<int, int> s_SQLTConnectCallbacksData;
 	static std::unordered_map<int, SQLTCallbackFunc> s_SQLTQueryCallbacks;
 	static std::unordered_map<int, int> s_SQLTQueryCallbacksData;
+
+	// CONSOLE.INC
+	static std::unordered_map<std::string, ConCmdFunc> s_ConCmdCallbacks;
+	static std::unordered_map<std::string, SrvCmdFunc> s_SrvCmdCallbacks;
+	static std::unordered_map<std::string, CommandListenerFunc> s_CommandListenerCallbacks;
 private:
 	static int s_MaxClients;
 

@@ -51,9 +51,6 @@ native void native_SDKHooksReloadPost(int weapon, bool bSuccessful);
 native bool native_SDKHooksCanBeAutobalanced(int client, bool origRet);
 
 // Native Callbacks
-native Action native_ConCmdCallback(int client, char[] command, char[] args);
-native Action native_SrvCmdCallback(char[] command, char[] args);
-native Action native_CmdListenerCallback(int client, const char[] command, int argc);
 native void native_SQLTxnSuccessCallback(Database db, int data, int numQueries, DBResultSet[] results, int[] queryData);
 native void native_SQLTxnFailureCallback(Database db, int data, int numQueries, const char[] error, int failIndex, int[] queryData);
 native void native_SQLTCallbackConnect(Handle owner, Handle hndl, const char[] error, int data);
@@ -112,6 +109,12 @@ native Action native_SingleEntityOutputCallback(const char[] output, int caller,
 native Action native_TimerCallback(Handle timer, int data);
 native void native_OnMapTimeLeftChanged();
 
+// SDKTOOLS_HOOKS.INC - Natives declaration
+native Action native_OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2]);
+native void native_OnPlayerRunCmdPost(int client, int buttons, int impulse, const float vel[3], const float angles[3], int weapon, int subtype, int cmdnum, int tickcount, int seed, const int mouse[2]);
+native Action native_OnFileSend(int client, const char[] sFile);
+native Action native_OnFileReceive(int client, const char[] sFile);
+
 // SDKHOOKS.INC - Natives declaration
 native void native_OnEntityCreated(int entity, const char[] classname);
 native void native_OnEntitySpawned(int entity, const char[] classname);
@@ -128,6 +131,10 @@ native Action native_CS_OnTerminateRound(float &delay, CSRoundEndReason &reason)
 // CONSOLE.INC - Natives declaration
 native Action native_OnClientSayCommand(int client, const char[] command, const char[] sArgs);
 native int native_OnClientSayCommand_Post(int client, const char[] command, const char[] sArgs);
+
+native Action native_ConCmdCallback(int client, int argc);
+native Action native_SrvCmdCallback(int argc);
+native Action native_CmdListenerCallback(int client, const char[] command, int argc);
 
 // CLIENTS.INC - Natives declaration
 native bool native_OnClientConnect(int client, char[] rejectmsg, int maxlen);
@@ -235,22 +242,8 @@ public bool SDKHooksCanBeAutobalanced(int client, bool origRet)
 	{ return native_SDKHooksCanBeAutobalanced(client, origRet); }
 
 // Callbacks
-public Action ConCmdCallback(int client, int argc)
-{
-	char cmd[32];
-	GetCmdArg(0, cmd, sizeof(cmd));
-	char args[255];
-	GetCmdArgString(args, sizeof(args));
-	native_ConCmdCallback(client, cmd, args);
-}
-public Action SrvCmdCallback(int argc)
-{
-	char cmd[32];
-	GetCmdArg(0, cmd, sizeof(cmd));
-	char args[255];
-	GetCmdArgString(args, sizeof(args));
-	native_SrvCmdCallback(cmd, args);
-}
+public Action ConCmdCallback(int client, int argc) { return native_ConCmdCallback(client, argc); }
+public Action SrvCmdCallback(int argc) { return native_SrvCmdCallback(argc); }
 public Action CmdListenerCallback(int client, const char[] command, int argc) { return native_CmdListenerCallback(client, command, argc); }
 public void SQLTxnSuccessCallback(Database db, any data, int numQueries, DBResultSet[] results, any[] queryData) { native_SQLTxnSuccessCallback(db, data, numQueries, results, queryData); }
 public void SQLTxnFailureCallback(Database db, any data, int numQueries, const char[] error, int failIndex, any[] queryData) { native_SQLTxnFailureCallback(db, data, numQueries, error, failIndex, queryData); }
@@ -1017,6 +1010,17 @@ public void public_ActivateEntity(int entity) { ActivateEntity(entity); }
 public void public_SetClientInfo(int client, const char[] key, const char[] value) { SetClientInfo(client, key, value); }
 public void public_SetClientName(int client, const char[] name) { SetClientName(client, name); }
 public int public_GivePlayerAmmo(int client, int amount, int ammotype, bool suppressSound) { return GivePlayerAmmo(client, amount, ammotype, suppressSound); }
+
+/* SDKTOOLS_HOOKS.INC */
+// SDKTOOLS_HOOKS.INC - Natives
+public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
+{
+	return native_OnPlayerRunCmd(client, buttons, impulse, vel, angles, weapon, subtype, cmdnum, tickcount, seed, mouse);
+}
+public void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float vel[3], const float angles[3], int weapon, int subtype, int cmdnum, int tickcount, int seed, const int mouse[2])
+{
+	native_OnPlayerRunCmdPost(client, buttons, impulse, vel, angles, weapon, subtype, cmdnum, tickcount, seed, mouse);
+}
 
 /* SDKHOOKS.INC */
 // Helper

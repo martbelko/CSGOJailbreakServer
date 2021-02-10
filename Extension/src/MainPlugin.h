@@ -3,171 +3,109 @@
 #include "smsdk_ext.h"
 
 #include "Defines.h"
-
 #include "PublicManager.h"
+#include "BasePlugin.h"
 
-using PM = PublicManager;
+using P = PublicManager;
+
+extern BasePlugin* GetPlugin();
 
 class MainPlugin
 {
 public:
-	static Action ConCmdCallback(int client, char* command, char* args);
-	static Action SrvCmdCallback(char* command, char* args);
-	static Action CmdListenerCallback(int client, char* command, int argc);
-
-	static bool FilterClientsFunc(int entity, int contentsMask, void* data)
-	{
-		if (entity > PublicManager::GetMaxClients())
-			return false;
-		int caller = reinterpret_cast<int>(data);
-		return caller != entity;
-	}
-
-	static bool LineGoesThroughSmoke(float from[3], float to[3])
-	{
-		static Address TheBots;
-		static Handle CBotManager_IsLineBlockedBySmoke;
-		static int OS = 0;
-		if (OS == 0)
-		{
-			Handle hGameConf = PM::LoadGameConfigFile("LineGoesThroughSmoke.games");
-			if (!hGameConf)
-			{
-				PM::SetFailState("Could not read LineGoesThroughSmoke.games.txt");
-				return false;
-			}
-
-			OS = PM::GameConfGetOffset(hGameConf, "OS");
-
-			TheBots = PM::GameConfGetAddress(hGameConf, "TheBots");
-			if (!TheBots)
-			{
-				PM::CloseHandle(hGameConf);
-				PM::SetFailState("TheBots == null");
-				return false;
-			}
-
-			PM::StartPrepSDKCall(SDKCall_Raw);
-			PM::PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CBotManager::IsLineBlockedBySmoke");
-			PM::PrepSDKCall_AddParameter(SDKType_Vector, SDKPass_Pointer);
-			PM::PrepSDKCall_AddParameter(SDKType_Vector, SDKPass_Pointer);
-			if (OS == 1)
-				PM::PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain);
-			PM::PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
-			if (!(CBotManager_IsLineBlockedBySmoke = PM::EndPrepSDKCall()))
-			{
-				PM::CloseHandle(hGameConf);
-				PM::SetFailState("Failed to get CBotManager::IsLineBlockedBySmoke function");
-				return false;
-			}
-
-			PM::CloseHandle(hGameConf);
-		}
-
-		if (OS == 1)
-			return PM::SDKCallSmoke4(CBotManager_IsLineBlockedBySmoke, TheBots, from, to, 1.0f);
-		return PM::SDKCallSmoke3(CBotManager_IsLineBlockedBySmoke, TheBots, from, to);
-	}
-
 	// SOURCEMOD.INC
 
 	static void OnPluginStart()
 	{
-		rootconsole->ConsolePrint("Plugin Start");
-
-		PublicManager::HookEvent(MainPlugin::OnEventHookPre, "round_start", EventHookMode::EventHookMode_Pre);
-		PublicManager::HookEvent(MainPlugin::OnEventHookPost, "round_start", EventHookMode::EventHookMode_Post);
-
-		PublicManager::RegConsoleCmd("sm_test", "Testing...", 0);
-
-		for (int i = 1; i <= PublicManager::GetMaxClients(); ++i)
-			if (PublicManager::IsClientInGame(i))
-				OnClientPutInServer(i);
-
-		// PublicManager::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackBanlist, "banlist", 0);
-		// PublicManager::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackDefault, "default", 0);
-	}
-
-	static APLRes AskPluginLoad2(Handle myself, bool late, char* error, int errMax)
-	{
-		return APLRes_Success;
+		s_Plugin = GetPlugin();
+		s_Plugin->OnPluginStart();
 	}
 
 	static void OnPluginEnd()
 	{
-		rootconsole->ConsolePrint("Plugin End");
+		s_Plugin->OnPluginEnd();
 	}
 
 	static void OnPluginPauseChange(bool pause)
 	{
-
+		s_Plugin->OnPluginPauseChange(pause);
 	}
 
 	static void OnGameFrame()
 	{
-
+		s_Plugin->OnGameFrame();
 	}
 
 	static void OnMapStart()
 	{
-
+		s_Plugin->OnMapStart();
 	}
 
 	static void OnMapEnd()
 	{
-
+		s_Plugin->OnMapEnd();
 	}
 
 	static void OnConfigsExecuted()
 	{
-
+		s_Plugin->OnConfigsExecuted();
 	}
 
 	static void OnAutoConfigsBuffered()
 	{
-
+		s_Plugin->OnAutoConfigsBuffered();
 	}
 
 	static void OnAllPluginsLoaded()
 	{
-
+		s_Plugin->OnAllPluginsLoaded();
 	}
 
 	static void OnLibraryAdded(const char* name)
 	{
-
+		s_Plugin->OnLibraryAdded(name);
 	}
 
 	static void OnLibraryRemoved(const char* name)
 	{
-
+		s_Plugin->OnLibraryRemoved(name);
 	}
 
 	static bool OnClientFloodCheck(int client)
 	{
-		return false;
+		return s_Plugin->OnClientFloodCheck(client);
 	}
 
 	static void OnClientFloodResult(int client, bool blocked)
 	{
-
+		s_Plugin->OnClientFloodResult(client, blocked);
 	}
 
 	// SDKTOOLS_VOICE.INC
 
-	static void OnClientSpeaking(int client) {  }
-	static void OnClientSpeakingEnd(int client) {  }
+	static void OnClientSpeaking(int client)
+	{
+		s_Plugin->OnClientSpeaking(client);
+	}
+
+	static void OnClientSpeakingEnd(int client)
+	{
+		s_Plugin->OnClientSpeakingEnd(client);
+	}
 
 	// LOGGING.INC
 
 	static Action OnLogAction(Handle source, Identity ident, int client, int target, const char* message)
 	{
-		return Plugin_Continue;
+		return s_Plugin->OnLogAction(source, ident, client, target, message);
 	}
 
 	// TIMERS.INC
 
-	static void OnMapTimeLeftChanged() {}
+	static void OnMapTimeLeftChanged()
+	{
+		s_Plugin->OnMapTimeLeftChanged();
+	}
 
 	// SDKTOOLS_HOOKS.INC
 
@@ -175,32 +113,42 @@ public:
 		float angles[3], int& weapon, int& subtype, int& cmdnum, int& tickcount,
 		int& seed, int mouse[2])
 	{
-		return Plugin_Continue;
+		return s_Plugin->OnPlayerRunCmd(client, buttons, impulse, velocity, angles, weapon, subtype, cmdnum, tickcount, seed, mouse);
 	}
 
 	static void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float velocity[3],
 		const float angles[3], int weapon, int subtype, int cmdnum, int tickcount,
 		int seed, const int mouse[2])
 	{
-	}
-
-	static Action OnFileSend(int client, const char* filepath)
-	{
-		return Plugin_Continue;
-	}
-
-	static Action OnFileReceive(int client, const char* filepath)
-	{
-		return Plugin_Continue;
+		s_Plugin->OnPlayerRunCmdPost(client, buttons, impulse, velocity, angles, weapon, subtype, cmdnum, tickcount, seed, mouse);
 	}
 
 	// SDKHOOKS.INC
 
-	static void OnEntityCreated(int entity, const char* classname);
-	static void OnEntitySpawned(int entity, const char* classname);
-	static void OnEntityDestroyed(int entity);
-	static Action OnGetGameDescription(char gameDesc[64]);
-	static Action OnLevelInit(const char* mapName, char mapEntities[2097152]);
+	static void OnEntityCreated(int entity, const char* classname)
+	{
+		s_Plugin->OnEntityCreated(entity, classname);
+	}
+
+	static void OnEntitySpawned(int entity, const char* classname)
+	{
+		s_Plugin->OnEntitySpawned(entity, classname);
+	}
+
+	static void OnEntityDestroyed(int entity)
+	{
+		s_Plugin->OnEntityDestroyed(entity);
+	}
+
+	static Action OnGetGameDescription(char gameDesc[64])
+	{
+		return s_Plugin->OnGetGameDescription(gameDesc);
+	}
+
+	static Action OnLevelInit(const char* mapName, char mapEntities[2097152])
+	{
+		return s_Plugin->OnLevelInit(mapName, mapEntities);
+	}
 	// callbacks
 
 	static void SDKHookCallback1(int client) { }
@@ -232,11 +180,6 @@ public:
 		return 0;
 	}
 
-	// EVENTS.INC
-
-	static Action OnEventHookPre(EventHandle eventHandle, const char* name, bool dontBroadcast);
-	static Action OnEventHookPost(EventHandle eventHandle, const char* name, bool dontBroadcast);
-
 	// DBI.INC
 
 	static void OnSQLTConnectCallbackBanlist(Handle owner, Handle hndl, const char* error, int data);
@@ -245,32 +188,104 @@ public:
 
 	// CSTRIKE.INC
 
-	static Action CS_OnBuyCommand(int client, const char* weapon);
-	static Action CS_OnCSWeaponDrop(int client, int weaponIndex);
-	static Action CS_OnGetWeaponPrice(int client, const char* weapon, int& price);
-	static Action CS_OnTerminateRound(float& delay, CSRoundEndReason& reason);
+	static Action CS_OnBuyCommand(int client, const char* weapon)
+	{
+		return s_Plugin->CS_OnBuyCommand(client, weapon);
+	}
+
+	static Action CS_OnCSWeaponDrop(int client, int weaponIndex)
+	{
+		return s_Plugin->CS_OnCSWeaponDrop(client, weaponIndex);
+	}
+
+	static Action CS_OnGetWeaponPrice(int client, const char* weapon, int& price)
+	{
+		return s_Plugin->CS_OnGetWeaponPrice(client, weapon, price);
+	}
+
+	static Action CS_OnTerminateRound(float& delay, CSRoundEndReason& reason)
+	{
+		return s_Plugin->CS_OnTerminateRound(delay, reason);
+	}
 
 	// CONSOLE.INC
 
-	static Action OnClientSayCommand(int client, char* command, char* args);
-	static void OnClientSayCommandPost(int client, char* command, char* args);
+	static Action OnClientSayCommand(int client, char* command, char* args)
+	{
+		return s_Plugin->OnClientSayCommand(client, command, args);
+	}
+
+	static void OnClientSayCommandPost(int client, char* command, char* args)
+	{
+		s_Plugin->OnClientSayCommandPost(client, command, args);
+	}
 
 	// CLIENT.INC
 
-	static bool OnClientConnect(int client, char* rejectmsg, int maxlen);
-	static void OnClientConnected(int client);
+	static bool OnClientConnect(int client, char* rejectmsg, int maxlen)
+	{
+		return s_Plugin->OnClientConnect(client, rejectmsg, maxlen);
+	}
+
+	static void OnClientConnected(int client)
+	{
+		s_Plugin->OnClientConnected(client);
+	}
+
 	static void OnClientPutInServer(int client)
 	{
-		PublicManager::SDKHook(client, SDKHookType::SDKHook_TraceAttack, MainPlugin::SDKHookCallback9);
+		s_Plugin->OnClientPutInServer(client);
 	}
-	static void OnClientDisconnect(int client);
-	static void OnClientDisconnectPost(int client);
-	static Action OnClientCommand(int client, int args);
-	static Action OnClientCommandKeyValues(int client, KeyValuesHandle kv); // TODO: KeyValues?
-	static void OnClientCommandKeyValuesPost(int client, KeyValuesHandle kv); // TODO: KeyValues?
-	static void OnClientSettingsChanged(int client);
-	static void OnClientAuthorized(int client, const char* auth);
-	static Action  OnClientPreAdminCheck(int client);
-	static void OnClientPostAdminFilter(int client);
-	static void OnClientPostAdminCheck(int client);
+
+	static void OnClientDisconnect(int client)
+	{
+		s_Plugin->OnClientDisconnect(client);
+	}
+
+	static void OnClientDisconnectPost(int client)
+	{
+		s_Plugin->OnClientDisconnectPost(client);
+	}
+
+	static Action OnClientCommand(int client, int args)
+	{
+		return s_Plugin->OnClientCommand(client, args);
+	}
+
+	static Action OnClientCommandKeyValues(int client, KeyValuesHandle kv)
+	{
+		return s_Plugin->OnClientCommandKeyValues(client, kv);
+	}
+
+	static void OnClientCommandKeyValuesPost(int client, KeyValuesHandle kv)
+	{
+		s_Plugin->OnClientCommandKeyValuesPost(client, kv);
+	}
+
+	static void OnClientSettingsChanged(int client)
+	{
+		s_Plugin->OnClientSettingsChanged(client);
+	}
+
+	static void OnClientAuthorized(int client, const char* auth)
+	{
+		s_Plugin->OnClientAuthorized(client, auth);
+	}
+
+	static Action  OnClientPreAdminCheck(int client)
+	{
+		return s_Plugin->OnClientPreAdminCheck(client);
+	}
+
+	static void OnClientPostAdminFilter(int client)
+	{
+		s_Plugin->OnClientPostAdminFilter(client);
+	}
+
+	static void OnClientPostAdminCheck(int client)
+	{
+		s_Plugin->OnClientPostAdminCheck(client);
+	}
+private:
+	static BasePlugin* s_Plugin;
 };

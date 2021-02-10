@@ -367,8 +367,7 @@ public:
 		{
 			if (IsClientInGame(i))
 			{
-				// TODO:
-				//SetGlobalTransTarget(i);
+				SetGlobalTransTarget(i);
 				PrintToChat(i, format, args...);
 			}
 		}
@@ -411,13 +410,12 @@ public:
 	template<typename ... Args>
 	static void PrintCenterTextAll(const char* format, Args ... args)
 	{
-		char buffer[254];
 		for (int i = 1; i <= s_MaxClients; ++i)
 		{
 			if (IsClientInGame(i))
 			{
-				//SetGlobalTransTarget(i);
-				PrintCenterText(i, "%s", buffer, args...);
+				SetGlobalTransTarget(i);
+				PrintCenterText(i, format, args...);
 			}
 		}
 	}
@@ -459,13 +457,12 @@ public:
 	template<typename ... Args>
 	static void PrintHintTextToAll(const char* format, Args ... args)
 	{
-		char buffer[254];
 		for (int i = 1; i <= s_MaxClients; ++i)
 		{
 			if (IsClientInGame(i))
 			{
-				// SetGlobalTransTarget(i);
-				PrintHintText(i, "%s", buffer, args...);
+				SetGlobalTransTarget(i);
+				PrintHintText(i, format, args...);
 			}
 		}
 	}

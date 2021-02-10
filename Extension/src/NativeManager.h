@@ -9,15 +9,12 @@
 class NativeManager
 {
 public:
-	static cell_t ConCmdCallback(IPluginContext* pContext, const cell_t* params);
-	static cell_t SrvCmdCallback(IPluginContext* pContext, const cell_t* params);
-	static cell_t CmdListenerCallback(IPluginContext* pContext, const cell_t* params);
-
 	// SOURCEMOD.INC
 
 	static int OnPluginStart(IPluginContext* pContext, const cell_t* params)
 	{
 		PublicManager::InitOnPluginStart(pContext);
+
 		MainPlugin::OnPluginStart();
 		return 0;
 	}
@@ -327,10 +324,83 @@ public:
 
 	// SDKTOOLS_HOOKS.INC
 
-	static int OnPlayerRunCmd(IPluginContext* pContext, const cell_t* params);
-	static int OnPlayerRunCmdPost(IPluginContext* pContext, const cell_t* params);
-	static int OnFileSend(IPluginContext* pContext, const cell_t* params);
-	static int OnFileReceive(IPluginContext* pContext, const cell_t* params);
+	static int OnPlayerRunCmd(IPluginContext* pContext, const cell_t* params)
+	{
+		int client = params[1];
+
+		int* buttonsPtr;
+		pContext->LocalToPhysAddr(params[2], &buttonsPtr);
+
+		int* impulsePtr;
+		pContext->LocalToPhysAddr(params[3], &impulsePtr);
+
+		int* velocityPtr;
+		pContext->LocalToPhysAddr(params[4], &velocityPtr);
+		float velocity[3] = { sp_ctof(velocityPtr[0]), sp_ctof(velocityPtr[1]), sp_ctof(velocityPtr[2]) };
+
+		int* anglesPtr;
+		pContext->LocalToPhysAddr(params[5], &anglesPtr);
+		float angles[3] = { sp_ctof(anglesPtr[0]), sp_ctof(anglesPtr[1]), sp_ctof(anglesPtr[2]) };
+
+		int* weaponPtr;
+		pContext->LocalToPhysAddr(params[6], &weaponPtr);
+
+		int* subTypePtr;
+		pContext->LocalToPhysAddr(params[7], &subTypePtr);
+
+		int* cmdNumPtr;
+		pContext->LocalToPhysAddr(params[8], &cmdNumPtr);
+
+		int* tickCountPtr;
+		pContext->LocalToPhysAddr(params[9], &tickCountPtr);
+
+		int* seedPtr;
+		pContext->LocalToPhysAddr(params[10], &seedPtr);
+
+		int* mousePtr;
+		pContext->LocalToPhysAddr(params[11], &mousePtr);
+
+		Action res = MainPlugin::OnPlayerRunCmd(client, *buttonsPtr, *impulsePtr, velocity,
+			angles, *weaponPtr, *subTypePtr, *cmdNumPtr, *tickCountPtr, *seedPtr, mousePtr);
+
+		anglesPtr[0] = sp_ftoc(angles[0]);
+		anglesPtr[1] = sp_ftoc(angles[1]);
+		anglesPtr[2] = sp_ftoc(angles[2]);
+
+		velocityPtr[0] = sp_ftoc(velocity[0]);
+		velocityPtr[1] = sp_ftoc(velocity[1]);
+		velocityPtr[2] = sp_ftoc(velocity[2]);
+
+		return res;
+	}
+
+	static int OnPlayerRunCmdPost(IPluginContext* pContext, const cell_t* params)
+	{
+		int client = params[1];
+		int buttons = params[2];
+		int impulse = params[3];
+
+		int* velocityPtr;
+		pContext->LocalToPhysAddr(params[4], &velocityPtr);
+		const float velocity[3] = { sp_ctof(velocityPtr[0]), sp_ctof(velocityPtr[1]), sp_ctof(velocityPtr[2]) };
+
+		int* anglesPtr;
+		pContext->LocalToPhysAddr(params[5], &anglesPtr);
+		const float angles[3] = { sp_ctof(anglesPtr[0]), sp_ctof(anglesPtr[1]), sp_ctof(anglesPtr[2]) };
+
+		int weapon = params[6];
+		int subType = params[7];
+		int cmdnum = params[8];
+		int tickCount = params[9];
+		int seed = params[10];
+
+		int* mousePtr;
+		pContext->LocalToPhysAddr(params[11], &mousePtr);
+
+		MainPlugin::OnPlayerRunCmdPost(client, buttons, impulse, velocity, angles,
+			weapon, subType, cmdnum, tickCount, seed, mousePtr);
+		return 0;
+	}
 
 	// SDKHOOKS.INC
 
@@ -431,6 +501,42 @@ public:
 
 	static int OnClientSayCommand(IPluginContext* pContext, const cell_t* params);
 	static int OnClientSayCommandPost(IPluginContext* pContext, const cell_t* params);
+
+	static int ConCmdCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		int client = params[1];
+		int argc = params[2];
+
+		char command[32];
+		PublicManager::GetCmdArg(0, command, sizeof(command));
+		std::string commandStr(command);
+		ConCmdFunc callback = PublicManager::s_ConCmdCallbacks[commandStr];
+		return callback(client, commandStr, argc);
+	}
+
+	static int SrvCmdCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		int argc = params[1];
+
+		char command[32];
+		PublicManager::GetCmdArg(0, command, sizeof(command));
+		std::string commandStr(command);
+		SrvCmdFunc callback = PublicManager::s_SrvCmdCallbacks[commandStr];
+		return callback(commandStr, argc);
+	}
+
+	static int CmdListenerCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		int client = params[1];
+		char* cmd;
+		pContext->LocalToString(params[2], &cmd);
+		int argc = params[3];
+
+		std::string commandStr(cmd);
+		CommandListenerFunc callback = PublicManager::s_CommandListenerCallbacks[commandStr];
+		return callback(client, commandStr, argc);
+	}
+
 
 	// CLIENTS.INC
 
