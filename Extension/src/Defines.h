@@ -136,13 +136,8 @@ enum AuthIdType
 
 #define INVALID_FCVAR_FLAGS (-1)
 
-/**
- * Console variable query helper values.
- */
-enum QueryCookie
-{
-	QUERYCOOKIE_FAILED = 0
-};
+using QueryCookie = int;
+#define QUERYCOOKIE_FAILED = 0
 
 /**
  * Reply sources for commands.
@@ -1153,3 +1148,27 @@ using GameDataHandle = int;
 static int MINUS_ONE = -1;
 
 static int IVEC_2[2] = { 0, 0 };
+
+// CONVARS.INC
+
+/**
+ * Console variable bound values used with Get/SetConVarBounds()
+ */
+enum ConVarBounds
+{
+	ConVarBound_Upper = 0,
+	ConVarBound_Lower
+};
+
+/**
+ * Console variable query result values.
+ */
+enum ConVarQueryResult
+{
+	ConVarQuery_Okay = 0,               //< Retrieval of client convar value was successful. */
+	ConVarQuery_NotFound,               //< Client convar was not found. */
+	ConVarQuery_NotValid,               //< A console command with the same name was found, but there is no convar. */
+	ConVarQuery_Protected               //< Client convar was found, but it is protected. The server cannot retrieve its value. */
+};
+
+using ConVarHandle = int;

@@ -7,6 +7,9 @@ SMEXT_LINK(&g_Extension);
 
 const sp_nativeinfo_t MyNatives[] =
 {
+	// CONVARS.INC
+	{ "native_ConVarChangedCallback", NativeManager::ConVarChangedCallback },
+	{ "native_ConVarQueryFinishedCallback", NativeManager::ConVarQueryFinishedCallback },
 	// SOURCEMOD.INC
 	{ "native_OnPluginStart", NativeManager::OnPluginStart },
 	{ "native_OnPluginEnd", NativeManager::OnPluginEnd },

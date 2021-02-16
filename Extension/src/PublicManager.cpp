@@ -6,6 +6,29 @@ int PublicManager::s_MaxClients = 0;
 IPluginFunction* PublicManager::s_SDKCallSmoke3Func;
 IPluginFunction* PublicManager::s_SDKCallSmoke4Func;
 
+// CONVARS.INC
+IPluginFunction* PublicManager::s_CreateConVarFunc;
+IPluginFunction* PublicManager::s_FindConVarFunc;
+IPluginFunction* PublicManager::s_HookConVarChangeFunc;
+IPluginFunction* PublicManager::s_UnhookConVarChangeFunc;
+IPluginFunction* PublicManager::s_GetConVarBoolFunc;
+IPluginFunction* PublicManager::s_SetConVarBoolFunc;
+IPluginFunction* PublicManager::s_GetConVarIntFunc;
+IPluginFunction* PublicManager::s_SetConVarIntFunc;
+IPluginFunction* PublicManager::s_GetConVarFloatFunc;
+IPluginFunction* PublicManager::s_SetConVarFloatFunc;
+IPluginFunction* PublicManager::s_GetConVarStringFunc;
+IPluginFunction* PublicManager::s_SetConVarStringFunc;
+IPluginFunction* PublicManager::s_ResetConVarFunc;
+IPluginFunction* PublicManager::s_GetConVarDefaultFunc;
+IPluginFunction* PublicManager::s_GetConVarFlagsFunc;
+IPluginFunction* PublicManager::s_SetConVarFlagsFunc;
+IPluginFunction* PublicManager::s_GetConVarBoundsFunc;
+IPluginFunction* PublicManager::s_SetConVarBoundsFunc;
+IPluginFunction* PublicManager::s_GetConVarNameFunc;
+IPluginFunction* PublicManager::s_SendConVarValueFunc;
+IPluginFunction* PublicManager::s_QueryClientConVarFunc;
+
 // SOURCEMOD.INC
 IPluginFunction* PublicManager::s_GetMyHandleFunc;
 IPluginFunction* PublicManager::s_GetPluginIteratorFunc;
@@ -466,6 +489,7 @@ IPluginFunction* PublicManager::s_HookEventExFunc;
 IPluginFunction* PublicManager::s_UnhookEventFunc;
 IPluginFunction* PublicManager::s_CreateEventFunc;
 IPluginFunction* PublicManager::s_FireEventFunc;
+IPluginFunction* PublicManager::s_FireEventToClientFunc;
 IPluginFunction* PublicManager::s_CancelCreatedEventFunc;
 IPluginFunction* PublicManager::s_GetEventBoolFunc;
 IPluginFunction* PublicManager::s_SetEventBoolFunc;
@@ -640,6 +664,9 @@ IPluginFunction* PublicManager::s_ChangeClientTeamFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientSerialFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientFromSerialFunc = nullptr;
 
+std::unordered_map<Handle, ConVarChangedFunc> PublicManager::s_ConVarChangedCallbacks;
+std::unordered_map<std::pair<int, std::string>, ConVarQueryFinishedFunc, pair_hash> PublicManager::s_ConVarFinishedCallbacks;
+
 AmbientSHookFunc PublicManager::s_AmbientSHookCallback;
 NormalSHookFunc PublicManager::s_NormalSHookCallback;
 
@@ -691,6 +718,29 @@ void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 	// OWN
 	LOAD_PTR(SDKCallSmoke3);
 	LOAD_PTR(SDKCallSmoke4);
+
+	// CONVARS.INC
+	LOAD_PTR(CreateConVar);
+	LOAD_PTR(FindConVar);
+	LOAD_PTR(HookConVarChange);
+	LOAD_PTR(UnhookConVarChange);
+	LOAD_PTR(GetConVarBool);
+	LOAD_PTR(SetConVarBool);
+	LOAD_PTR(GetConVarInt);
+	LOAD_PTR(SetConVarInt);
+	LOAD_PTR(GetConVarFloat);
+	LOAD_PTR(SetConVarFloat);
+	LOAD_PTR(GetConVarString);
+	LOAD_PTR(SetConVarString);
+	LOAD_PTR(ResetConVar);
+	LOAD_PTR(GetConVarDefault);
+	LOAD_PTR(GetConVarFlags);
+	LOAD_PTR(SetConVarFlags);
+	LOAD_PTR(GetConVarBounds);
+	LOAD_PTR(SetConVarBounds);
+	LOAD_PTR(GetConVarName);
+	LOAD_PTR(SendConVarValue);
+	LOAD_PTR(QueryClientConVar);
 
 	// SOURCEMOD.INC
 	LOAD_PTR(GetMyHandle);
@@ -1153,6 +1203,7 @@ void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 	LOAD_PTR(UnhookEvent);
 	LOAD_PTR(CreateEvent);
 	LOAD_PTR(FireEvent);
+	LOAD_PTR(FireEventToClient);
 	LOAD_PTR(CancelCreatedEvent);
 	LOAD_PTR(GetEventBool);
 	LOAD_PTR(SetEventBool);

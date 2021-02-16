@@ -172,14 +172,6 @@ public:
 	static void SDKHookCallback14(int weapon, bool bSuccessful) {  }
 	static bool SDKHookCallback15(int client, bool origRet) { return true; }
 
-	// MENUS.INC
-
-	static int TestMenuHandler(MenuHandle menu, MenuAction action, int param1, int param2)
-	{
-		rootconsole->ConsolePrint("Here LOL");
-		return 0;
-	}
-
 	// DBI.INC
 
 	static void OnSQLTConnectCallbackBanlist(Handle owner, Handle hndl, const char* error, int data);

@@ -1,5 +1,14 @@
 #include "Plugin.h"
 
+#include "Plugin/Shop/ShopItemCallbacks.h"
+
+#include "Plugin/Offsets.h"
+#include "Plugin/Utils.h"
+
+static constexpr float s_ShopTime = 120.0f; // After this amount of seconds, shop will be disabled
+
+using P = PublicManager;
+
 Plugin plugin;
 BasePlugin* GetPlugin()
 {
@@ -60,19 +69,13 @@ static bool LineGoesThroughSmoke(float from[3], float to[3])
 	return P::SDKCallSmoke3(CBotManager_IsLineBlockedBySmoke, TheBots, from, to);
 }
 
-static Action OnEventHookPreStatic(EventHandle eventHandle, const char* name, bool dontBroadcast)
+static void OnSQLTConnectCallbackBanlist(Handle owner, Handle hndl, const char* error, int data)
 {
-	return plugin.OnEventHookPre(eventHandle, name, dontBroadcast);
-}
-
-static Action OnEventHookPostStatic(EventHandle eventHandle, const char* name, bool dontBroadcast)
-{
-	return plugin.OnEventHookPost(eventHandle, name, dontBroadcast);
-}
-
-static Action ConCmdCallbackStatic(int client, std::string& command, int argc)
-{
-	return plugin.ConCmdCallback(client, command, argc);
+	rootconsole->ConsolePrint("Connected to BanList %d", hndl);
+	if (hndl == INVALID_HANDLE)
+		PublicManager::PrintToServer("Failed to connect to Banlist database: ERROR: %s", (const char*)error);
+	else
+		PublicManager::PrintToServer("Connection to Banlist successful");
 }
 
 /* PLUGIN */
@@ -80,64 +83,120 @@ static Action ConCmdCallbackStatic(int client, std::string& command, int argc)
 void Plugin::OnPluginStart()
 {
 	rootconsole->ConsolePrint("Plugin Start");
+	Offset::OnPluginStart();
 
-	P::HookEvent(OnEventHookPreStatic, "round_start", EventHookMode::EventHookMode_Pre);
-	P::HookEvent(OnEventHookPostStatic, "round_start", EventHookMode::EventHookMode_Post);
+	P::HookEvent("round_start", OnRoundStartPost, EventHookMode::EventHookMode_Post);
+	P::RegConsoleCmd("sm_shop", CMDShopCallbackStatic);
 
-	P::RegConsoleCmd("sm_test", ConCmdCallbackStatic);
+	std::vector<ShopItem> items;
+	items.emplace_back("hammer", 10, &TShopItemHammer, VipMode::NONE);
+	items.emplace_back("spanner", 12, &TShopSpanner, VipMode::NONE);
+	items.emplace_back("axe", 15, &TShopAxe, VipMode::NONE);
+	items.emplace_back("Knife", 20, &TShopKnife, VipMode::NONE);
+	items.emplace_back("taser", 50, &TShopTaser, VipMode::VIP);
+	items.emplace_back("healthshot", 20, &TShopHealhshot, VipMode::NONE);
+	items.emplace_back("hegrenade", 15, &TShopHEGrenade, VipMode::NONE);
+	items.emplace_back("flashbang", 12, &TShopFlashbang, VipMode::NONE);
+	items.emplace_back("molotov", 10, &TShopMolotov, VipMode::NONE);
+	items.emplace_back("tagrenade", 12, &TShopTAGrenade, VipMode::NONE);
+	items.emplace_back("kevlar", 20, &TShopKevlar, VipMode::NONE);
+	items.emplace_back("kevlarhelmet", 30, &TShopKevlarHelmet, VipMode::NONE);
+	items.emplace_back("breachcharge", 70, &TShopBreachCharge, VipMode::EXTRA_VIP);
+	items.emplace_back("djump", 40, &TShopDJump, VipMode::NONE);
+	items.emplace_back("fastwalk", 50, &TShopFastwalk, VipMode::NONE, 5.0f);
+	items.emplace_back("invisibility", 80, &TShopInvisibility, VipMode::NONE, 5.0f);
+	items.emplace_back("changeskin", 60, &TShopChangeskin, VipMode::NONE);
+	items.emplace_back("blind", 200, &TShopBlind, VipMode::VIP, 10.0f);
+	items.emplace_back("openchance", 60, &TShopOpen, VipMode::VIP);
+	items.emplace_back("fortune", 30, &TShopFortune, VipMode::NONE);
+	m_TShop = Shop("tshop", items);
+
+	std::vector<ShopItem> ctItems;
+	ctItems.emplace_back("helmet", 20, &CTShopHelmet);
+	ctItems.emplace_back("tagrenade", 20, &CTShopTAGrenade);
+	ctItems.emplace_back("healthshot", 30, &CTShopHealthshot);
+	ctItems.emplace_back("djump", 30, &CTShopDJump);
+	ctItems.emplace_back("shield", 50, &CTShopShield, VipMode::VIP);
+	ctItems.emplace_back("heavy", 70, &CTShopHeavySuit, VipMode::EXTRA_VIP);
+	m_CTShop = Shop("ctshop", ctItems);
 
 	for (int i = 1; i <= P::GetMaxClients(); ++i)
 		if (P::IsClientInGame(i))
 			OnClientPutInServer(i);
 
-	// PublicManager::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackBanlist, "banlist", 0);
-	// PublicManager::SQL_TConnect(MainPlugin::OnSQLTConnectCallbackDefault, "default", 0);
+	//PublicManager::SQL_TConnect(OnSQLTConnectCallbackBanlist, "banlist", 0);
+}
+
+void Plugin::OnPluginEnd()
+{
+	m_TShop.Delete();
+	m_CTShop.Delete();
 }
 
 void Plugin::OnClientPutInServer(int client)
 {
-	//PublicManager::PrintToChatAll("Hello, %d", client);
+	Shop::OnClientPutInServer(client);
+	P::SDKHook(client, SDKHookType::SDKHook_SpawnPost, OnSpawnPost);
 }
 
-Action Plugin::OnEventHookPre(EventHandle eventHandle, const char* name, bool dontBroadcast)
+Action Plugin::OnRoundStartPost(EventHandle eventHandle, const char* name, bool dontBroadcast)
 {
-	rootconsole->ConsolePrint("Event PRE: %s", name);
-	return Plugin_Continue;
-}
-
-Action Plugin::OnEventHookPost(EventHandle eventHandle, const char* name, bool dontBroadcast)
-{
-	rootconsole->ConsolePrint("Event POST: %s", name);
-	return Plugin_Continue;
-}
-
-Action Plugin::ConCmdCallback(int client, std::string& command, int argc)
-{
-	/*std::string r = "%d %d %d %N %s %s %f %f";
-	int x = 5;
-	int y = 6;
-	int z = 8;
-	float w = 61.49f;
-	float w2 = 0.01f;
-	PublicManager::PrintToConsole(client + 1, r.c_str(), x, y, z, client, "LOL", "WTF", 58.0f, w + 1);
-	PublicManager::PrintToConsole(client + 1, "Bye Bye");
-	float v[3] = { 0, 0, 0 };
-	PublicManager::GetClientAbsOrigin(client + 1, v);
-	PublicManager::PrintToConsole(client + 1, "%f, %f, %f", v[0], v[1], v[2]);
-	for (int i = 1; i <= PublicManager::GetMaxClients(); ++i)
+	if (plugin.m_ShopDisableTimer != INVALID_HANDLE)
 	{
-		if (PublicManager::IsClientInGame(i) && PublicManager::IsFakeClient(i))
-			PublicManager::KickClient(i, "Bye BOTT");
+		P::KillTimer(plugin.m_ShopDisableTimer);
+		plugin.m_ShopDisableTimer = INVALID_HANDLE;
 	}
 
-	PublicManager::ReplyToCommand(client, "LOL YOU NOOB %d", 10);
-	PublicManager::FakeClientCommand(client + 1, "say WTF %s", "ALL");
-	PublicManager::FakeClientCommand(client + 1, "say_team WTF %s", "TEAM");
-	PublicManager::CS_RespawnPlayer(client + 1);*/
+	plugin.m_TShop.SetEnable(true);
+	plugin.m_CTShop.SetEnable(true);
+
+	plugin.m_ShopDisableTimer = P::CreateTimer(s_ShopTime, [](Handle, void* value)
+	{
+		plugin.m_TShop.SetEnable(false);
+		plugin.m_CTShop.SetEnable(false);
+		return Plugin_Continue;
+	},
+	nullptr, TIMER_FLAG_NO_MAPCHANGE);
+	return Plugin_Continue;
+}
+
+void Plugin::OnSpawnPost(int client)
+{
+	Utils::DisarmPlayer(client);
+	P::CreateTimer(0.5f, [](Handle, void* data)
+	{
+		int userid = reinterpret_cast<int>(data);
+		int client = P::GetClientOfUserId(userid);
+		Utils::DisarmPlayer(client);
+		if (P::GetClientTeam(client) == CS_TEAM_T)
+			plugin.m_TShop.DisplayToClient(client, 20);
+		else
+			plugin.m_CTShop.DisplayToClient(client, 20);
+		return Plugin_Continue;
+	},
+	reinterpret_cast<void*>(P::GetClientUserId(client)));
+}
+
+Action Plugin::CMDShopCallbackStatic(int client, std::string& command, int argc)
+{
+	if (P::GetClientTeam(client) == CS_TEAM_T)
+	{
+		if (plugin.m_TShop.IsEnabled())
+			plugin.m_TShop.DisplayToClient(client, 20);
+		else
+			P::PrintCenterText(client, "[URNA SHOP] Sorry, shop is disabled");
+	}
+	else if (P::GetClientTeam(client) == CS_TEAM_CT)
+	{
+		if (plugin.m_CTShop.IsEnabled())
+			plugin.m_CTShop.DisplayToClient(client, 20);
+		else
+			P::PrintCenterText(client, "[URNA SHOP] Sorry, shop is disabled");
+	}
 
 	P::ReplyToCommand(client, command.c_str());
 
-	if (client == 0)
+	/*if (client == 0)
 		++client;
 	float pos[3];
 	P::GetClientEyePosition(client, pos);
@@ -161,54 +220,13 @@ Action Plugin::ConCmdCallback(int client, std::string& command, int argc)
 
 	P::CloseHandle(trace);
 
-	/*float origin[3];
-	PM::GetClientAbsOrigin(client + 1, origin);
-	int* clients = new int[PM::GetMaxClients()];
-	PM::GetClientsInRange(origin, ClientRangeType::RangeType_Audibility, clients, PM::GetMaxClients());
-
-	for (int i = 0; i < PM::GetMaxClients(); ++i)
-	{
-		int c = clients[i];
-		if (c > 0 && c <= PM::GetMaxClients() && PM::IsClientInGame(c))
-		{
-			char name[MAX_PLAYER_NAME_LENGTH];
-			PM::GetClientName(c, name, sizeof(name));
-			rootconsole->ConsolePrint(name);
-		}
-	}
-
-	delete[] clients;
-
-	PublicManager::SetClientName(client + 1, "LOOLUNOOB");
-	PublicManager::ForcePlayerSuicide(client + 2);
-	PublicManager::IgniteEntity(client + 1, 5.0f);
-	PublicManager::SlapPlayer(client + 1, 20);
-
-	PublicManager::SetEntityHealth(client + 1, 300);
-
-	char className[64];
-	PublicManager::GetEdictClassname(client + 1, className, sizeof(className));
-	rootconsole->ConsolePrint("Class Name: %s", className);
-
-	char weapon[64];
-	PublicManager::GetClientWeapon(client + 1, weapon, sizeof(weapon));
-	rootconsole->ConsolePrint("Weapon: %s", weapon);
-
-	PublicManager::CS_SetClientClanTag(client + 1, "LOL");
-
-	char clanTag[32];
-	PublicManager::CS_GetClientClanTag(client + 1, clanTag, sizeof(clanTag));
-	rootconsole->ConsolePrint("Clan: %s", clanTag);
-
 	MenuHandle menu = PublicManager::CreateMenu(TestMenuHandler, MENU_ACTIONS_DEFAULT);
 	PublicManager::SetMenuTitle(menu, "Menu Title here");
 	PublicManager::AddMenuItem(menu, "1", "Choice1", ITEMDRAW_DEFAULT);
 	PublicManager::AddMenuItem(menu, "2", "Choice2", ITEMDRAW_DEFAULT);
 	PublicManager::AddMenuItem(menu, "3", "Choice3", ITEMDRAW_DEFAULT);
 	PublicManager::SetMenuExitButton(menu, false);
-	PublicManager::DisplayMenu(menu, client + 1, 20);
-
-	rootconsole->ConsolePrint("Sizeof(KeyValues) = %d", sizeof(KeyValues));*/
+	PublicManager::DisplayMenu(menu, client + 1, 20);*/
 
 	return Plugin_Handled;
 }

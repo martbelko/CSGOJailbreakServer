@@ -9,6 +9,39 @@
 class NativeManager
 {
 public:
+	// CONVARS.INC
+
+	static int ConVarChangedCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		ConVarHandle convar = params[1];
+		char* oldValue;
+		pContext->LocalToString(params[2], &oldValue);
+		char* newValue;
+		pContext->LocalToString(params[3], &newValue);
+
+		ConVarChangedFunc callback = PublicManager::s_ConVarChangedCallbacks[convar];
+		callback(convar, oldValue, newValue);
+		return 0;
+	}
+
+	static int ConVarQueryFinishedCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		QueryCookie cookie = static_cast<QueryCookie>(params[1]);
+		int client = params[2];
+		ConVarQueryResult result = static_cast<ConVarQueryResult>(params[3]);
+		char* cvarName;
+		pContext->LocalToString(params[4], &cvarName);
+		char* cvarValue;
+		pContext->LocalToString(params[5], &cvarValue);
+		void* value = reinterpret_cast<void*>(params[6]);
+
+		std::string cvarNameStr(cvarName);
+		std::pair<int, std::string> pair = std::make_pair(client, cvarNameStr);
+		ConVarQueryFinishedFunc callback = PublicManager::s_ConVarFinishedCallbacks[pair];
+		callback(cookie, client, result, cvarName, cvarValue, value);
+		return 0;
+	}
+
 	// SOURCEMOD.INC
 
 	static int OnPluginStart(IPluginContext* pContext, const cell_t* params)

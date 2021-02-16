@@ -24,7 +24,7 @@ public:
 	 */
 	static int GivePlayerItem(int client, const char* item, int iSubType = 0)
 	{
-		return ExecFunc(s_GivePlayerItemFunc, client, item);
+		return ExecFunc(s_GivePlayerItemFunc, client, item, iSubType);
 	}
 
 	/**

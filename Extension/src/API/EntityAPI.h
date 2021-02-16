@@ -195,7 +195,7 @@ public:
 	template<typename any>
 	static void SetEntData(int entity, int offset, any value, int size = 4, bool changeState = false)
 	{
-		return ExecFunc(s_SetEntDataFunc, entity, offset, value, size, changeState);
+		ExecFunc(s_SetEntDataFunc, entity, offset, value, size, changeState);
 	}
 
 	/**
