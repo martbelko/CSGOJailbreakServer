@@ -1,5 +1,66 @@
 #pragma once
 
+// SKAHE FLAGS
+
+#define SHAKE_START            (0) // Starts the screen shake for all players within the radius
+#define SHAKE_STOP             (1) // Stops the screen shake for all players within the radius
+#define SHAKE_AMPLITUDE        (2) // Modifies the amplitude of an active screen shake for all players within the radius
+#define SHAKE_FREQUENCY        (3) // Modifies the frequency of an active screen shake for all players within the radius
+#define SHAKE_START_RUMBLEONLY (4) // Starts a shake effect that only rumbles the controller, no screen effect
+#define SHAKE_START_NORUMBLE   (5) // Starts a shake that does NOT rumble the controller
+
+// FADE FLAGS
+
+#define FADE_IN       (0x0001) // Fade in
+#define FADE_OUT      (0x0002) // Fade out
+#define FADE_MODULATE (0x0004) // Modulate (Don't blend)
+#define FADE_STAYOUT  (0x0008) // Ignores the duration, stays faded out until a new fade message is received
+#define FADE_PURGE    (0x0010) // Purges all other fades, replacing them with this one
+
+// RUMBLE INDICES
+
+#define RUMBLE_INVALID                  (-1)
+#define RUMBLE_STOP_ALL                 (0) // Cease all current rumbling effects.
+#define RUMBLE_PISTOL                   (1)
+#define RUMBLE_357                      (2)
+#define RUMBLE_SMG1                     (3)
+#define RUMBLE_AR2                      (4)
+#define RUMBLE_SHOTGUN_SINGLE           (5)
+#define RUMBLE_SHOTGUN_DOUBLE           (6)
+#define RUMBLE_AR2_ALT_FIRE             (7)
+#define RUMBLE_RPG_MISSILE              (8)
+#define RUMBLE_CROWBAR_SWING            (9)
+#define RUMBLE_AIRBOAT_GUN              (10)
+#define RUMBLE_JEEP_ENGINE_LOOP         (11)
+#define RUMBLE_FLAT_LEFT                (12)
+#define RUMBLE_FLAT_RIGHT               (13)
+#define RUMBLE_FLAT_BOTH                (14)
+#define RUMBLE_DMG_LOW                  (15)
+#define RUMBLE_DMG_MED                  (16)
+#define RUMBLE_DMG_HIGH                 (17)
+#define RUMBLE_FALL_LONG                (18)
+#define RUMBLE_FALL_SHORT               (19)
+#define RUMBLE_PHYSCANNON_OPEN          (20)
+#define RUMBLE_PHYSCANNON_PUNT          (21)
+#define RUMBLE_PHYSCANNON_LOW           (22)
+#define RUMBLE_PHYSCANNON_MEDIUM        (23)
+#define RUMBLE_PHYSCANNON_HIGH          (24)
+#define RUMBLE_PORTALGUN_LEFT           (25)
+#define RUMBLE_PORTALGUN_RIGHT          (26)
+#define RUMBLE_PORTAL_PLACEMENT_FAILURE (27)
+
+// RUBLE FLAGS
+
+#define RUMBLE_FLAGS_NONE            (0x0000)
+#define RUMBLE_FLAG_STOP             (0x0001) // Stop any instance of this type of effect that's already playing
+#define RUMBLE_FLAG_LOOP             (0x0002) // Make this effect loop
+#define RUMBLE_FLAG_RESTART          (0x0004) // If this effect is already playing, restart it
+#define RUMBLE_FLAG_UPDATE_SCALE     (0x0008) // Apply DATA to this effect if already playing, but don't restart
+#define RUMBLE_FLAG_ONLYONE          (0x0010) // Don't play this effect if it is already playing
+#define RUMBLE_FLAG_RANDOM_AMPLITUDE (0x0020) // Amplitude scale will be randomly chosen (Between 10% and 100%)
+#define RUMBLE_FLAG_INITIAL_SCALE    (0x0040) // Data is the initial scale to start this effect (* 100)
+
+
 #define MAXPLAYERS      65  /**< Maximum number of players SourceMod supports */
 #define MAX_NAME_LENGTH 128 /**< Maximum buffer required to store a client name */
 
@@ -31,8 +92,8 @@
 
 #define INVALID_HANDLE 0
 
-static constexpr float NULL_VECTOR[] = { 0.0f, 0.0f, 0.0f };
 static int NULL_VALUE = 0;
+extern int NULL_VECTOR;
 
 using Handle = int;
 using EventHandle = int;
@@ -1172,3 +1233,20 @@ enum ConVarQueryResult
 };
 
 using ConVarHandle = int;
+
+// PROTOBUF.INC
+
+#define PB_FIELD_NOT_REPEATED -1
+
+// USERMESSAGES.INC
+
+using UserMsg = int;
+#define INVALID_MESSAGE_ID = -1
+
+#define USERMSG_RELIABLE        (1<<2)    /**< Message will be set on the reliable stream */
+#define USERMSG_INITMSG         (1<<3)    /**< Message will be considered to be an initmsg */
+#define USERMSG_BLOCKHOOKS      (1<<7)    /**< Prevents the message from triggering SourceMod and Metamod hooks */
+
+using ProtobufHandle = int;
+using BfReadHandle = int;
+using BfWriteHandle = int;

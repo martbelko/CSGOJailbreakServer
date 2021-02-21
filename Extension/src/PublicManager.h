@@ -226,6 +226,8 @@ using NormalSHookFunc = Action(*)(int clients[MAXPLAYERS], int& numClients, char
 	int& entity, int& channel, float& volume, int& level, int& pitch, int& flags,
 	char soundEntry[PLATFORM_MAX_PATH], int& seed);
 
+/* CONSOLE.INC */
+
 /**
 * Called when a console variable's value is changed.
 *
@@ -242,11 +244,36 @@ using ConVarChangedFunc = void(*)(ConVarHandle convar, const char* oldValue, con
 * @param client        Player index.
 * @param result        Result of query that tells one whether or not query was successful.
                        See ConVarQueryResult enum for more details.
-* @param convarName    Name of client convar that was queried.
-* @param convarValue   Value of client convar that was queried if successful. This will be "" if it was not.
+* @param cvarName      Name of client convar that was queried.
+* @param cvarValue     Value of client convar that was queried if successful. This will be "" if it was not.
 * @param value         Value that was passed when query was started.
 */
 using ConVarQueryFinishedFunc = void(*)(QueryCookie cookie, int client, ConVarQueryResult result, const char* cvarName, const char* cvarValue, void* value);
+
+/* USERMESSAGES.INC */
+
+/**
+ * Called when a protobuf based usermessage is hooked
+ *
+ * @param msgID         Message index.
+ * @param msg           Handle to the input (bit buffer / protobuf).
+ * @param players       Array containing player indexes.
+ * @param playersNum    Number of players in the array.
+ * @param reliable      True if message is reliable, false otherwise.
+ * @param init          True if message is an initmsg, false otherwise.
+ * @return              Ignored for normal hooks.  For intercept hooks, Plugin_Handled
+ *                      blocks the message from being sent, and Plugin_Continue
+ *                      resumes normal functionality.
+ */
+using MsgHookFunc = Action(*)(UserMsg msgID, ProtobufHandle msg, const int players[], int playersNum, bool reliable, bool init);
+
+/**
+ * Called when a message hook has completed.
+ *
+ * @param msgID         Message index.
+ * @param sent          True if message was sent, false if blocked.
+ */
+using MsgPostHookFunc = void(*)(UserMsg msgID, bool sent);
 
 struct pair_hash
 {
@@ -284,344 +311,204 @@ public:
 		return ExecFunc(s_SDKCallSmoke4Func);
 	}
 
+	// USERMESSAGES.INC
+
+	/**
+	 * Returns usermessage serialization type used for the current engine
+	 *
+	 * @return              The supported usermessage type.
+	 */
+	static UserMessageType GetUserMessageType()
+	{
+		return static_cast<UserMessageType>(ExecFunc(s_GetUserMessageTypeFunc));
+	}
+
+	static ProtobufHandle UserMessageToProtobuf(Handle msg)
+	{
+		if (GetUserMessageType() != UserMessageType::UM_Protobuf)
+			return INVALID_HANDLE;
+		return static_cast<ProtobufHandle>(msg);
+	}
+
+	// Make sure to only call this on writable buffers (eg from StartMessage).
+	static BfWriteHandle UserMessageToBfWrite(Handle msg)
+	{
+		if (GetUserMessageType() == UserMessageType::UM_Protobuf)
+			return INVALID_HANDLE;
+		return static_cast<BfWriteHandle>(msg);
+	}
+
+	// Make sure to only call this on readable buffers (eg from a message hook).
+	static BfReadHandle UserMessageToBfRead(Handle msg)
+	{
+		if (GetUserMessageType() == UserMessageType::UM_Protobuf)
+			return INVALID_HANDLE;
+		return static_cast<BfReadHandle>(msg);
+	}
+
+	/**
+	 * Returns the ID of a given message, or -1 on failure.
+	 *
+	 * @param msg           String containing message name (case sensitive).
+	 * @return              A message index, or INVALID_MESSAGE_ID on failure.
+	 */
+	static UserMsg GetUserMessageId(const char* msg)
+	{
+		return ExecFunc(s_GetUserMessageIdFunc, msg);
+	}
+
+	/**
+	 * Retrieves the name of a message by ID.
+	 *
+	 * @param msgID         Message index.
+	 * @param msg           Buffer to store the name of the message.
+	 * @param maxlength     Maximum length of string buffer.
+	 * @return              True if message index is valid, false otherwise.
+	 */
+	static bool GetUserMessageName(UserMsg msgID, char* msg, int maxlength)
+	{
+		PushArg(s_GetUserMessageNameFunc, msgID);
+		PushArg(s_GetUserMessageNameFunc, msg, maxlength);
+		PushArg(s_GetUserMessageNameFunc, maxlength);
+		return ExecFunc(s_GetUserMessageNameFunc);
+	}
+
+	/**
+	 * Starts a usermessage (network message).
+	 *
+	 * @note Only one message can be active at a time.
+	 * @note It is illegal to send any message while a non-intercept hook is in progress.
+	 *
+	 * @param msgname       Message name to start.
+	 * @param clients       Array containing player indexes to broadcast to.
+	 * @param numClients    Number of players in the array.
+	 * @param flags         Optional flags to set.
+	 * @return              A handle to a bf_write bit packing structure, or
+	 *                      INVALID_HANDLE on failure.
+	 * @error               Invalid message name, unable to start a message, invalid client,
+	 *                      or client not connected.
+	 */
+	static Handle StartMessage(const char* msgname, const int clients[], int numClients, int flags = 0)
+	{
+		PushArg(s_StartMessageFunc, msgname);
+		PushArg(s_StartMessageFunc, clients, numClients);
+		PushArg(s_StartMessageFunc, numClients);
+		PushArg(s_StartMessageFunc, flags);
+		return ExecFunc(s_StartMessageFunc);
+	}
+
+	/**
+	 * Starts a usermessage (network message).
+	 *
+	 * @note Only one message can be active at a time.
+	 * @note It is illegal to send any message while a non-intercept hook is in progress.
+	 *
+	 * @param msg           Message index to start.
+	 * @param clients       Array containing player indexes to broadcast to.
+	 * @param numClients    Number of players in the array.
+	 * @param flags         Optional flags to set.
+	 * @return              A handle to a bf_write bit packing structure, or
+	 *                      INVALID_HANDLE on failure.
+	 * @error               Invalid message name, unable to start a message, invalid client,
+	 *                      or client not connected.
+	 */
+	static Handle StartMessageEx(UserMsg msg, const int clients[], int numClients, int flags = 0)
+	{
+		PushArg(s_StartMessageExFunc, msg);
+		PushArg(s_StartMessageExFunc, clients, numClients);
+		PushArg(s_StartMessageExFunc, numClients);
+		PushArg(s_StartMessageExFunc, flags);
+		return ExecFunc(s_StartMessageExFunc);
+	}
+
+	/**
+	 * Ends a previously started user message (network message).
+	 */
+	static void EndMessage()
+	{
+		ExecFunc(s_EndMessageFunc);
+	}
+
+	/**
+	 * Hooks a user message.
+	 *
+	 * @param msgID         Message index.
+	 * @param hook          Function to use as a hook.
+	 * @param intercept     If intercept is true, message will be fully intercepted,
+	 *                      allowing the user to block the message.  Otherwise,
+	 *                      the hook is normal and ignores the return value.
+	 * @param post          Notification function.
+	 * @error               Invalid message index.
+	 */
+	static void HookUserMessage(UserMsg msgID, MsgHookFunc hook, bool intercept = false, MsgPostHookFunc post = nullptr)
+	{
+		s_MsgHookCallbacks[msgID] = hook;
+		s_MsgPostHookCallbacks[msgID] = post;
+		ExecFunc(s_HookUserMessageFunc, msgID, intercept);
+	}
+
+	/**
+	 * Removes one usermessage hook.
+	 *
+	 * @param msgID         Message index.
+	 * @param intercept     Specifies whether the hook was an intercept hook or not.
+	 * @error               Invalid message index.
+	 */
+	static void UnhookUserMessage(UserMsg msgID, bool intercept = false)
+	{
+		ExecFunc(s_UnhookUserMessageFunc, msgID, intercept);
+	}
+
+	/**
+	 * Starts a usermessage (network message) that broadcasts to all clients.
+	 *
+	 * @note See StartMessage or StartMessageEx().
+	 *
+	 * @param msgname       Message name to start.
+	 * @param flags         Optional flags to set.
+	 * @return              A handle to a bf_write bit packing structure, or
+	 *                      INVALID_HANDLE on failure.
+	 */
+	static Handle StartMessageAll(const char* msgname, int flags = 0)
+	{
+		int total = 0;
+		int* clients = new int[s_MaxClients];
+		for (int i = 1; i <= s_MaxClients; i++)
+		{
+			if (IsClientConnected(i))
+			{
+				clients[total++] = i;
+			}
+		}
+
+		Handle res = StartMessage(msgname, clients, total, flags);
+		delete[] clients;
+		return res;
+	}
+
+	/**
+	 * Starts a simpler usermessage (network message) for one client.
+	 *
+	 * @note See StartMessage or StartMessageEx().
+	 *
+	 * @param msgname       Message name to start.
+	 * @param client        Client to send to.
+	 * @param flags         Optional flags to set.
+	 * @return              A handle to a bf_write bit packing structure, or
+	 *                      INVALID_HANDLE on failure.
+	 */
+	static Handle StartMessageOne(const char* msgname, int client, int flags = 0)
+	{
+		int players[1];
+		players[0] = client;
+		return StartMessage(msgname, players, 1, flags);
+	}
+
+	// PROTOBUF.INC
+	#include "API/ProtobufAPI.h"
+
 	// CONVARS.INC
-	/**
-	 * Creates a new console variable.
-	 *
-	 * @param name          Name of new convar.
-	 * @param defaultValue  String containing the default value of new convar.
-	 * @param description   Optional description of the convar.
-	 * @param flags         Optional bitstring of flags determining how the convar should be handled. See FCVAR_* constants for more details.
-	 * @param hasMin        Optional boolean that determines if the convar has a minimum value.
-	 * @param min           Minimum floating point value that the convar can have if hasMin is true.
-	 * @param hasMax        Optional boolean that determines if the convar has a maximum value.
-	 * @param max           Maximum floating point value that the convar can have if hasMax is true.
-	 * @return              A handle to the newly created convar. If the convar already exists, a handle to it will still be returned.
-	 * @error               Convar name is blank or is the same as an existing console command.
-	 */
-	static ConVarHandle CreateConVar(const char* name, const char* defaultValue, const char* description = "",
-		int flags = 0, bool hasMin = false, float min = 0.0f, bool hasMax = false, float max = 0.0f)
-	{
-		return ExecFunc(s_CreateConVarFunc, name, defaultValue, description, flags, hasMin, min, hasMax, max);
-	}
-
-	/**
-	 * Searches for a console variable.
-	 *
-	 * @param name          Name of convar to find.
-	 * @return              A ConVar object if found; null otherwise.
-	 */
-	static ConVarHandle FindConVar(const char* name)
-	{
-		return ExecFunc(s_FindConVarFunc, name);
-	}
-
-	/**
-		* Creates a hook for when a console variable's value is changed.
-		*
-		* @param convar        Handle to the convar.
-		* @param callback      An OnConVarChanged function pointer.
-		* @error               Invalid or corrupt Handle or invalid callback function.
-		*/
-	static void HookConVarChange(Handle convar, ConVarChangedFunc callback)
-	{
-		s_ConVarChangedCallbacks[convar] = callback;
-		ExecFunc(s_HookConVarChangeFunc, convar);
-	}
-
-	/**
-	 * Removes a hook for when a console variable's value is changed.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @error               Invalid or corrupt Handle, invalid callback function, or no active hook on convar.
-	 */
-	static void UnhookConVarChange(Handle convar)
-	{
-		ExecFunc(s_UnhookConVarChangeFunc, convar);
-	}
-
-	/**
-	 * Returns the boolean value of a console variable.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @return              The boolean value of the convar.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static bool GetConVarBool(Handle convar)
-	{
-		return ExecFunc(s_GetConVarBoolFunc, convar);
-	}
-
-	/**
-	 * Sets the boolean value of a console variable.
-	 *
-	 * Note: The replicate and notify params are only relevant for the original, Dark Messiah, and
-	 * Episode 1 engines. Newer engines automatically do these things when the convar value is changed.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @param value         New boolean value.
-	 * @param replicate     If set to true, the new convar value will be set on all clients.
-	 *                      This will only work if the convar has the FCVAR_REPLICATED flag
-	 *                      and actually exists on clients.
-	 * @param notify        If set to true, clients will be notified that the convar has changed.
-	 *                      This will only work if the convar has the FCVAR_NOTIFY flag.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static void SetConVarBool(Handle convar, bool value, bool replicate = false, bool notify = false)
-	{
-		ExecFunc(s_SetConVarBoolFunc, convar, value, replicate, notify);
-	}
-
-	/**
-	 * Returns the integer value of a console variable.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @return              The integer value of the convar.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static int GetConVarInt(Handle convar)
-	{
-		return ExecFunc(s_GetConVarIntFunc, convar);
-	}
-
-	/**
-	 * Sets the integer value of a console variable.
-	 *
-	 * Note: The replicate and notify params are only relevant for the original, Dark Messiah, and
-	 * Episode 1 engines. Newer engines automatically do these things when the convar value is changed.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @param value         New integer value.
-	 * @param replicate     If set to true, the new convar value will be set on all clients.
-	 *                      This will only work if the convar has the FCVAR_REPLICATED flag
-	 *                      and actually exists on clients.
-	 * @param notify        If set to true, clients will be notified that the convar has changed.
-	 *                      This will only work if the convar has the FCVAR_NOTIFY flag.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static void SetConVarInt(Handle convar, int value, bool replicate = false, bool notify = false)
-	{
-		ExecFunc(s_SetConVarIntFunc, convar, value, replicate, notify);
-	}
-
-	/**
-	 * Returns the floating point value of a console variable.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @return              The floating point value of the convar.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static float GetConVarFloat(Handle convar)
-	{
-		return ExecFunc(s_GetConVarFloatFunc, convar);
-	}
-
-	/**
-	 * Sets the floating point value of a console variable.
-	 *
-	 * Note: The replicate and notify params are only relevant for the original, Dark Messiah, and
-	 * Episode 1 engines. Newer engines automatically do these things when the convar value is changed.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @param value         New floating point value.
-	 * @param replicate     If set to true, the new convar value will be set on all clients.
-	 *                      This will only work if the convar has the FCVAR_REPLICATED flag
-	 *                      and actually exists on clients.
-	 * @param notify        If set to true, clients will be notified that the convar has changed.
-	 *                      This will only work if the convar has the FCVAR_NOTIFY flag.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static void SetConVarFloat(Handle convar, float value, bool replicate = false, bool notify = false)
-	{
-		ExecFunc(s_SetConVarFloatFunc, convar, value, replicate, notify);
-	}
-
-	/**
-	 * Retrieves the string value of a console variable.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @param value         Buffer to store the value of the convar.
-	 * @param maxlength     Maximum length of string buffer.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static void GetConVarString(Handle convar, char* value, int maxlength)
-	{
-		PushArg(s_GetConVarStringFunc, convar);
-		PushArg(s_GetConVarStringFunc, value, maxlength);
-		PushArg(s_GetConVarStringFunc, maxlength);
-		ExecFunc(s_GetConVarStringFunc);
-	}
-
-	/**
-	 * Sets the string value of a console variable.
-	 *
-	 * Note: The replicate and notify params are only relevant for the original, Dark Messiah, and
-	 * Episode 1 engines. Newer engines automatically do these things when the convar value is changed.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @param value         New string value.
-	 * @param replicate     If set to true, the new convar value will be set on all clients.
-	 *                      This will only work if the convar has the FCVAR_REPLICATED flag
-	 *                      and actually exists on clients.
-	 * @param notify        If set to true, clients will be notified that the convar has changed.
-	 *                      This will only work if the convar has the FCVAR_NOTIFY flag.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static void SetConVarString(Handle convar, const char* value, bool replicate = false, bool notify = false)
-	{
-		ExecFunc(s_SetConVarStringFunc, convar, value, replicate, notify);
-	}
-
-	/**
-	 * Resets the console variable to its default value.
-	 *
-	 * Note: The replicate and notify params are only relevant for the original, Dark Messiah, and
-	 * Episode 1 engines. Newer engines automatically do these things when the convar value is changed.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @param replicate     If set to true, the new convar value will be set on all clients.
-	 *                      This will only work if the convar has the FCVAR_REPLICATED flag
-	 *                      and actually exists on clients.
-	 * @param notify        If set to true, clients will be notified that the convar has changed.
-	 *                      This will only work if the convar has the FCVAR_NOTIFY flag.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static void ResetConVar(Handle convar, bool replicate = false, bool notify = false)
-	{
-		ExecFunc(s_ResetConVarFunc, convar, replicate, notify);
-	}
-
-	/**
-	 * Retrieves the default string value of a console variable.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @param value         Buffer to store the default value of the convar.
-	 * @param maxlength     Maximum length of string buffer.
-	 * @return              Number of bytes written to the buffer (UTF-8 safe).
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static int GetConVarDefault(Handle convar, char* value, int maxlength)
-	{
-		PushArg(s_GetConVarDefaultFunc, convar);
-		PushArg(s_GetConVarDefaultFunc, value, maxlength);
-		PushArg(s_GetConVarDefaultFunc, maxlength);
-		return ExecFunc(s_GetConVarDefaultFunc);
-	}
-
-	/**
-	 * Returns the bitstring of flags on a console variable.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @return              A bitstring containing the FCVAR_* flags that are enabled.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static int GetConVarFlags(Handle convar)
-	{
-		return ExecFunc(s_GetConVarFlagsFunc, convar);
-	}
-
-	/**
-	 * Sets the bitstring of flags on a console variable.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @param flags         A bitstring containing the FCVAR_* flags to enable.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static void SetConVarFlags(Handle convar, int flags)
-	{
-		ExecFunc(s_SetConVarFlagsFunc, convar, flags);
-	}
-
-	/**
-	 * Retrieves the specified bound of a console variable.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @param type          Type of bound to retrieve, ConVarBound_Lower or ConVarBound_Upper.
-	 * @param value         By-reference cell to store the specified floating point bound value.
-	 * @return              True if the convar has the specified bound set, false otherwise.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static bool GetConVarBounds(Handle convar, ConVarBounds type, float& value)
-	{
-		PushArg(s_GetConVarBoundsFunc, convar);
-		PushArg(s_GetConVarBoundsFunc, type);
-		PushArgRef(s_GetConVarBoundsFunc, value);
-		return ExecFunc(s_GetConVarBoundsFunc);
-	}
-
-	/**
-	 * Sets the specified bound of a console variable.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @param type          Type of bound to set, ConVarBound_Lower or ConVarBound_Upper
-	 * @param set           If set to true, convar will use specified bound. If false, bound will be removed.
-	 * @param value         Floating point value to use as the specified bound.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static void SetConVarBounds(Handle convar, ConVarBounds type, bool set, float value = 0.0f)
-	{
-		ExecFunc(s_SetConVarBoundsFunc, convar, type, set, value);
-	}
-
-	/**
-	 * Retrieves the name of a console variable.
-	 *
-	 * @param convar        Handle to the convar.
-	 * @param name          Buffer to store the name of the convar.
-	 * @param maxlength     Maximum length of string buffer.
-	 * @error               Invalid or corrupt Handle.
-	 */
-	static void GetConVarName(Handle convar, char* name, int maxlength)
-	{
-		PushArg(s_GetConVarNameFunc, convar);
-		PushArg(s_GetConVarNameFunc, name, maxlength);
-		PushArg(s_GetConVarNameFunc, maxlength);
-		ExecFunc(s_GetConVarNameFunc);
-	}
-
-	/**
-	 * Replicates a convar value to a specific client. This does not change the actual convar value.
-	 *
-	 * @param client        Client index
-	 * @param convar        ConVar handle
-	 * @param value         String value to send
-	 * @return              True on success, false on failure
-	 * @error               Invalid client index, client not in game, or client is fake
-	 */
-	static bool SendConVarValue(int client, Handle convar, const char* value)
-	{
-		return ExecFunc(s_SendConVarValueFunc, client, convar, value);
-	}
-
-	/**
-	 * Starts a query to retrieve the value of a client's console variable.
-	 *
-	 * @param client        Player index.
-	 * @param cvarName      Name of client convar to query.
-	 * @param callback      A function to use as a callback when the query has finished.
-	 * @param value         Optional value to pass to the callback function.
-	 * @return              A cookie that uniquely identifies the query.
-	 *                      Returns QUERYCOOKIE_FAILED on failure, such as when used on a bot.
-	 */
-	static QueryCookie QueryClientConVar(int client, const char* cvarName, ConVarQueryFinishedFunc callback, void* value = nullptr)
-	{
-		std::string cvarNameStr(cvarName);
-		std::pair<int, std::string> pair = std::make_pair(client, cvarNameStr);
-		s_ConVarFinishedCallbacks[pair] = callback;
-		return static_cast<QueryCookie>(ExecFunc(s_QueryClientConVarFunc, client, cvarName, reinterpret_cast<int>(value)));
-	}
-
-	/**
-	 * Returns true if the supplied character is valid in a ConVar name.
-	 *
-	 * @param c             Character to validate.
-	 * @return              True is valid for ConVars, false otherwise
-	 */
-	static bool IsValidConVarChar(int c)
-	{
-		return (c == '_' || IsCharAlphaA(c) || isdigit(c));
-	}
-
+	#include "API/ConVarsAPI.h"
 
 	// SOURCEMOD.INC
 	#include "API/SourcemodAPI.h"
@@ -821,6 +708,10 @@ private:
 	static AmbientSHookFunc s_AmbientSHookCallback;
 	static NormalSHookFunc s_NormalSHookCallback;
 
+	// USERMESSAGES.INC
+	static std::unordered_map<UserMsg, MsgHookFunc> s_MsgHookCallbacks;
+	static std::unordered_map<UserMsg, MsgPostHookFunc> s_MsgPostHookCallbacks;
+
 	// CONVARS.INC
 	static std::unordered_map<Handle, ConVarChangedFunc> s_ConVarChangedCallbacks;
 	static std::unordered_map<std::pair<int, std::string>, ConVarQueryFinishedFunc, pair_hash> s_ConVarFinishedCallbacks;
@@ -874,6 +765,47 @@ private:
 	static std::unordered_map<std::string, CommandListenerFunc> s_CommandListenerCallbacks;
 private:
 	static int s_MaxClients;
+
+	// USERMESSAGES.INC
+	static IPluginFunction* s_GetUserMessageTypeFunc;
+	static IPluginFunction* s_GetUserMessageIdFunc;
+	static IPluginFunction* s_GetUserMessageNameFunc;
+	static IPluginFunction* s_StartMessageFunc;
+	static IPluginFunction* s_StartMessageExFunc;
+	static IPluginFunction* s_EndMessageFunc;
+	static IPluginFunction* s_HookUserMessageFunc;
+	static IPluginFunction* s_UnhookUserMessageFunc;
+
+	// PROTOBUF.INC
+	static IPluginFunction* s_PbReadIntFunc;
+	static IPluginFunction* s_PbReadFloatFunc;
+	static IPluginFunction* s_PbReadBoolFunc;
+	static IPluginFunction* s_PbReadStringFunc;
+	static IPluginFunction* s_PbReadColorFunc;
+	static IPluginFunction* s_PbReadAngleFunc;
+	static IPluginFunction* s_PbReadVectorFunc;
+	static IPluginFunction* s_PbReadVector2DFunc;
+	static IPluginFunction* s_PbGetRepeatedFieldCountFunc;
+	static IPluginFunction* s_PbSetIntFunc;
+	static IPluginFunction* s_PbSetFloatFunc;
+	static IPluginFunction* s_PbSetBoolFunc;
+	static IPluginFunction* s_PbSetStringFunc;
+	static IPluginFunction* s_PbSetColorFunc;
+	static IPluginFunction* s_PbSetAngleFunc;
+	static IPluginFunction* s_PbSetVectorFunc;
+	static IPluginFunction* s_PbSetVector2DFunc;
+	static IPluginFunction* s_PbAddIntFunc;
+	static IPluginFunction* s_PbAddFloatFunc;
+	static IPluginFunction* s_PbAddBoolFunc;
+	static IPluginFunction* s_PbAddStringFunc;
+	static IPluginFunction* s_PbAddColorFunc;
+	static IPluginFunction* s_PbAddAngleFunc;
+	static IPluginFunction* s_PbAddVectorFunc;
+	static IPluginFunction* s_PbAddVector2DFunc;
+	static IPluginFunction* s_PbRemoveRepeatedFieldValueFunc;
+	static IPluginFunction* s_PbReadMessageFunc;
+	static IPluginFunction* s_PbReadRepeatedMessageFunc;
+	static IPluginFunction* s_PbAddMessageFunc;
 
 	// CONVARS.INC
 	static IPluginFunction* s_CreateConVarFunc;

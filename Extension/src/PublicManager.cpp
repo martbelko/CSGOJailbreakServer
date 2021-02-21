@@ -1,10 +1,53 @@
 #include "PublicManager.h"
 
+int NULL_VECTOR;
+
 int PublicManager::s_MaxClients = 0;
 
 // OWN
 IPluginFunction* PublicManager::s_SDKCallSmoke3Func;
 IPluginFunction* PublicManager::s_SDKCallSmoke4Func;
+
+// USERMESSAGES.INC
+IPluginFunction* PublicManager::s_GetUserMessageTypeFunc;
+IPluginFunction* PublicManager::s_GetUserMessageIdFunc;
+IPluginFunction* PublicManager::s_GetUserMessageNameFunc;
+IPluginFunction* PublicManager::s_StartMessageFunc;
+IPluginFunction* PublicManager::s_StartMessageExFunc;
+IPluginFunction* PublicManager::s_EndMessageFunc;
+IPluginFunction* PublicManager::s_HookUserMessageFunc;
+IPluginFunction* PublicManager::s_UnhookUserMessageFunc;
+
+// PROTOBUF.INC
+IPluginFunction* PublicManager::s_PbReadIntFunc;
+IPluginFunction* PublicManager::s_PbReadFloatFunc;
+IPluginFunction* PublicManager::s_PbReadBoolFunc;
+IPluginFunction* PublicManager::s_PbReadStringFunc;
+IPluginFunction* PublicManager::s_PbReadColorFunc;
+IPluginFunction* PublicManager::s_PbReadAngleFunc;
+IPluginFunction* PublicManager::s_PbReadVectorFunc;
+IPluginFunction* PublicManager::s_PbReadVector2DFunc;
+IPluginFunction* PublicManager::s_PbGetRepeatedFieldCountFunc;
+IPluginFunction* PublicManager::s_PbSetIntFunc;
+IPluginFunction* PublicManager::s_PbSetFloatFunc;
+IPluginFunction* PublicManager::s_PbSetBoolFunc;
+IPluginFunction* PublicManager::s_PbSetStringFunc;
+IPluginFunction* PublicManager::s_PbSetColorFunc;
+IPluginFunction* PublicManager::s_PbSetAngleFunc;
+IPluginFunction* PublicManager::s_PbSetVectorFunc;
+IPluginFunction* PublicManager::s_PbSetVector2DFunc;
+IPluginFunction* PublicManager::s_PbAddIntFunc;
+IPluginFunction* PublicManager::s_PbAddFloatFunc;
+IPluginFunction* PublicManager::s_PbAddBoolFunc;
+IPluginFunction* PublicManager::s_PbAddStringFunc;
+IPluginFunction* PublicManager::s_PbAddColorFunc;
+IPluginFunction* PublicManager::s_PbAddAngleFunc;
+IPluginFunction* PublicManager::s_PbAddVectorFunc;
+IPluginFunction* PublicManager::s_PbAddVector2DFunc;
+IPluginFunction* PublicManager::s_PbRemoveRepeatedFieldValueFunc;
+IPluginFunction* PublicManager::s_PbReadMessageFunc;
+IPluginFunction* PublicManager::s_PbReadRepeatedMessageFunc;
+IPluginFunction* PublicManager::s_PbAddMessageFunc;
 
 // CONVARS.INC
 IPluginFunction* PublicManager::s_CreateConVarFunc;
@@ -664,6 +707,9 @@ IPluginFunction* PublicManager::s_ChangeClientTeamFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientSerialFunc = nullptr;
 IPluginFunction* PublicManager::s_GetClientFromSerialFunc = nullptr;
 
+std::unordered_map<UserMsg, MsgHookFunc> PublicManager::s_MsgHookCallbacks;
+std::unordered_map<UserMsg, MsgPostHookFunc> PublicManager::s_MsgPostHookCallbacks;
+
 std::unordered_map<Handle, ConVarChangedFunc> PublicManager::s_ConVarChangedCallbacks;
 std::unordered_map<std::pair<int, std::string>, ConVarQueryFinishedFunc, pair_hash> PublicManager::s_ConVarFinishedCallbacks;
 
@@ -712,12 +758,70 @@ std::unordered_map<std::string, CommandListenerFunc> PublicManager::s_CommandLis
 
 void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 {
+	IPluginRuntime* runtime = pContext->GetRuntime();
+	uint32_t null_vector_idx;
+	int err = runtime->FindPubvarByName("NULL_VECTOR", &null_vector_idx);
+	if (err)
+	{
+		rootconsole->ConsolePrint("Target plugin has no NULL_VECTOR.");
+	}
+	else
+		rootconsole->ConsolePrint("%d", null_vector_idx);
+
+	cell_t null_vector;
+	err = runtime->GetPubvarAddrs(null_vector_idx, &null_vector, nullptr);
+	NULL_VECTOR = null_vector;
+
+	if (err)
+		rootconsole->ConsolePrint("EEROR");
+
 	IPluginFunction* GetMaxClientsFunc = pContext->GetFunctionByName("public_GetMaxClients");
 	GetMaxClientsFunc->Execute(&s_MaxClients);
 
 	// OWN
 	LOAD_PTR(SDKCallSmoke3);
 	LOAD_PTR(SDKCallSmoke4);
+
+	// USERMESSAGES.INC
+	LOAD_PTR(GetUserMessageType);
+	LOAD_PTR(GetUserMessageId);
+	LOAD_PTR(GetUserMessageName);
+	LOAD_PTR(StartMessage);
+	LOAD_PTR(StartMessageEx);
+	LOAD_PTR(EndMessage);
+	LOAD_PTR(HookUserMessage);
+	LOAD_PTR(UnhookUserMessage);
+
+	// PROTOBUF.INC
+	LOAD_PTR(PbReadInt);
+	LOAD_PTR(PbReadFloat);
+	LOAD_PTR(PbReadBool);
+	LOAD_PTR(PbReadString);
+	LOAD_PTR(PbReadColor);
+	LOAD_PTR(PbReadAngle);
+	LOAD_PTR(PbReadVector);
+	LOAD_PTR(PbReadVector2D);
+	LOAD_PTR(PbGetRepeatedFieldCount);
+	LOAD_PTR(PbSetInt);
+	LOAD_PTR(PbSetFloat);
+	LOAD_PTR(PbSetBool);
+	LOAD_PTR(PbSetString);
+	LOAD_PTR(PbSetColor);
+	LOAD_PTR(PbSetAngle);
+	LOAD_PTR(PbSetVector);
+	LOAD_PTR(PbSetVector2D);
+	LOAD_PTR(PbAddInt);
+	LOAD_PTR(PbAddFloat);
+	LOAD_PTR(PbAddBool);
+	LOAD_PTR(PbAddString);
+	LOAD_PTR(PbAddColor);
+	LOAD_PTR(PbAddAngle);
+	LOAD_PTR(PbAddVector);
+	LOAD_PTR(PbAddVector2D);
+	LOAD_PTR(PbRemoveRepeatedFieldValue);
+	LOAD_PTR(PbReadMessage);
+	LOAD_PTR(PbReadRepeatedMessage);
+	LOAD_PTR(PbAddMessage);
 
 	// CONVARS.INC
 	LOAD_PTR(CreateConVar);

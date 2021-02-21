@@ -113,19 +113,19 @@ public:
 		PushArg(s_FormatFunc, buffer, maxlength);
 		PushArg(s_FormatFunc, maxlength);
 		PushArg(s_FormatFunc, format);
-		FormatSub(args...);
+		return FormatSub(args...);
 	}
 private:
 	static int FormatSub()
 	{
-		ExecFunc(s_FormatFunc);
+		return ExecFunc(s_FormatFunc);
 	}
 
 	template<typename T, typename ... Args>
 	static int FormatSub(T arg, Args ... args)
 	{
 		PushArgRef(s_FormatFunc, arg);
-		FormatSub(args...);
+		return FormatSub(args...);
 	}
 public:
 	/**

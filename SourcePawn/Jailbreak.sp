@@ -292,6 +292,118 @@ public bool public_SDKCallSmoke4(Handle call, Address addr, float[] from, float[
 	return SDKCall(call, addr, from, to, arg);
 }
 
+/* USERMESSAGES.INC */
+// USERMESSAGES.INC - Callbacks
+native Action native_MsgHookCallback(UserMsg msg_id, Handle msg, const int[] players, int playersNum, bool reliable, bool init);
+public Action MsgHookCallback(UserMsg msg_id, Handle msg, const int[] players, int playersNum, bool reliable, bool init)
+{
+	return native_MsgHookCallback(msg_id, msg, players, playersNum, reliable, init);
+}
+
+native void native_MsgPostHookCallback(UserMsg msg_id, bool sent);
+public void MsgPostHookCallback(UserMsg msg_id, bool sent)
+{
+	native_MsgPostHookCallback(msg_id, sent);
+}
+// USERMESSAGES.INC - Public
+public UserMessageType public_GetUserMessageType() { return GetUserMessageType(); }
+public UserMsg public_GetUserMessageId(const char[] msg) { return GetUserMessageId(msg); }
+public bool public_GetUserMessageName(UserMsg msg_id, char[] msg, int maxlength) { return GetUserMessageName(msg_id, msg, maxlength); }
+public Handle public_StartMessage(const char[] msgname, const int[] clients, int numClients, int flags) { return StartMessage(msgname, clients, numClients, flags); }
+public Handle public_StartMessageEx(UserMsg msg, const int[] clients, int numClients, int flags) { return StartMessageEx(msg, clients, numClients, flags); }
+public void public_EndMessage() { EndMessage(); }
+public void public_HookUserMessage(UserMsg msg_id, bool intercept) { HookUserMessage(msg_id, MsgHookCallback, intercept, MsgPostHookCallback); }
+public void public_UnhookUserMessage(UserMsg msg_id, bool intercept) { UnhookUserMessage(msg_id, MsgHookCallback, intercept); }
+
+/* PROTOBUF.INC */
+// PROTOBUF.INC - Public
+public int public_PbReadInt(Handle pb, const char[] field, int index) { return PbReadInt(pb, field, index); }
+public float public_PbReadFloat(Handle pb, const char[] field, int index) { return PbReadFloat(pb, field, index); }
+public bool public_PbReadBool(Handle pb, const char[] field, int index) { return PbReadBool(pb, field, index); }
+public void public_PbReadString(Handle pb, const char[] field, char[] buffer, int maxlength, int index) { PbReadString(pb, field, buffer, maxlength, index); }
+public void public_PbReadColor(Handle pb, const char[] field, int buffer[4], int index) { PbReadColor(pb, field, buffer, index); }
+public void public_PbReadAngle(Handle pb, const char[] field, float buffer[3], int index) { PbReadAngle(pb, field, buffer, index); }
+public void public_PbReadVector(Handle pb, const char[] field, float buffer[3], int index) { PbReadVector(pb, field, buffer, index); }
+public void public_PbReadVector2D(Handle pb, const char[] field, float buffer[2], int index) { PbReadVector2D(pb, field, buffer, index); }
+public int public_PbGetRepeatedFieldCount(Handle pb, const char[] field) { return PbGetRepeatedFieldCount(pb, field); }
+public void public_PbSetInt(Handle pb, const char[] field, int value, int index) { PbSetInt(pb, field, value, index); }
+public void public_PbSetFloat(Handle pb, const char[] field, float value, int index) { PbSetFloat(pb, field, value, index); }
+public void public_PbSetBool(Handle pb, const char[] field, bool value, int index) { PbSetBool(pb, field, value, index); }
+public void public_PbSetString(Handle pb, const char[] field, const char[] value, int index) { PbSetString(pb, field, value, index); }
+public void public_PbSetColor(Handle pb, const char[] field, const int color[4], int index) { PbSetColor(pb, field, color, index); }
+public void public_PbSetAngle(Handle pb, const char[] field, const float angle[3], int index) { PbSetAngle(pb, field, angle, index); }
+public void public_PbSetVector(Handle pb, const char[] field, const float vec[3], int index) { PbSetVector(pb, field, vec, index); }
+public void public_PbSetVector2D(Handle pb, const char[] field, const float vec[2], int index) { PbSetVector2D(pb, field, vec, index); }
+public void public_PbAddInt(Handle pb, const char[] field, int value) { PbAddInt(pb, field, value); }
+public void public_PbAddFloat(Handle pb, const char[] field, float value) { PbAddFloat(pb, field, value); }
+public void public_PbAddBool(Handle pb, const char[] field, bool value) { PbAddBool(pb, field, value); }
+public void public_PbAddString(Handle pb, const char[] field, const char[] value) { PbAddString(pb, field, value); }
+public void public_PbAddColor(Handle pb, const char[] field, const int color[4]) { PbAddColor(pb, field, color); }
+public void public_PbAddAngle(Handle pb, const char[] field, const float angle[3]) { PbAddAngle(pb, field, angle); }
+public void public_PbAddVector(Handle pb, const char[] field, const float vec[3]) { PbAddVector(pb, field, vec); }
+public void public_PbAddVector2D(Handle pb, const char[] field, const float vec[2]) { PbAddVector2D(pb, field, vec); }
+public void public_PbRemoveRepeatedFieldValue(Handle pb, const char[] field, int index) { PbRemoveRepeatedFieldValue(pb, field, index); }
+public Handle public_PbReadMessage(Handle pb, const char[] field) { return PbReadMessage(pb, field); }
+public Handle public_PbReadRepeatedMessage(Handle pb, const char[] field, int index) { return PbReadRepeatedMessage(pb, field, index); }
+public Handle public_PbAddMessage(Handle pb, const char[] field) { return PbAddMessage(pb, field); }
+
+/* CONVARS.INC */
+// CONVARS.INC - Callbacks
+native void native_ConVarChangedCallback(ConVar convar, const char[] oldValue, const char[] newValue);
+public void ConVarChangedCallback(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+	native_ConVarChangedCallback(convar, oldValue, newValue);
+}
+
+native void native_ConVarQueryFinishedCallback(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue, int value);
+public void ConVarQueryFinishedCallback(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue, int value)
+{
+	native_ConVarQueryFinishedCallback(cookie, client, result, cvarName, cvarValue, value);
+}
+// CONVARS.INC - Public
+public ConVar public_CreateConVar(const char[] name, const char[] defaultValue, const char[] description, int flags, bool hasMin, float min, bool hasMax, float max)
+{
+	return CreateConVar(name, defaultValue, description, flags, hasMin, min, hasMax, max);
+}
+public ConVar public_FindConVar(const char[] name) { return FindConVar(name); }
+public void public_HookConVarChange(Handle convar) { HookConVarChange(convar, ConVarChangedCallback); }
+public void public_UnhookConVarChange(Handle convar) { UnhookConVarChange(convar, ConVarChangedCallback); }
+public bool public_GetConVarBool(Handle convar) { return GetConVarBool(convar); }
+public void public_SetConVarBool(Handle convar, bool value, bool replicate, bool notify)
+{
+	SetConVarBool(convar, value, replicate, notify);
+}
+public int public_GetConVarInt(Handle convar) { return GetConVarInt(convar); }
+public void public_SetConVarInt(Handle convar, int value, bool replicate, bool notify)
+{
+	SetConVarInt(convar, value, replicate, notify);
+}
+public float public_GetConVarFloat(Handle convar) { return GetConVarFloat(convar); }
+public void public_SetConVarFloat(Handle convar, float value, bool replicate, bool notify)
+{
+	SetConVarFloat(convar, value, replicate, notify);
+}
+public void public_GetConVarString(Handle convar, char[] value, int maxlength) { GetConVarString(convar, value, maxlength); }
+public void public_SetConVarString(Handle convar, const char[] value, bool replicate, bool notify)
+{
+	SetConVarString(convar, value, replicate, notify);
+}
+public void public_ResetConVar(Handle convar, bool replicate, bool notify) { ResetConVar(convar, replicate, notify); }
+public int public_GetConVarDefault(Handle convar, char[] value, int maxlength) { return GetConVarDefault(convar, value, maxlength); }
+public int public_GetConVarFlags(Handle convar) { return GetConVarFlags(convar); }
+public void public_SetConVarFlags(Handle convar, int flags) { SetConVarFlags(convar, flags); }
+public bool public_GetConVarBounds(Handle convar, ConVarBounds type, float &value) { return GetConVarBounds(convar, type, value); }
+public void public_SetConVarBounds(Handle convar, ConVarBounds type, bool set, float value)
+{
+	SetConVarBounds(convar, type, set, value);
+}
+public void public_GetConVarName(Handle convar, char[] name, int maxlength) { GetConVarName(convar, name, maxlength); }
+public bool public_SendConVarValue(int client, Handle convar, const char[] value) { return SendConVarValue(client, convar, value); }
+public QueryCookie public_QueryClientConVar(int client, const char[] cvarName, int value)
+{
+	return QueryClientConVar(client, cvarName, ConVarQueryFinishedCallback, value);
+}
+
 /* SOURCEMOD.INC */
 // SOURCEMOD.INC - Natives
 public void OnPluginStart()
@@ -558,9 +670,9 @@ public int public_GetLanguageByCode(const char[] code) { return GetLanguageByCod
 public int public_GetLanguageByName(const char[] name) { return GetLanguageByName(name); }
 public bool public_TranslationPhraseExists(const char[] phrase) { return TranslationPhraseExists(phrase); }
 public bool public_IsTranslatedForLanguage(const char[] phrase, int language) { return IsTranslatedForLanguage(phrase, language); }
-
 /* SDKTOOLS_VOICE.INC */
 // SDKTOOLS_VOICE.INC - Natives
+
 public void OnClientSpeaking(int client) { native_OnClientSpeaking(client); }
 public void OnClientSpeakingEnd(int client) { native_OnClientSpeakingEnd(client); }
 // SDKTOOLS_VOICE.INC - Public
@@ -1154,6 +1266,7 @@ public void public_UnhookEvent(const char[] name, EventHookMode mode)
 }
 public Event public_CreateEvent(const char[] name, bool force) { return CreateEvent(name, force); }
 public void public_FireEvent(Handle event, bool dontBroadcast) { FireEvent(event, dontBroadcast); }
+public void public_FireEventToClient(Handle event, int client) { view_as<Event>(event).FireToClient(client); }
 public void public_CancelCreatedEvent(Handle event) { CancelCreatedEvent(event); }
 public bool public_GetEventBool(Handle event, const char[] key, bool defValue) { return GetEventBool(event, key, defValue); }
 public void public_SetEventBool(Handle event, const char[] key, bool value) { SetEventBool(event, key, value); }

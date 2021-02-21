@@ -9,6 +9,39 @@
 class NativeManager
 {
 public:
+	// USERMESSAGES.INC
+
+	//static int MsgHookCallback(UserMsg msgID, Handle msg, const int players[], int playersNum, bool reliable, bool init)
+	static int MsgHookCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		UserMsg msgID = params[1];
+		Handle msg = params[2];
+
+		int* players;
+		pContext->LocalToPhysAddr(params[3], &players);
+
+		int playersNum = params[4];
+		bool reliable = params[5];
+		bool init = params[6];
+
+		MsgHookFunc callback = PublicManager::s_MsgHookCallbacks[msgID];
+		return callback(msgID, msg, players, playersNum, reliable, init);
+	}
+
+	//static int MsgPostHookCallback(UserMsg msgID, bool sent)
+	static int MsgPostHookCallback(IPluginContext* pContext, const cell_t* params)
+	{
+		UserMsg msgID = params[1];
+		MsgPostHookFunc callback = PublicManager::s_MsgPostHookCallbacks[msgID];
+		if (callback)
+		{
+			bool sent = params[2];
+			callback(msgID, sent);
+		}
+
+		return 0;
+	}
+
 	// CONVARS.INC
 
 	static int ConVarChangedCallback(IPluginContext* pContext, const cell_t* params)

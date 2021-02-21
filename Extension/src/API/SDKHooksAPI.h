@@ -155,11 +155,68 @@ public:
 	{
 		ExecFunc(s_SDKUnhookFunc, entity, type);
 	}
-	static void SDKHooks_TakeDamage(int entity, int inflictor, int attacker, float damage, int damageType, int weapon, const float damageForce[3], const float damagePosition[3])
+
+	/**
+	 * @brief Applies damage to an entity
+	 *
+	 * @note Force application is dependent on game and damage type(s)
+	 *
+	 * @param entity         Entity index taking damage
+	 * @param inflictor      Inflictor entity index
+	 * @param attacker       Attacker entity index
+	 * @param damage         Amount of damage
+	 * @param damageType     Bitfield of damage types
+	 * @param weapon         Weapon index (orangebox and later) or -1 for unspecified
+	 * @param damageForce    Velocity of damage force
+	 * @param damagePosition Origin of damage
+	 */
+	static void SDKHooks_TakeDamage(int entity, int inflictor, int attacker, float damage,
+		int damageType = DMG_GENERIC, int weapon = -1, const float damageForce[3] = nullptr,
+		const float damagePosition[3] = nullptr)
 	{
-		ExecFunc(s_SDKHooks_TakeDamageFunc, entity, inflictor, attacker, damage, damageType, weapon, damageForce, damagePosition);
+		PushArg(s_SDKHooks_TakeDamageFunc, entity);
+		PushArg(s_SDKHooks_TakeDamageFunc, inflictor);
+		PushArg(s_SDKHooks_TakeDamageFunc, attacker);
+		PushArg(s_SDKHooks_TakeDamageFunc, damage);
+		PushArg(s_SDKHooks_TakeDamageFunc, damageType);
+		PushArg(s_SDKHooks_TakeDamageFunc, weapon);
+		if (damageForce)
+			PushArg(s_SDKHooks_TakeDamageFunc, damageForce, 3);
+		else
+			PushArg(s_SDKHooks_TakeDamageFunc, NULL_VECTOR);
+
+		if (damagePosition)
+			PushArg(s_SDKHooks_TakeDamageFunc, damagePosition, 3);
+		else
+			PushArg(s_SDKHooks_TakeDamageFunc, NULL_VECTOR);
+
+		ExecFunc(s_SDKHooks_TakeDamageFunc);
 	}
-	static void SDKHooks_DropWeapon(int client, int weapon, const float vecTarget[3], const float vecVelocity[3])
+
+	/**
+	 * @brief Forces a client to drop the specified weapon
+	 *
+	 * @param client        Client index.
+	 * @param weapon        Weapon entity index.
+	 * @param vecTarget     Location to toss weapon to, or nullptr for default.
+	 * @param vecVelocity   Velocity at which to toss weapon, or nullptr for default.
+	 * @error               Invalid client or weapon entity, weapon not owned by client.
+	 */
+	static void SDKHooks_DropWeapon(int client, int weapon,
+		const float vecTarget[3] = nullptr, const float vecVelocity[3] = nullptr)
 	{
-		ExecFunc(s_SDKHooks_DropWeaponFunc, client, weapon, vecTarget, vecVelocity);
+		PushArg(s_SDKHooks_DropWeaponFunc, client);
+		PushArg(s_SDKHooks_DropWeaponFunc, weapon);
+		if (vecTarget)
+			PushArg(s_SDKHooks_DropWeaponFunc, vecTarget);
+		else
+			PushArg(s_SDKHooks_DropWeaponFunc, NULL_VECTOR);
+
+		if (vecVelocity)
+			PushArg(s_SDKHooks_DropWeaponFunc, vecVelocity);
+		else
+			PushArg(s_SDKHooks_DropWeaponFunc, NULL_VECTOR);
+
+		ExecFunc(s_SDKHooks_DropWeaponFunc);
+
 	}

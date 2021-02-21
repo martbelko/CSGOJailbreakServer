@@ -21,9 +21,6 @@ public:
 		for (Menu& menu : m_Menus)
 		{
 			menu = Menu(ShopMenuHandler, MENU_ACTIONS_ALL);
-			menu.SetTitle(title);
-			for (const ShopItem& item : m_Items)
-				menu.AddItem(item.GetName());
 			s_ShopHashmap[menu.GetHandle()] = this;
 		}
 	}
@@ -36,6 +33,15 @@ public:
 			s_ShopHashmap[menu.GetHandle()] = this;
 
 		return *this;
+	}
+
+	void RefreshMenusForClient(const char* title, int client)
+	{
+		Menu& menu = m_Menus[client - 1];
+		menu.SetTitle(title);
+		menu.RemoveAllItems();
+		for (const ShopItem& item : m_Items)
+			menu.AddItem(item.GetName(client).c_str());
 	}
 
 	void Delete() const
@@ -62,11 +68,6 @@ public:
 	bool IsEnabled() const { return m_Enabled; }
 	void SetEnable(bool enable) { m_Enabled = enable; }
 public:
-	static void OnClientPutInServer(int client)
-	{
-		s_PlayerPoints[client - 1] = 0;
-	}
-
 	static int GetPlayerPoints(int client) { return s_PlayerPoints[client - 1]; }
 	static void SetPlayerPoints(int client, int value)
 	{
@@ -82,7 +83,7 @@ private:
 			Shop* shop = s_ShopHashmap[menuHandle];
 			if (!shop->m_Enabled)
 			{
-				PublicManager::PrintCenterText(client, "[URNA SHOP] Sorry, shop was disabled");
+				PublicManager::PrintCenterText(client, "[URNA SHOP] Sorry, shop is disabled!");
 			}
 			else
 			{

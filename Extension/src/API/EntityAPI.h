@@ -568,7 +568,12 @@ public:
 	 */
 	static void GetEntPropVector(int entity, PropType type, const char* propName, float vec[3], int element = 0)
 	{
-		ExecFunc(s_GetEntPropVectorFunc, entity, type, propName, vec, element);
+		PushArg(s_GetEntPropVectorFunc, entity);
+		PushArg(s_GetEntPropVectorFunc, type);
+		PushArg(s_GetEntPropVectorFunc, propName);
+		PushArg(s_GetEntPropVectorFunc, vec, 3);
+		PushArg(s_GetEntPropVectorFunc, element);
+		ExecFunc(s_GetEntPropVectorFunc);
 	}
 
 	/**
@@ -648,7 +653,7 @@ public:
 	 *
 	 * @param entity        Entity index.
 	 * @param offset        Offset to use.
-	 * @param array         Array to read into.
+	 * @param arr           Array to read into.
 	 * @param arraySize     Number of values to read.
 	 * @param dataSize      Size of each value in bytes (1, 2, or 4).
 	 * @error               Invalid entity or offset out of reasonable bounds.
@@ -658,7 +663,7 @@ public:
 	{
 		for (int i = 0; i < arraySize; i++)
 		{
-			array[i] = GetEntData(entity, offset + i * dataSize, dataSize);
+			arr[i] = GetEntData(entity, offset + i * dataSize, dataSize);
 		}
 	}
 
@@ -667,7 +672,7 @@ public:
 	 *
 	 * @param entity        Entity index.
 	 * @param offset        Offset to use.
-	 * @param array         Array of values to copy.
+	 * @param arr           Array of values to copy.
 	 * @param arraySize     Number of values to copy.
 	 * @param dataSize      Size of each value in bytes (1, 2, or 4).
 	 * @param changeState   True to set the network state as changed; false otherwise.
@@ -678,7 +683,7 @@ public:
 	{
 		for (int i = 0; i < arraySize; i++)
 		{
-			SetEntData(entity, offset + i * dataSize, array[i], dataSize, changeState);
+			SetEntData(entity, offset + i * dataSize, arr[i], dataSize, changeState);
 		}
 	}
 

@@ -7,6 +7,9 @@ SMEXT_LINK(&g_Extension);
 
 const sp_nativeinfo_t MyNatives[] =
 {
+	// USERMESSAGES.INC
+	{ "native_MsgHookCallback", NativeManager::MsgHookCallback },
+	{ "native_MsgPostHookCallback", NativeManager::MsgPostHookCallback },
 	// CONVARS.INC
 	{ "native_ConVarChangedCallback", NativeManager::ConVarChangedCallback },
 	{ "native_ConVarQueryFinishedCallback", NativeManager::ConVarQueryFinishedCallback },
@@ -75,8 +78,8 @@ const sp_nativeinfo_t MyNatives[] =
 	{ "native_SDKHooksSetTransmit", NativeManager::SDKHooksSetTransmit },
 	{ "native_SDKHooksWeaponCanSwitchTo", NativeManager::SDKHooksWeaponCanSwitchTo },
 	{ "native_SDKHooksWeaponCanUse", NativeManager::SDKHooksWeaponCanUse },
-	{ "native_SDKHooksWeaponDrop", NativeManager::VoteHandlerCallback },
-	{ "native_SDKHooksWeaponEquip", NativeManager::VoteHandlerCallback },
+	{ "native_SDKHooksWeaponDrop", NativeManager::SDKHooksWeaponDrop },
+	{ "native_SDKHooksWeaponEquip", NativeManager::SDKHooksWeaponEquip },
 	{ "native_SDKHooksWeaponSwitch", NativeManager::SDKHooksWeaponSwitch },
 	{ "native_SDKHooksEndTouchPost", NativeManager::SDKHooksEndTouchPost },
 	{ "native_SDKHooksStartTouchPost", NativeManager::SDKHooksStartTouchPost },

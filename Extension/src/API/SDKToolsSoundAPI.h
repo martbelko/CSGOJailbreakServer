@@ -84,7 +84,7 @@ public:
 	 */
 	static void EmitSound(const int clients[], int numClients, const char* sample, int entity = SOUND_FROM_PLAYER,
 		int channel = SNDCHAN_AUTO, int level = SNDLEVEL_NORMAL, int flags = SND_NOFLAGS, float volume = SNDVOL_NORMAL,
-		int pitch = SNDPITCH_NORMAL, int speakerentity = -1, const float origin[3] = NULL_VECTOR, const float dir[3] = NULL_VECTOR,
+		int pitch = SNDPITCH_NORMAL, int speakerentity = -1, const float origin[3] = nullptr, const float dir[3] = nullptr,
 		bool updatePos = true, float soundtime = 0.0f)
 	{
 		PushArg(s_EmitSoundFunc, clients, numClients);
@@ -97,8 +97,16 @@ public:
 		PushArg(s_EmitSoundFunc, volume);
 		PushArg(s_EmitSoundFunc, pitch);
 		PushArg(s_EmitSoundFunc, speakerentity);
-		PushArg(s_EmitSoundFunc, origin, 3);
-		PushArg(s_EmitSoundFunc, dir, 3);
+		if (origin == nullptr)
+			PushArg(s_EmitSoundFunc, NULL_VECTOR);
+		else
+			PushArg(s_EmitSoundFunc, origin, 3);
+
+		if (dir == nullptr)
+			PushArg(s_EmitSoundFunc, NULL_VECTOR);
+		else
+			PushArg(s_EmitSoundFunc, dir, 3);
+
 		PushArg(s_EmitSoundFunc, updatePos);
 		PushArg(s_EmitSoundFunc, soundtime);
 		ExecFunc(s_EmitSoundFunc);
@@ -129,7 +137,7 @@ public:
 	 */
 	static void EmitSoundEntry(const int clients[], int numClients, const char* soundEntry, const char* sample, int entity = SOUND_FROM_PLAYER,
 		int channel = SNDCHAN_AUTO, int level = SNDLEVEL_NORMAL, int seed = 0, int flags = SND_NOFLAGS, float volume = SNDVOL_NORMAL,
-		int pitch = SNDPITCH_NORMAL, int speakerentity = -1, const float origin[3] = NULL_VECTOR, const float dir[3] = NULL_VECTOR,
+		int pitch = SNDPITCH_NORMAL, int speakerentity = -1, const float origin[3] = nullptr, const float dir[3] = nullptr,
 		bool updatePos = true, float soundtime = 0.0f)
 	{
 		PushArg(s_EmitSoundEntryFunc, clients, numClients);
@@ -144,8 +152,16 @@ public:
 		PushArg(s_EmitSoundEntryFunc, volume);
 		PushArg(s_EmitSoundEntryFunc, pitch);
 		PushArg(s_EmitSoundEntryFunc, speakerentity);
-		PushArg(s_EmitSoundEntryFunc, origin, 3);
-		PushArg(s_EmitSoundEntryFunc, dir, 3);
+		if (origin == nullptr)
+			PushArg(s_EmitSoundEntryFunc, NULL_VECTOR);
+		else
+			PushArg(s_EmitSoundEntryFunc, origin, 3);
+
+		if (dir == nullptr)
+			PushArg(s_EmitSoundEntryFunc, NULL_VECTOR);
+		else
+			PushArg(s_EmitSoundEntryFunc, dir, 3);
+
 		PushArg(s_EmitSoundEntryFunc, updatePos);
 		PushArg(s_EmitSoundEntryFunc, soundtime);
 		ExecFunc(s_EmitSoundEntryFunc);
@@ -173,7 +189,7 @@ public:
 	 */
 	static void EmitSentence(const int clients[], int numClients, int sentence, int entity, int channel = SNDCHAN_AUTO,
 		int level = SNDLEVEL_NORMAL, int flags = SND_NOFLAGS, float volume = SNDVOL_NORMAL, int pitch = SNDPITCH_NORMAL,
-		int speakerentity = -1, const float origin[3] = NULL_VECTOR, const float dir[3] = NULL_VECTOR, bool updatePos = true,
+		int speakerentity = -1, const float origin[3] = nullptr, const float dir[3] = nullptr, bool updatePos = true,
 		float soundtime = 0.0f)
 	{
 		PushArg(s_EmitSentenceFunc, clients, numClients);
@@ -186,8 +202,16 @@ public:
 		PushArg(s_EmitSentenceFunc, volume);
 		PushArg(s_EmitSentenceFunc, pitch);
 		PushArg(s_EmitSentenceFunc, speakerentity);
-		PushArg(s_EmitSentenceFunc, origin, 3);
-		PushArg(s_EmitSentenceFunc, dir, 3);
+		if (origin == nullptr)
+			PushArg(s_EmitSentenceFunc, NULL_VECTOR);
+		else
+			PushArg(s_EmitSentenceFunc, origin, 3);
+
+		if (dir == nullptr)
+			PushArg(s_EmitSentenceFunc, NULL_VECTOR);
+		else
+			PushArg(s_EmitSentenceFunc, dir, 3);
+
 		PushArg(s_EmitSentenceFunc, updatePos);
 		PushArg(s_EmitSentenceFunc, soundtime);
 		ExecFunc(s_EmitSentenceFunc);
@@ -269,7 +293,7 @@ public:
 	 */
 	static void EmitSoundToClient(int client, const char* sample, int entity = SOUND_FROM_PLAYER, int channel = SNDCHAN_AUTO,
 		int level = SNDLEVEL_NORMAL, int flags = SND_NOFLAGS, float volume = SNDVOL_NORMAL, int pitch = SNDPITCH_NORMAL,
-		int speakerentity = -1, const float origin[3] = NULL_VECTOR, const float dir[3] = NULL_VECTOR, bool updatePos = true,
+		int speakerentity = -1, const float origin[3] = nullptr, const float dir[3] = nullptr, bool updatePos = true,
 		float soundtime = 0.0)
 	{
 		int clients[1];
@@ -298,7 +322,7 @@ public:
 	 */
 	static void EmitSoundToAll(const char* sample, int entity = SOUND_FROM_PLAYER, int channel = SNDCHAN_AUTO,
 		int level = SNDLEVEL_NORMAL, int flags = SND_NOFLAGS, float volume = SNDVOL_NORMAL, int pitch = SNDPITCH_NORMAL,
-		int speakerentity = -1, const float origin[3] = NULL_VECTOR, const float dir[3] = NULL_VECTOR,
+		int speakerentity = -1, const float origin[3] = nullptr, const float dir[3] = nullptr,
 		bool updatePos = true, float soundtime = 0.0f)
 	{
 		int* clients = new int[s_MaxClients];
@@ -384,7 +408,7 @@ public:
 	 * @error               Invalid client index.
 	 */
 	static bool EmitGameSound(const int clients[], int numClients, const char* gameSound, int entity = SOUND_FROM_PLAYER,
-		int flags = SND_NOFLAGS, int speakerentity = -1, const float origin[3] = NULL_VECTOR, const float dir[3] = NULL_VECTOR,
+		int flags = SND_NOFLAGS, int speakerentity = -1, const float origin[3] = nullptr, const float dir[3] = nullptr,
 		bool updatePos = true, float soundtime = 0.0)
 	{
 		int channel, level, pitch;
@@ -451,7 +475,7 @@ public:
 	 * @error               Invalid client index.
 	 */
 	static bool EmitGameSoundToClient(int client, const char* gameSound, int entity = SOUND_FROM_PLAYER, int flags = SND_NOFLAGS,
-		int speakerentity = -1, const float origin[3] = NULL_VECTOR, const float dir[3] = NULL_VECTOR, bool updatePos = true,
+		int speakerentity = -1, const float origin[3] = nullptr, const float dir[3] = nullptr, bool updatePos = true,
 		float soundtime = 0.0f)
 	{
 		int clients[1];
@@ -481,7 +505,7 @@ public:
 	 * @error               Invalid client index.
 	 */
 	static bool EmitGameSoundToAll(const char* gameSound, int entity = SOUND_FROM_PLAYER, int flags = SND_NOFLAGS,
-		int speakerentity = -1, const float origin[3] = NULL_VECTOR, const float dir[3] = NULL_VECTOR, bool updatePos = true,
+		int speakerentity = -1, const float origin[3] = nullptr, const float dir[3] = nullptr, bool updatePos = true,
 		float soundtime = 0.0f)
 	{
 		int* clients = new int[s_MaxClients];

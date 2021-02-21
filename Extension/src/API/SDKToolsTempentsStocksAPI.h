@@ -140,11 +140,15 @@ public:
 	 * @param normal        Normal vector to the explosion.
 	 * @param MaterialType  Exploded material type.
 	 */
-	static void TE_SetupExplosion(const float pos[3], int Model, float Scale, int Framerate, int Flags, int Radius, int Magnitude, const float normal[3] = NULL_VECTOR, int MaterialType = 'C')
+	static void TE_SetupExplosion(const float pos[3], int Model, float Scale, int Framerate, int Flags, int Radius, int Magnitude, const float normal[3] = nullptr, int MaterialType = 'C')
 	{
 		TE_Start("Explosion");
 		TE_WriteVector("m_vecOrigin[0]", pos);
-		TE_WriteVector("m_vecNormal", normal);
+		if (normal)
+			TE_WriteVector("m_vecNormal", normal);
+		else
+			TE_WriteNum("m_vecNormal", NULL_VECTOR);
+
 		TE_WriteNum("m_nModelIndex", Model);
 		TE_WriteFloat("m_fScale", Scale);
 		TE_WriteNum("m_nFrameRate", Framerate);

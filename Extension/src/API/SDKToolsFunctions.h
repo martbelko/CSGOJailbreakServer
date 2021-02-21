@@ -70,14 +70,31 @@ public:
 	 * Teleports an entity.
 	 *
 	 * @param entity        Client index.
-	 * @param origin        New origin, or NULL_VECTOR for no change.
-	 * @param angles        New angles, or NULL_VECTOR for no change.
-	 * @param velocity      New velocity, or NULL_VECTOR for no change.
+	 * @param origin        New origin, or nullptr for no change.
+	 * @param angles        New angles, or nullptr for no change.
+	 * @param velocity      New velocity, or nullptr for no change.
 	 * @error               Invalid entity or client not in game, or lack of mod support.
 	 */
-	static void TeleportEntity(int entity, const float origin[3] = NULL_VECTOR, const float angles[3] = NULL_VECTOR, const float velocity[3] = NULL_VECTOR)
+	static void TeleportEntity(int entity, const float origin[3] = nullptr, const float angles[3] = nullptr, const float velocity[3] = nullptr)
 	{
-		ExecFunc(s_TeleportEntityFunc, entity, origin, angles, velocity);
+		PushArg(s_TeleportEntityFunc, entity);
+
+		if (origin == nullptr)
+			s_TeleportEntityFunc->PushCell(NULL_VECTOR);
+		else
+			PushArg(s_TeleportEntityFunc, origin, 3);
+
+		if (angles == nullptr)
+			s_TeleportEntityFunc->PushCell(NULL_VECTOR);
+		else
+			PushArg(s_TeleportEntityFunc, angles, 3);
+
+		if (velocity == nullptr)
+			s_TeleportEntityFunc->PushCell(NULL_VECTOR);
+		else
+			PushArg(s_TeleportEntityFunc, velocity, 3);
+
+		ExecFunc(s_TeleportEntityFunc);
 	}
 
 	/**

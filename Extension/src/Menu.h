@@ -44,6 +44,11 @@ public:
 		return PublicManager::RemoveMenuItem(m_Handle, position);
 	}
 
+	void RemoveAllItems() const
+	{
+		PublicManager::RemoveAllMenuItems(m_Handle);
+	}
+
 	bool GetMenuItem(int position, char* infoBuf, int infoBufLen, int& style = NULL_VALUE, char* dispBuf = "", int dispBufLen = 0, int client = 0) const
 	{
 		return PublicManager::GetMenuItem(m_Handle, position, infoBuf, infoBufLen, style, dispBuf, dispBufLen, client);
