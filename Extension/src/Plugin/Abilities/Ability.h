@@ -2,6 +2,87 @@
 
 #include "PublicManager.h"
 
+#include <vector>
+
+class Effect
+{
+public:
+	virtual ~Effect() = default;
+
+	virtual void Start() = 0;
+	virtual void End() = 0;
+
+	virtual int GetClient() const = 0;
+	virtual bool IsActive() const = 0;
+};
+
+class Ability
+{
+public:
+	virtual ~Ability() = default;
+
+	virtual void Enable() = 0;
+	virtual void Disable() = 0;
+
+	virtual bool IsEnabled() const = 0;
+	virtual const std::vector<Effect*>& GetEffects() const = 0;
+};
+
+class BEffect : public Effect
+{
+public:
+	virtual void Start() override
+	{
+		mActive = true;
+	}
+
+	virtual void End() override
+	{
+		mActive = false;
+	}
+
+	virtual int GetClient() const { return mClient; }
+	virtual bool IsActive() const { return mActive; }
+private:
+	int mClient;
+	bool mActive = false;
+};
+
+class BAbility : public Ability
+{
+public:
+	BAbility(const int players[], int playersCount)
+	{
+		for (int i = 0; i < playersCount; ++i)
+		{
+
+		}
+	}
+
+	virtual void Enable(float duration)
+	{
+		mEnabled = true;
+	}
+
+	virtual void Disable() override
+	{
+		mEnabled = false;
+	}
+
+	virtual bool IsEnabled() const override
+	{
+		return mEnabled;
+	}
+
+	virtual const std::vector<Effect*>& GetEffects() const override
+	{
+		return reinterpret_cast<std::vector<Effect*>>(mEffects);
+	}
+private:
+	std::vector<BEffect> mEffects;
+	bool mEnabled = false;
+};
+
 using TimedAbilityUpdateCallbackFunc = bool(*)(int client, float timeRemains);
 using TimedAbilityOnDisableCallbackFunc = void(*)(int client);
 

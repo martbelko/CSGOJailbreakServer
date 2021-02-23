@@ -11,7 +11,7 @@ class Utils
 public:
 	static void OnPluginStart()
 	{
-		s_FadeUserMsgId = P::GetUserMessageId("Fade");
+		s_FadeUserMsgId = PublicManager::GetUserMessageId("Fade");
 	}
 
 	static bool IsClientValid(int client)
@@ -61,30 +61,30 @@ public:
 		return false;
 	}
 
-	static void BlindPlayers(int* clients, int clientCount, const int color[4] = { 0 }, int flags = FADE_IN | FADE_STAYOUT | FADE_PURGE, int duration = 1536, int holdtime = 1536)
+	static void FadeUserMessage(int* clients, int clientCount, const int color[4], int flags = FADE_IN | FADE_STAYOUT | FADE_PURGE, int duration = INT_MAX, int holdtime = INT_MAX)
 	{
-		Handle message = P::StartMessageEx(s_FadeUserMsgId, clients, clientCount);
-		if (P::GetUserMessageType() == UM_Protobuf)
+		Handle message = PublicManager::StartMessageEx(s_FadeUserMsgId, clients, clientCount);
+		if (PublicManager::GetUserMessageType() == UM_Protobuf)
 		{
-			ProtobufHandle pb = P::UserMessageToProtobuf(message);
-			P::PbSetInt(pb, "duration", duration);
-			P::PbSetInt(pb, "hold_time", holdtime);
-			P::PbSetInt(pb, "flags", flags);
-			P::PbSetColor(pb, "clr", color);
+			ProtobufHandle pb = PublicManager::UserMessageToProtobuf(message);
+			PublicManager::PbSetInt(pb, "duration", duration);
+			PublicManager::PbSetInt(pb, "hold_time", holdtime);
+			PublicManager::PbSetInt(pb, "flags", flags);
+			PublicManager::PbSetColor(pb, "clr", color);
 		}
 		else
 		{
-			BfWriteHandle bf = P::UserMessageToBfWrite(message);
-			P::BfWriteShort(bf, duration);
-			P::BfWriteShort(bf, holdtime);
-			P::BfWriteShort(bf, flags);
-			P::BfWriteByte(bf, color[0]);
-			P::BfWriteByte(bf, color[1]);
-			P::BfWriteByte(bf, color[2]);
-			P::BfWriteByte(bf, color[3]);
+			BfWriteHandle bf = PublicManager::UserMessageToBfWrite(message);
+			PublicManager::BfWriteShort(bf, duration);
+			PublicManager::BfWriteShort(bf, holdtime);
+			PublicManager::BfWriteShort(bf, flags);
+			PublicManager::BfWriteByte(bf, color[0]);
+			PublicManager::BfWriteByte(bf, color[1]);
+			PublicManager::BfWriteByte(bf, color[2]);
+			PublicManager::BfWriteByte(bf, color[3]);
 		}
 
-		P::EndMessage();
+		PublicManager::EndMessage();
 	}
 private:
 	static void OnThinkPostCSPlayerManager(int manager)
@@ -104,6 +104,3 @@ private:
 
 	friend class Plugin;
 };
-
-__declspec(selectany) bool Utils::s_HiddenInScoreboard[MAXPLAYERS];
-__declspec(selectany) int Utils::s_FadeUserMsgId;

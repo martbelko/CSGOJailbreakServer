@@ -13,6 +13,7 @@
 #include "Plugin/Abilities/DoubleJump.h"
 #include "Plugin/Abilities/FastWalk.h"
 #include "Plugin/Abilities/Invisibility.h"
+#include "Plugin/Abilities/Blind.h"
 
 #include "Plugin/Admin/Admin.h"
 
@@ -44,7 +45,6 @@ private:
 	static Action OnTakeDamageAlive(int victim, int& attacker, int& inflictor, float& damage, int& damagetype, int& weapon, float damageForce[3], float damagePosition[3], int damagecustom);
 	static void OnTakeDamageAlivePost(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3], int damagecustom);
 	static Action SetTransmit(int entity, int other);
-	static void OnThinkPostCSPlayerManager(int client);
 
 	static Action CMDShopCallbackStatic(int client, std::string& command, int argc);
 private:

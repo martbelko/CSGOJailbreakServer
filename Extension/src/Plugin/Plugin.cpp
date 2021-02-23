@@ -88,6 +88,7 @@ void Plugin::OnPluginStart()
 	P::HookEvent("player_death", OnPlayerDeathEventPost, EventHookMode::EventHookMode_Post);
 	P::RegConsoleCmd("sm_shop", CMDShopCallbackStatic);
 
+	ShopItemCallback::Init();
 	std::vector<ShopItem> items;
 	items.emplace_back("spanner", 10, &ShopItemCallback::TShopSpanner, VipMode::NONE);
 	items.emplace_back("hammer", 12, &ShopItemCallback::TShopItemHammer, VipMode::NONE);
@@ -136,7 +137,7 @@ void Plugin::OnPluginEnd()
 void Plugin::OnMapStart()
 {
 	int PMIndex = P::FindEntityByClassname(0, "cs_player_manager");
-	P::SDKHook(PMIndex, SDKHook_ThinkPost, OnThinkPostCSPlayerManager);
+	P::SDKHook(PMIndex, SDKHook_ThinkPost, Utils::OnThinkPostCSPlayerManager);
 }
 
 void Plugin::OnClientPostAdminCheck(int client)
@@ -340,11 +341,6 @@ void Plugin::OnTakeDamageAlivePost(int victim, int attacker, int inflictor, floa
 Action Plugin::SetTransmit(int entity, int client)
 {
 	return Plugin_Continue;
-}
-
-void Plugin::OnThinkPostCSPlayerManager(int manager)
-{
-	Utils::OnThinkPostCSPlayerManager(manager);
 }
 
 Action Plugin::CMDShopCallbackStatic(int client, std::string& command, int argc)

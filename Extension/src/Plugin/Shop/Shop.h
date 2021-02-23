@@ -50,10 +50,7 @@ public:
 			menu.Delete();
 	}
 
-	bool DisplayToClient(int client, int time) const
-	{
-		return m_Menus[client - 1].DisplayToClient(client, time);
-	}
+	bool DisplayToClient(int client, int time) const { return m_Menus[client - 1].DisplayToClient(client, time); }
 
 	void DisplayToAll(int time, MenuFilterFunc func = [](int) { return true; }) const
 	{
@@ -69,10 +66,7 @@ public:
 	void SetEnable(bool enable) { m_Enabled = enable; }
 public:
 	static int GetPlayerPoints(int client) { return s_PlayerPoints[client - 1]; }
-	static void SetPlayerPoints(int client, int value)
-	{
-		s_PlayerPoints[client - 1] = value;
-	}
+	static void SetPlayerPoints(int client, int value) { s_PlayerPoints[client - 1] = value; }
 private:
 	static int ShopMenuHandler(MenuHandle menuHandle, MenuAction action, int param1, int param2)
 	{

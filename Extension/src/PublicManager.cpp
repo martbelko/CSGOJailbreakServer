@@ -760,20 +760,10 @@ void PublicManager::InitOnPluginStart(IPluginContext* pContext)
 {
 	IPluginRuntime* runtime = pContext->GetRuntime();
 	uint32_t null_vector_idx;
-	int err = runtime->FindPubvarByName("NULL_VECTOR", &null_vector_idx);
-	if (err)
-	{
-		rootconsole->ConsolePrint("Target plugin has no NULL_VECTOR.");
-	}
-	else
-		rootconsole->ConsolePrint("%d", null_vector_idx);
-
+	runtime->FindPubvarByName("NULL_VECTOR", &null_vector_idx);
 	cell_t null_vector;
-	err = runtime->GetPubvarAddrs(null_vector_idx, &null_vector, nullptr);
+	runtime->GetPubvarAddrs(null_vector_idx, &null_vector, nullptr);
 	NULL_VECTOR = null_vector;
-
-	if (err)
-		rootconsole->ConsolePrint("EEROR");
 
 	IPluginFunction* GetMaxClientsFunc = pContext->GetFunctionByName("public_GetMaxClients");
 	GetMaxClientsFunc->Execute(&s_MaxClients);
