@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="API">
+      <UniqueIdentifier>{FFD1870B-6BDB-877C-F456-9E7C605F937C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Defines.h" />
+    <ClInclude Include="src\MainPlugin.h" />
+    <ClInclude Include="src\NativeManager.h" />
+    <ClInclude Include="src\PublicManager.h" />
+    <ClInclude Include="src\extension.h" />
+    <ClInclude Include="src\smsdk_config.h" />
+    <ClInclude Include="src\smsdk_ext.h" />
+    <ClInclude Include="src\Menu.h" />
+    <ClInclude Include="src\BasePlugin.h" />
+    <ClInclude Include="src\Plugin\Abilities\Ability.h" />
+    <ClInclude Include="src\Plugin\Abilities\DoubleJump.h" />
+    <ClInclude Include="src\Plugin\Abilities\FastWalk.h" />
+    <ClInclude Include="src\Plugin\Abilities\Invisibility.h" />
+    <ClInclude Include="src\Plugin\Admin\Admin.h" />
+    <ClInclude Include="src\Plugin\Shop\Shop.h" />
+    <ClInclude Include="src\Plugin\Shop\ShopItem.h" />
+    <ClInclude Include="src\Plugin\Shop\ShopItemCallbacks.h" />
+    <ClInclude Include="src\Plugin\Global.h" />
+    <ClInclude Include="src\Plugin\Offsets.h" />
+    <ClInclude Include="src\Plugin\Plugin.h" />
+    <ClInclude Include="src\Plugin\Utils.h" />
+    <ClInclude Include="src\Plugin\VIP.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\MainPlugin.cpp" />
+    <ClCompile Include="src\NativeManager.cpp" />
+    <ClCompile Include="src\PublicManager.cpp" />
+    <ClCompile Include="src\extension.cpp" />
+    <ClCompile Include="src\smsdk_ext.cpp" />
+    <ClCompile Include="src\Plugin\Shop\Shop.cpp" />
+    <ClCompile Include="src\Plugin\Offsets.cpp" />
+    <ClCompile Include="src\Plugin\Plugin.cpp" />
+  </ItemGroup>
+</Project>

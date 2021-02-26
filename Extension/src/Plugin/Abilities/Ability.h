@@ -2,6 +2,8 @@
 
 #include "PublicManager.h"
 
+#include "Plugin/Abilities/AbilityManager.h"
+
 #include <vector>
 
 class Effect
@@ -12,74 +14,86 @@ public:
 	virtual void Start() = 0;
 	virtual void End() = 0;
 
-	virtual int GetClient() const = 0;
+	virtual const std::vector<int>& GetClients() const = 0;
 	virtual bool IsActive() const = 0;
 };
 
 class Ability
 {
 public:
+	Ability(int client)
+		: mClient(client)
+	{
+		AbilityManager::RegisterAbility(client, this);
+	}
+
+	Ability(const Ability& other) = delete;
+	Ability& operator=(const Ability& ability) = delete;
+
 	virtual ~Ability() = default;
 
-	virtual void Enable() = 0;
-	virtual void Disable() = 0;
+	void Enable() { GetEffect()->Start(); }
+	void Disable() { GetEffect()->End(); }
+	bool IsEnabled() const { return GetEffect()->IsActive(); };
+	int GetClient() const { return mClient; };
 
-	virtual bool IsEnabled() const = 0;
-	virtual const std::vector<Effect*>& GetEffects() const = 0;
+	virtual Effect* GetEffect() = 0;
+protected:
+	const Effect* GetEffect() const { return GetEffect(); }
+protected:
+	int mClient;
 };
 
 class BEffect : public Effect
 {
 public:
+	BEffect(const int players[], int count)
+		: mClients(players, players + count * sizeof(int))
+	{
+	}
+
 	virtual void Start() override
 	{
 		mActive = true;
+		for (int client : mClients)
+		{
+			// HERE GOES BLIND EFFECT
+		}
 	}
 
 	virtual void End() override
 	{
 		mActive = false;
+		for (int client : mClients)
+		{
+			// HERE GOES UNBLIND EFFECT
+		}
 	}
 
-	virtual int GetClient() const { return mClient; }
-	virtual bool IsActive() const { return mActive; }
+	virtual const std::vector<int>& GetClients() const override { return mClients; }
+	virtual bool IsActive() const override { return mActive; }
 private:
-	int mClient;
+	std::vector<int> mClients;
 	bool mActive = false;
 };
 
 class BAbility : public Ability
 {
 public:
-	BAbility(const int players[], int playersCount)
+	BAbility(int client, const int players[], int playersCount)
+		: Ability(client), mEffect(new BEffect(players, playersCount))
 	{
-		for (int i = 0; i < playersCount; ++i)
-		{
-
-		}
 	}
 
-	virtual void Enable(float duration)
+	virtual ~BAbility() override
 	{
-		mEnabled = true;
+		delete mEffect;
+		AbilityManager::RemoveAbility(mClient, this);
 	}
 
-	virtual void Disable() override
-	{
-		mEnabled = false;
-	}
-
-	virtual bool IsEnabled() const override
-	{
-		return mEnabled;
-	}
-
-	virtual const std::vector<Effect*>& GetEffects() const override
-	{
-		return reinterpret_cast<std::vector<Effect*>>(mEffects);
-	}
+	virtual Effect* GetEffect() override { return mEffect; }
 private:
-	std::vector<BEffect> mEffects;
+	BEffect* mEffect;
 	bool mEnabled = false;
 };
 
