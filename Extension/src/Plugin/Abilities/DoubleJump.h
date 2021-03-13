@@ -9,21 +9,44 @@ class DoubleJump
 public:
 	static void Enable(int client)
 	{
-		s_DJEnabled[client - 1] = true;
+		sEnabled[client - 1] = true;
 	}
 
 	static void Disable(int client)
 	{
-		s_DJEnabled[client - 1] = false;
+		sEnabled[client - 1] = false;
+	}
+
+	static bool IsActive(int client)
+	{
+		return sEnabled[client - 1];
 	}
 
 	static void OnGameFrame()
 	{
-		for (int i = 1; i <= PublicManager::GetMaxClients(); i++)
+		for (int i = 1; i <= PublicManager::GetMaxClients(); ++i)
 		{
-			if (PublicManager::IsClientInGame(i) && PublicManager::IsPlayerAlive(i) && s_DJEnabled[i - 1])
+			if (PublicManager::IsClientInGame(i) && PublicManager::IsPlayerAlive(i) && sEnabled[i - 1])
 				DoDoubleJump(i);
 		}
+	}
+
+	static void OnClientDeath(int client)
+	{
+		if (IsActive(client))
+			Disable(client);
+	}
+
+	static void OnClientDisconnect(int client)
+	{
+		if (IsActive(client))
+			Disable(client);
+	}
+
+	static void OnClientTeamChange(int client, int team, int oldTeam)
+	{
+		if (IsActive(client))
+			Disable(client);
 	}
 private:
 	static void DoDoubleJump(int client)
@@ -50,14 +73,9 @@ private:
 		s_LastButtons[client - 1] = curButtons;
 	}
 private:
-	static bool s_DJEnabled[MAXPLAYERS];
+	static bool sEnabled[MAXPLAYERS];
 	static int s_LastFlags[MAXPLAYERS];
 	static int s_LastButtons[MAXPLAYERS];
 	static int s_JumpCount[MAXPLAYERS];
 	static constexpr int MaxJumps = 2;
 };
-
-__declspec(selectany) int DoubleJump::s_JumpCount[MAXPLAYERS];
-__declspec(selectany) int DoubleJump::s_LastButtons[MAXPLAYERS];
-__declspec(selectany) int DoubleJump::s_LastFlags[MAXPLAYERS];
-__declspec(selectany) bool DoubleJump::s_DJEnabled[MAXPLAYERS];

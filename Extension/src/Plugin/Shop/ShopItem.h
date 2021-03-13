@@ -17,13 +17,18 @@ public:
 
 	bool CanBeUsedByClient(int client)
 	{
-		return static_cast<int>(m_VipMode) <= static_cast<int>(VIPManager::GetClientVipMode(client));
+		return mEnabled && static_cast<int>(m_VipMode) <= static_cast<int>(VIPManager::GetClientVipMode(client));
 	}
 
 	void CallCallback(int client) { m_Callback(client, this); }
 
 	int GetPrice() const { return m_Price; }
 	float GetDuration() const { return m_Duration; }
+	VipMode GetVipMode() const { return m_VipMode; }
+
+	void Disable() { mEnabled = false; }
+	void Enable() { mEnabled = true; }
+	bool IsEnabled() const { return mEnabled; }
 
 	std::string GetName(int client) const
 	{
@@ -31,7 +36,7 @@ public:
 		constexpr char extraVipStr[] = " [ ExtraVIP ]";
 
 		char translated[40];
-		PublicManager::Format(translated, sizeof(translated), "%T", m_Name.c_str(), client);
+		PM::Format(translated, sizeof(translated), "%T", m_Name.c_str(), client);
 
 		std::string name(translated);
 		name += " (";
@@ -62,4 +67,5 @@ private:
 	VipMode m_VipMode;
 	float m_Duration;
 	ShopItemSelectedFunc m_Callback;
+	bool mEnabled = true;
 };

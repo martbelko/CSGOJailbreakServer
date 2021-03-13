@@ -64,6 +64,14 @@ public:
 
 	bool IsEnabled() const { return m_Enabled; }
 	void SetEnable(bool enable) { m_Enabled = enable; }
+
+	void EnableAllItems()
+	{
+		for (ShopItem& item : m_Items)
+			item.Enable();
+	}
+
+	const std::vector<ShopItem>& GetItems() const { return m_Items; }
 public:
 	static int GetPlayerPoints(int client) { return s_PlayerPoints[client - 1]; }
 	static void SetPlayerPoints(int client, int value) { s_PlayerPoints[client - 1] = value; }
@@ -82,7 +90,15 @@ private:
 			else
 			{
 				ShopItem& item = shop->m_Items[itemIndex];
-				item.CallCallback(client);
+				if (item.CanBeUsedByClient(client))
+				{
+					item.Disable();
+					item.CallCallback(client);
+				}
+				else
+				{
+					// TODO: Notify
+				}
 			}
 		}
 		else if (action == MenuAction::MenuAction_DrawItem)

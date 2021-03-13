@@ -1,5 +1,7 @@
 #include "Plugin.h"
 
+#include "Plugin/DoorManager.h"
+
 #include "Plugin/Shop/ShopItemCallbacks.h"
 
 using P = PublicManager;
@@ -86,31 +88,33 @@ void Plugin::OnPluginStart()
 
 	P::HookEvent("round_start", OnRoundStartPost, EventHookMode::EventHookMode_Post);
 	P::HookEvent("player_death", OnPlayerDeathEventPost, EventHookMode::EventHookMode_Post);
+	P::HookEvent("player_team", OnPlayerTeamChange, EventHookMode::EventHookMode_Post);
+
 	P::RegConsoleCmd("sm_shop", CMDShopCallbackStatic);
 
 	ShopItemCallback::Init();
-	std::vector<ShopItem> items;
-	items.emplace_back("spanner", 10, &ShopItemCallback::TShopSpanner, VipMode::NONE);
-	items.emplace_back("hammer", 12, &ShopItemCallback::TShopItemHammer, VipMode::NONE);
-	items.emplace_back("axe", 15, &ShopItemCallback::TShopAxe, VipMode::NONE);
-	items.emplace_back("Knife", 20, &ShopItemCallback::TShopKnife, VipMode::NONE);
-	items.emplace_back("taser", 50, &ShopItemCallback::TShopTaser, VipMode::VIP);
-	items.emplace_back("healthshot", 20, &ShopItemCallback::TShopHealhshot, VipMode::NONE);
-	items.emplace_back("hegrenade", 15, &ShopItemCallback::TShopHEGrenade, VipMode::NONE);
-	items.emplace_back("flashbang", 12, &ShopItemCallback::TShopFlashbang, VipMode::NONE);
-	items.emplace_back("molotov", 10, &ShopItemCallback::TShopMolotov, VipMode::NONE);
-	items.emplace_back("tagrenade", 12, &ShopItemCallback::TShopTAGrenade, VipMode::NONE);
-	items.emplace_back("kevlar", 20, &ShopItemCallback::TShopKevlar, VipMode::NONE);
-	items.emplace_back("kevlarhelmet", 30, &ShopItemCallback::TShopKevlarHelmet, VipMode::NONE);
-	items.emplace_back("breachcharge", 70, &ShopItemCallback::TShopBreachCharge, VipMode::EXTRA_VIP);
-	items.emplace_back("djump", 40, &ShopItemCallback::TShopDJump, VipMode::NONE);
-	items.emplace_back("fastwalk", 50, &ShopItemCallback::TShopFastwalk, VipMode::NONE, 5.0f);
-	items.emplace_back("invisibility", 80, &ShopItemCallback::TShopInvisibility, VipMode::NONE, 5.0f);
-	items.emplace_back("changeskin", 60, &ShopItemCallback::TShopChangeskin, VipMode::NONE);
-	items.emplace_back("blind", 200, &ShopItemCallback::TShopBlind, VipMode::VIP, 10.0f);
-	items.emplace_back("openchance", 60, &ShopItemCallback::TShopOpen, VipMode::VIP);
-	items.emplace_back("fortune", 30, &ShopItemCallback::TShopFortune, VipMode::NONE);
-	m_TShop = Shop("tshop", items);
+	std::vector<ShopItem> tItems;
+	tItems.emplace_back("spanner", 10, &ShopItemCallback::TShopSpanner, VipMode::NONE);
+	tItems.emplace_back("hammer", 12, &ShopItemCallback::TShopItemHammer, VipMode::NONE);
+	tItems.emplace_back("axe", 15, &ShopItemCallback::TShopAxe, VipMode::NONE);
+	tItems.emplace_back("Knife", 20, &ShopItemCallback::TShopKnife, VipMode::NONE);
+	tItems.emplace_back("taser", 50, &ShopItemCallback::TShopTaser, VipMode::VIP);
+	tItems.emplace_back("healthshot", 20, &ShopItemCallback::TShopHealhshot, VipMode::NONE);
+	tItems.emplace_back("hegrenade", 15, &ShopItemCallback::TShopHEGrenade, VipMode::NONE);
+	tItems.emplace_back("flashbang", 12, &ShopItemCallback::TShopFlashbang, VipMode::NONE);
+	tItems.emplace_back("molotov", 10, &ShopItemCallback::TShopMolotov, VipMode::NONE);
+	tItems.emplace_back("tagrenade", 12, &ShopItemCallback::TShopTAGrenade, VipMode::NONE);
+	tItems.emplace_back("kevlar", 20, &ShopItemCallback::TShopKevlar, VipMode::NONE);
+	tItems.emplace_back("kevlarhelmet", 30, &ShopItemCallback::TShopKevlarHelmet, VipMode::NONE);
+	tItems.emplace_back("breachcharge", 70, &ShopItemCallback::TShopBreachCharge, VipMode::EXTRA_VIP);
+	tItems.emplace_back("djump", 40, &ShopItemCallback::TShopDJump, VipMode::NONE);
+	tItems.emplace_back("fastwalk", 50, &ShopItemCallback::TShopFastwalk, VipMode::NONE, 5.0f);
+	tItems.emplace_back("invisibility", 80, &ShopItemCallback::TShopInvisibility, VipMode::NONE, 5.0f);
+	tItems.emplace_back("changeskin", 60, &ShopItemCallback::TShopChangeskin, VipMode::NONE);
+	tItems.emplace_back("blind", 200, &ShopItemCallback::TShopBlind, VipMode::VIP, 5.0f);
+	tItems.emplace_back("openchance", 60, &ShopItemCallback::TShopOpen, VipMode::VIP);
+	tItems.emplace_back("fortune", 30, &ShopItemCallback::TShopFortune, VipMode::NONE);
+	m_TShop = Shop("tshop", tItems);
 
 	std::vector<ShopItem> ctItems;
 	ctItems.emplace_back("helmet", 20, &ShopItemCallback::CTShopHelmet);
@@ -138,6 +142,13 @@ void Plugin::OnMapStart()
 {
 	int PMIndex = P::FindEntityByClassname(0, "cs_player_manager");
 	P::SDKHook(PMIndex, SDKHook_ThinkPost, Utils::OnThinkPostCSPlayerManager);
+
+	DoorManager::OnMapStart();
+}
+
+void Plugin::OnMapEnd()
+{
+	DoorManager::OnMapEnd();
 }
 
 void Plugin::OnClientPostAdminCheck(int client)
@@ -158,7 +169,7 @@ void Plugin::OnClientPostAdminCheck(int client)
 	P::SDKHook(client, SDKHookType::SDKHook_OnTakeDamageAlivePost, OnTakeDamageAlivePost);
 	P::SDKHook(client, SDKHookType::SDKHook_SetTransmit, SetTransmit);
 
-	Utils::HidePlayerFromScoreboard(client, Admin::IsClientAdmin(client));
+	// Utils::HidePlayerFromScoreboard(client, Admin::IsClientAdmin(client));
 }
 
 void Plugin::OnGameFrame()
@@ -177,6 +188,8 @@ Action Plugin::OnRoundStartPost(EventHandle eventHandle, const char* name, bool 
 
 	plugin.m_TShop.SetEnable(true);
 	plugin.m_CTShop.SetEnable(true);
+	plugin.m_TShop.EnableAllItems();
+	plugin.m_CTShop.EnableAllItems();
 
 	plugin.m_ShopDisableTimer = P::CreateTimer(Globals::shopTime, [](Handle, void* value)
 	{
@@ -199,13 +212,34 @@ Action Plugin::OnRoundStartPost(EventHandle eventHandle, const char* name, bool 
 Action Plugin::OnPlayerDeathEventPost(EventHandle eventHandle, const char* name, bool dontBroadcast)
 {
 	int client = P::GetClientOfUserId(P::GetEventInt(eventHandle, "userid"));
-	ClearAllAbilitiesForClient(client);
+
+	BlindAbility::OnClientDeath(client);
+	FastWalk::OnClientDeath(client);
+	Invisibility::OnClientDeath(client);
+	DoubleJump::OnClientDeath(client);
+
 	return Plugin_Continue;
+
+}
+
+Action Plugin::OnPlayerTeamChange(EventHandle eventHandle, const char* name, bool dontBroadcast)
+{
+	int client = P::GetClientOfUserId(P::GetEventInt(eventHandle, "userid"));
+	int team = P::GetEventInt(eventHandle, "team");
+	int oldTeam = P::GetEventInt(eventHandle, "oldteam");
+
+	BlindAbility::OnClientTeamChange(client, team, oldTeam);
+	FastWalk::OnClientTeamChange(client, team, oldTeam);
+	Invisibility::OnClientTeamChange(client, team, oldTeam);
+	DoubleJump::OnClientTeamChange(client, team, oldTeam);
+
+	return Plugin_Continue;
+
 }
 
 void Plugin::OnSpawnPost(int client)
 {
-	Utils::DisarmPlayer(client);
+	/*Utils::DisarmPlayer(client);
 	P::CreateTimer(Globals::disarmTimerLength, [](Handle, void* data)
 	{
 		int userid = reinterpret_cast<int>(data);
@@ -218,7 +252,7 @@ void Plugin::OnSpawnPost(int client)
 			plugin.m_CTShop.DisplayToClient(client, 20);
 		return Plugin_Continue;
 	},
-	reinterpret_cast<void*>(P::GetClientUserId(client)));
+	reinterpret_cast<void*>(P::GetClientUserId(client)));*/
 }
 
 Action Plugin::OnWeaponDrop(int client, int weapon)
@@ -393,4 +427,14 @@ Action Plugin::CMDShopCallbackStatic(int client, std::string& command, int argc)
 	PublicManager::DisplayMenu(menu, client + 1, 20);*/
 
 	return Plugin_Handled;
+}
+
+Shop& Plugin::GetTShop()
+{
+	return plugin.m_TShop;
+}
+
+Shop& Plugin::GetCTShop()
+{
+	return plugin.m_CTShop;
 }

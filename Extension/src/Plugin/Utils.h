@@ -61,7 +61,7 @@ public:
 		return false;
 	}
 
-	static void FadeUserMessage(int* clients, int clientCount, const int color[4], int flags = FADE_IN | FADE_STAYOUT | FADE_PURGE, int duration = INT_MAX, int holdtime = INT_MAX)
+	static void FadeUserMessage(int clients[], int clientCount, const int color[4], int flags = FADE_IN | FADE_STAYOUT | FADE_PURGE, int duration = INT_MAX, int holdtime = INT_MAX)
 	{
 		Handle message = PublicManager::StartMessageEx(s_FadeUserMsgId, clients, clientCount);
 		if (PublicManager::GetUserMessageType() == UM_Protobuf)

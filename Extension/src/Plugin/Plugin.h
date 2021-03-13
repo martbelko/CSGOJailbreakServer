@@ -24,18 +24,27 @@ public:
 	virtual void OnPluginEnd() override;
 
 	virtual void OnMapStart() override;
+	virtual void OnMapEnd() override;
 
 	virtual void OnClientPostAdminCheck(int client) override;
 	virtual void OnClientDisconnect(int client) override
 	{
-		ClearAllAbilitiesForClient(client);
+		BlindAbility::OnClientDisconnect(client);
+		FastWalk::OnClientDisconnect(client);
+		Invisibility::OnClientDisconnect(client);
+		DoubleJump::OnClientDisconnect(client);
+
 		Utils::HidePlayerFromScoreboard(client, false);
 	}
 
 	virtual void OnGameFrame() override;
+public:
+	static Shop& GetTShop();
+	static Shop& GetCTShop();
 private:
 	static Action OnRoundStartPost(EventHandle eventHandle, const char* name, bool dontBroadcast);
 	static Action OnPlayerDeathEventPost(EventHandle eventHandle, const char* name, bool dontBroadcast);
+	static Action OnPlayerTeamChange(EventHandle eventHandle, const char* name, bool dontBroadcast);
 
 	static void OnSpawnPost(int client);
 	static Action OnWeaponDrop(int client, int weapon);
@@ -48,18 +57,11 @@ private:
 
 	static Action CMDShopCallbackStatic(int client, std::string& command, int argc);
 private:
-	static void ClearAllAbilitiesForClient(int client)
-	{
-		DoubleJump::Disable(client);
-		FastWalk::Disable(client);
-		Invisibility::Disable(client);
-	}
-private:
 	Shop m_TShop;
 	Shop m_CTShop;
 
 	Handle m_ShopDisableTimer = INVALID_HANDLE;
-	bool m_AllowDropWeapons = true;
+	bool m_AllowDropWeapons;
 
 	struct OrigOwnerWeapon
 	{

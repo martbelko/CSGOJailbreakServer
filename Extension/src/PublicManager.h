@@ -311,6 +311,9 @@ public:
 		return ExecFunc(s_SDKCallSmoke4Func);
 	}
 
+	// VECTOR.INC
+	#include "API/VectorAPI.h"
+
 	// USERMESSAGES.INC
 	#include "API/UserMessagesAPI.h"
 
@@ -1275,3 +1278,5 @@ private:
 	static IPluginFunction* s_GetClientSerialFunc;
 	static IPluginFunction* s_GetClientFromSerialFunc;
 };
+
+using PM = PublicManager;

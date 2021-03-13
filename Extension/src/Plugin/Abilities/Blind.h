@@ -1,74 +1,132 @@
 #pragma once
 
-#include "Plugin/Abilities/Ability.h"
-
 #include "Plugin/Utils.h"
 
-class BlindAbilityCallback
-{
-public:
-	virtual void OnStart(float remainingBlindTime) = 0;
-	virtual void OnUpdate(float remainingBlindTime) = 0;
-	virtual void OnEnd(int client) = 0;
-};
+#include "Timer.h"
 
 class BlindAbility
 {
 public:
-	static void Enable(int players[], int playerCount, float blindTime)
+	class BlindAbilityCallback
 	{
-		for (int i = 0; i < playerCount; ++i)
-			sBlinded[players[i] - 1] = true;
-
-		Utils::FadeUserMessage(players, playerCount, sBlackColor, FADE_IN | FADE_PURGE);
-		sRemainingBlindTime += blindTime;
-		sCallbackClass->OnStart(sRemainingBlindTime);
-		if (sTimer == INVALID_HANDLE)
+	public:
+		virtual void OnStart(float remainingTime) {};
+		virtual void OnUpdate(float remainingTime) {};
+		virtual void OnEnd() {};
+	};
+public:
+	static void Enable(float time)
+	{
+		sRemainingTime += time;
+		if (!sTimer)
 		{
-			sTimer = PublicManager::CreateTimer(sTimerInterval, [](Handle, void*)
+			sTimer = Timer(sTimerInterval, BlindAbility::OnTimerTick, nullptr, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+
+			std::vector<int> players;
+			players.reserve(PM::GetMaxClients());
+			for (int i = 1; i <= PM::GetMaxClients(); ++i)
 			{
-				sRemainingBlindTime -= sTimerInterval;
-				if (sRemainingBlindTime <= 0.0f)
-				{
-					for (int i = 1; i < PublicManager::GetMaxClients(); ++i)
-					{
-						if (sBlinded[i - 1] && PublicManager::IsClientInGame(i))
-						{
-							Utils::FadeUserMessage(&i, 1, sNormalColor, FADE_IN | FADE_STAYOUT | FADE_PURGE);
-							sBlinded[i - 1] = false;
-							sCallbackClass->OnEnd(i);
-						}
-					}
+				if (PM::IsClientInGame(i) && PM::GetClientTeam(i) == CS_TEAM_CT)
+					players.push_back(i);
+			}
 
-					sRemainingBlindTime = 0.0f;
-					sTimer = INVALID_HANDLE;
-					return Plugin_Stop;
-				}
-
-				sRemainingBlindTime -= sTimerInterval;
-				sCallbackClass->OnUpdate(sRemainingBlindTime);
-				return Plugin_Continue;
-			},
-			nullptr, TIMER_REPEAT); // We want this timer to carry over mapchanges in order to set sTimer to INVALID_HANDLE
+			players.push_back(1);
+			EnableBlind(players.data(), players.size());
+			sCallbackClass->OnStart(sRemainingTime);
+			sRemainingTime -= sTimerInterval;
 		}
 	}
 
-	static void Disable(int client)
+	static void SetCallbackClass(BlindAbilityCallback* callbackClass)
 	{
-		sBlinded[client - 1] = false;
-		Utils::FadeUserMessage(&client, 1, sNormalColor, FADE_IN | FADE_STAYOUT | FADE_PURGE);
-		sCallbackClass->OnEnd(client);
+		sCallbackClass = callbackClass;
 	}
 
-	static void SetCallbackClass(BlindAbilityCallback* callbackClass) { sCallbackClass = callbackClass; }
+	static bool IsActive()
+	{
+		return sRemainingTime != 0.0f;
+	}
+
+	static void DisableForClient(int client)
+	{
+		DisableBlind(&client, 1);
+	}
+
+	static void Disable()
+	{
+		std::vector<int> players;
+		players.reserve(PM::GetMaxClients());
+		for (int i = 1; i <= PM::GetMaxClients(); ++i)
+		{
+			if (PM::IsClientInGame(i) && PM::GetClientTeam(i) == CS_TEAM_CT)
+				players.push_back(i);
+		}
+		DisableBlind(players.data(), players.size());
+
+		sRemainingTime = 0.0f;
+		sTimer.Kill();
+		sCallbackClass->OnEnd();
+	}
+
+	static void OnClientDeath(int client)
+	{
+		if (PublicManager::GetClientTeam(client) == CS_TEAM_CT && IsActive())
+			DisableForClient(client);
+	}
+
+	static void OnClientDisconnect(int client)
+	{
+		if (PublicManager::GetClientTeam(client) == CS_TEAM_CT && IsActive())
+			DisableForClient(client);
+	}
+
+	static void OnClientTeamChange(int client, int team, int oldTeam)
+	{
+		if (team == CS_TEAM_T && oldTeam == CS_TEAM_CT && IsActive())
+			DisableForClient(client);
+	}
+
+	static Action OnTimerTick(Timer*, void*)
+	{
+		if (sRemainingTime <= 0.0f)
+		{
+			std::vector<int> players;
+			players.reserve(PM::GetMaxClients());
+			for (int i = 1; i <= PublicManager::GetMaxClients(); ++i)
+				if (PublicManager::IsClientInGame(i) && PublicManager::GetClientTeam(i) == CS_TEAM_CT)
+					players.push_back(i);
+
+			players.push_back(1);
+			DisableBlind(players.data(), players.size());
+
+			sCallbackClass->OnEnd();
+			sRemainingTime = 0.0f;
+			return Plugin_Stop;
+		}
+		else
+		{
+			sCallbackClass->OnUpdate(sRemainingTime);
+			sRemainingTime -= sTimerInterval;
+		}
+
+		return Plugin_Continue;
+	}
+private:
+	static void EnableBlind(int clients[], int count)
+	{
+		Utils::FadeUserMessage(clients, count, sBlackColor, FADE_IN | FADE_PURGE);
+	}
+
+	static void DisableBlind(int clients[], int count)
+	{
+		Utils::FadeUserMessage(clients, count, sNormalColor, FADE_IN | FADE_STAYOUT | FADE_PURGE);
+	}
 private:
 	static constexpr int sBlackColor[4] = { 0, 0, 0, 255 };
 	static constexpr int sNormalColor[4] = { 0, 0, 0, 0 };
-	static constexpr float sTimerInterval = 0.1f;
+	static constexpr float sTimerInterval = 1.0f;
 
+	static Timer sTimer;
+	static float sRemainingTime;
 	static BlindAbilityCallback* sCallbackClass;
-
-	static bool sBlinded[MAXPLAYERS];
-	static float sRemainingBlindTime;
-	static Handle sTimer;
 };

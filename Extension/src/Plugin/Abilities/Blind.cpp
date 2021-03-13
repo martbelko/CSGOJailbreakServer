@@ -1,6 +1,5 @@
 #include "Blind.h"
 
-float BlindAbility::sRemainingBlindTime;
-Handle BlindAbility::sTimer = INVALID_HANDLE;
-BlindAbilityCallback* BlindAbility::sCallbackClass;
-bool BlindAbility::sBlinded[MAXPLAYERS];
+Timer BlindAbility::sTimer;
+float BlindAbility::sRemainingTime = 0.0f;
+BlindAbility::BlindAbilityCallback* BlindAbility::sCallbackClass;
