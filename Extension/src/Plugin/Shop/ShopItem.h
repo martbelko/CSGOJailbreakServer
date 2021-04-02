@@ -7,7 +7,7 @@
 
 class ShopItem
 {
-	using ShopItemSelectedFunc = void(*)(int client, const ShopItem* item);
+	using ShopItemSelectedFunc = void(*)(int client, const ShopItem* item, void* param);
 public:
 	ShopItem() = default;
 	ShopItem(const std::string& name, int price, ShopItemSelectedFunc callback, VipMode vipMode = VipMode::NONE, float duration = 0.0f)
@@ -20,7 +20,7 @@ public:
 		return mEnabled && static_cast<int>(m_VipMode) <= static_cast<int>(VIPManager::GetClientVipMode(client));
 	}
 
-	void CallCallback(int client) { m_Callback(client, this); }
+	void CallCallback(int client, void* param = nullptr) { m_Callback(client, this, param); }
 
 	int GetPrice() const { return m_Price; }
 	float GetDuration() const { return m_Duration; }
@@ -61,6 +61,8 @@ public:
 
 		return name;
 	}
+
+	const std::string& GetRawName() const { return m_Name; }
 private:
 	std::string m_Name;
 	int m_Price;

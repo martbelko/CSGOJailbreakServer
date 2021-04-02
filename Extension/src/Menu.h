@@ -7,82 +7,110 @@ using MenuFilterFunc = bool(*)(int client);
 class Menu
 {
 public:
+	using NewMenuHandler = int(*)(Menu menu, MenuAction action, int param1, int param2);
+public:
 	Menu() = default;
-	Menu(MenuHandler handler, MenuAction actions = MENU_ACTIONS_DEFAULT, Menu* parent = nullptr)
-		: m_Parent(parent)
+	Menu(MenuHandler handler, MenuAction actions = MENU_ACTIONS_DEFAULT)
 	{
-		m_Handle = PublicManager::CreateMenu(handler, actions);
+		if (m_Handle != INVALID_HANDLE)
+			PM::CloseHandle(m_Handle);
+		m_Handle = PM::CreateMenu(handler, actions);
 	}
 
-	void SetTitle(const char* title) const
+	Menu(const Menu& other)
 	{
-		PublicManager::SetMenuTitle(m_Handle, title);
+		m_Handle = other.m_Handle;
+		m_Counter = other.m_Counter;
+	}
+
+	Menu& operator=(const Menu& other)
+	{
+		Delete();
+		m_Handle = other.m_Handle;
+		m_Counter = other.m_Counter;
+		return *this;
+	}
+
+	void Delete()
+	{
+		if (m_Handle != INVALID_HANDLE)
+		{
+			PM::CloseHandle(m_Handle);
+			m_Handle = INVALID_HANDLE;
+		}
+	}
+
+	template<typename ... Args>
+	void SetTitle(const char* format, Args ... args) const
+	{
+		PM::SetMenuTitle(m_Handle, title, args...);
 	}
 
 	std::string GetTitle() const
 	{
 		std::string title;
 		title.reserve(32);
-		PublicManager::GetMenuTitle(m_Handle, title.data(), title.capacity());
+		PM::GetMenuTitle(m_Handle, title.data(), title.capacity());
 		return title;
 	}
 
 	bool AddItem(const char* displayStr, int style = 0) const
 	{
 		std::string infoStr = GetInfoStr();
-		return PublicManager::AddMenuItem(m_Handle, infoStr.c_str(), displayStr, style);
+		return PM::AddMenuItem(m_Handle, infoStr.c_str(), displayStr, style);
 	}
 
 	bool InsertItem(int position, const char* displayStr, int style = 0) const
 	{
 		std::string infoStr = GetInfoStr();
-		return PublicManager::InsertMenuItem(m_Handle, position, infoStr.c_str(), displayStr, style);
+		return PM::InsertMenuItem(m_Handle, position, infoStr.c_str(), displayStr, style);
 	}
 
 	bool RemoveItem(int position) const
 	{
-		return PublicManager::RemoveMenuItem(m_Handle, position);
+		return PM::RemoveMenuItem(m_Handle, position);
 	}
 
 	void RemoveAllItems() const
 	{
-		PublicManager::RemoveAllMenuItems(m_Handle);
+		PM::RemoveAllMenuItems(m_Handle);
 	}
 
 	bool GetMenuItem(int position, char* infoBuf, int infoBufLen, int& style = NULL_VALUE, char* dispBuf = "", int dispBufLen = 0, int client = 0) const
 	{
-		return PublicManager::GetMenuItem(m_Handle, position, infoBuf, infoBufLen, style, dispBuf, dispBufLen, client);
+		return PM::GetMenuItem(m_Handle, position, infoBuf, infoBufLen, style, dispBuf, dispBufLen, client);
 	}
 
 	bool DisplayToClient(int client, int time) const
 	{
-		if (PublicManager::IsClientInGame(client) && !PublicManager::IsFakeClient(client)
-			&& !PublicManager::IsClientSourceTV(client))
-			return PublicManager::DisplayMenu(m_Handle, client, time);
+		if (PM::IsClientInGame(client) && !PM::IsFakeClient(client) && !PM::IsClientSourceTV(client))
+			return PM::DisplayMenu(m_Handle, client, time);
 		return false;
 	}
 
 	void DisplayToAll(int time, MenuFilterFunc filter = [](int) { return true; }) const
 	{
-		for (int i = 1; i <= PublicManager::GetMaxClients(); ++i)
+		for (int i = 1; i <= PM::GetMaxClients(); ++i)
 		{
-			if (PublicManager::IsClientInGame(i) && !PublicManager::IsFakeClient(i) &&
-				!PublicManager::IsClientSourceTV(i) && filter(i))
-				PublicManager::DisplayMenu(m_Handle, i, time);
+			if (PM::IsClientInGame(i) && !PM::IsFakeClient(i) && !PM::IsClientSourceTV(i) && filter(i))
+				PM::DisplayMenu(m_Handle, i, time);
 		}
 	}
 
-	Menu* GetParent() const { return m_Parent; }
 	MenuHandle GetHandle() const { return m_Handle; }
-
-	void Delete() const { PublicManager::CloseHandle(m_Handle); }
 private:
 	std::string GetInfoStr() const
 	{
 		return std::to_string(m_Counter);
 	}
+
+	static int MenuHandlerStatic(MenuHandle handle, MenuAction action, int param1, int param2)
+	{
+		return Plugin_Continue;
+	}
 private:
 	MenuHandle m_Handle = INVALID_HANDLE;
-	Menu* m_Parent = nullptr;
 	uint32_t m_Counter = 0;
+
+	static std::unordered_map<MenuHandle, Menu*> sMenuHandlers;
 };

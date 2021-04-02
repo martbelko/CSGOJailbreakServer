@@ -4,7 +4,9 @@
 
 #include "Plugin/Shop/ShopItemCallbacks.h"
 
-using P = PublicManager;
+#include "Plugin/LastRequest/CloseFight.h"
+
+using P = PublicManager; // TODO: Remove, use PM namespace instead
 
 Plugin plugin;
 BasePlugin* GetPlugin()
@@ -14,7 +16,7 @@ BasePlugin* GetPlugin()
 
 static bool FilterClientsFunc(int entity, int contentsMask, void* data)
 {
-	if (entity > PublicManager::GetMaxClients())
+	if (entity > PM::GetMaxClients())
 		return false;
 	int caller = reinterpret_cast<int>(data);
 	return caller != entity;
@@ -70,9 +72,9 @@ static void OnSQLTConnectCallbackBanlist(Handle owner, Handle hndl, const char* 
 {
 	rootconsole->ConsolePrint("Connected to BanList %d", hndl);
 	if (hndl == INVALID_HANDLE)
-		PublicManager::PrintToServer("Failed to connect to Banlist database: ERROR: %s", (const char*)error);
+		PM::PrintToServer("Failed to connect to Banlist database: ERROR: %s", (const char*)error);
 	else
-		PublicManager::PrintToServer("Connection to Banlist successful");
+		PM::PrintToServer("Connection to Banlist successful");
 }
 
 /* PLUGIN */
@@ -81,16 +83,18 @@ void Plugin::OnPluginStart()
 {
 	rootconsole->ConsolePrint("Plugin Start");
 
-	P::LoadTranslations("shop.phrases.txt");
+	PM::LoadTranslations("shop.phrases.txt");
 
 	Offset::OnPluginStart();
 	Utils::OnPluginStart();
 
-	P::HookEvent("round_start", OnRoundStartPost, EventHookMode::EventHookMode_Post);
-	P::HookEvent("player_death", OnPlayerDeathEventPost, EventHookMode::EventHookMode_Post);
-	P::HookEvent("player_team", OnPlayerTeamChange, EventHookMode::EventHookMode_Post);
+	PM::HookEvent("round_start", OnRoundStartPost, EventHookMode::EventHookMode_Post);
+	PM::HookEvent("player_death", OnPlayerDeathEventPost, EventHookMode::EventHookMode_Post);
+	PM::HookEvent("player_team", OnPlayerTeamChange, EventHookMode::EventHookMode_Post);
 
-	P::RegConsoleCmd("sm_shop", CMDShopCallbackStatic);
+	PM::RegConsoleCmd("sm_shop", CMDShopCallback);
+	PM::RegConsoleCmd("sm_lastrequest", CMDLastRequestCallback);
+	PM::RegConsoleCmd("sm_lr", CMDLastRequestCallback);
 
 	ShopItemCallback::Init();
 	std::vector<ShopItem> tItems;
@@ -140,8 +144,8 @@ void Plugin::OnPluginEnd()
 
 void Plugin::OnMapStart()
 {
-	int PMIndex = P::FindEntityByClassname(0, "cs_player_manager");
-	P::SDKHook(PMIndex, SDKHook_ThinkPost, Utils::OnThinkPostCSPlayerManager);
+	int PMIndex = PM::FindEntityByClassname(0, "cs_player_manager");
+	PM::SDKHook(PMIndex, SDKHook_ThinkPost, Utils::OnThinkPostCSPlayerManager);
 
 	DoorManager::OnMapStart();
 }
@@ -155,19 +159,19 @@ void Plugin::OnClientPostAdminCheck(int client)
 {
 	Shop::SetPlayerPoints(client, 0);
 	char tshopName[32], ctshopName[32];
-	P::Format(tshopName, sizeof(tshopName), "%T", "tshop", client);
-	P::Format(ctshopName, sizeof(ctshopName), "%T", "ctshop", client);
+	PM::Format(tshopName, sizeof(tshopName), "%T", "tshop", client);
+	PM::Format(ctshopName, sizeof(ctshopName), "%T", "ctshop", client);
 	m_TShop.RefreshMenusForClient(tshopName, client);
 	m_CTShop.RefreshMenusForClient(ctshopName, client);
 
-	P::SDKHook(client, SDKHookType::SDKHook_SpawnPost, OnSpawnPost);
-	P::SDKHook(client, SDKHookType::SDKHook_WeaponDrop, OnWeaponDrop);
-	P::SDKHook(client, SDKHookType::SDKHook_WeaponCanUse, OnWeaponCanUse);
-	P::SDKHook(client, SDKHookType::SDKHook_WeaponEquipPost, OnWeaponEquipPost);
-	P::SDKHook(client, SDKHookType::SDKHook_OnTakeDamage, OnTakeDamage);
-	P::SDKHook(client, SDKHookType::SDKHook_OnTakeDamageAlive, OnTakeDamageAlive);
-	P::SDKHook(client, SDKHookType::SDKHook_OnTakeDamageAlivePost, OnTakeDamageAlivePost);
-	P::SDKHook(client, SDKHookType::SDKHook_SetTransmit, SetTransmit);
+	PM::SDKHook(client, SDKHookType::SDKHook_SpawnPost, OnSpawnPost);
+	PM::SDKHook(client, SDKHookType::SDKHook_WeaponDrop, OnWeaponDrop);
+	PM::SDKHook(client, SDKHookType::SDKHook_WeaponCanUse, OnWeaponCanUse);
+	PM::SDKHook(client, SDKHookType::SDKHook_WeaponEquipPost, OnWeaponEquipPost);
+	PM::SDKHook(client, SDKHookType::SDKHook_OnTakeDamage, OnTakeDamage);
+	PM::SDKHook(client, SDKHookType::SDKHook_OnTakeDamageAlive, OnTakeDamageAlive);
+	PM::SDKHook(client, SDKHookType::SDKHook_OnTakeDamageAlivePost, OnTakeDamageAlivePost);
+	PM::SDKHook(client, SDKHookType::SDKHook_SetTransmit, SetTransmit);
 
 	// Utils::HidePlayerFromScoreboard(client, Admin::IsClientAdmin(client));
 }
@@ -377,7 +381,7 @@ Action Plugin::SetTransmit(int entity, int client)
 	return Plugin_Continue;
 }
 
-Action Plugin::CMDShopCallbackStatic(int client, std::string& command, int argc)
+Action Plugin::CMDShopCallback(int client, std::string& command, int argc)
 {
 	if (P::GetClientTeam(client) == CS_TEAM_T)
 	{
@@ -425,6 +429,23 @@ Action Plugin::CMDShopCallbackStatic(int client, std::string& command, int argc)
 	PublicManager::AddMenuItem(menu, "3", "Choice3", ITEMDRAW_DEFAULT);
 	PublicManager::SetMenuExitButton(menu, false);
 	PublicManager::DisplayMenu(menu, client + 1, 20);*/
+
+	return Plugin_Handled;
+}
+
+Action Plugin::CMDLastRequestCallback(int client, std::string& command, int argc)
+{
+	// TODO: Add checks, display menu etc...
+
+	PM::PrintToChatAll("LOL");
+
+	if (LastRequestManager::GetActiveLastRequest() == nullptr)
+		LastRequestManager::Set<CloseFightLastRequest>(client, client + 1);
+	else
+	{
+		LastRequestManager::GetActiveLastRequest()->OnEnd(-1, -1);
+		LastRequestManager::Unset();
+	}
 
 	return Plugin_Handled;
 }

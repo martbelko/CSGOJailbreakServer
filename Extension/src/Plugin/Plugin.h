@@ -55,7 +55,8 @@ private:
 	static void OnTakeDamageAlivePost(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3], int damagecustom);
 	static Action SetTransmit(int entity, int other);
 
-	static Action CMDShopCallbackStatic(int client, std::string& command, int argc);
+	static Action CMDShopCallback(int client, std::string& command, int argc);
+	static Action CMDLastRequestCallback(int client, std::string& command, int argc);
 private:
 	Shop m_TShop;
 	Shop m_CTShop;

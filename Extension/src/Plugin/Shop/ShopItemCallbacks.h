@@ -27,7 +27,7 @@ public:
 		Invisibility::SetCallbackClass(&invisibilityCallback);
 	}
 
-	static void TShopItemHammer(int client, const ShopItem* item)
+	static void TShopItemHammer(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_hammer");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotHammerHud");
@@ -36,7 +36,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t","GotHammerChat", name);
 	}
 
-	static void TShopSpanner(int client, const ShopItem* item)
+	static void TShopSpanner(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_spanner");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotSpannerHud");
@@ -45,7 +45,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotSpannerChat", name);
 	}
 
-	static void TShopAxe(int client, const ShopItem* item)
+	static void TShopAxe(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_axe");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotAxeHud");
@@ -54,7 +54,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotAxeChat", name);
 	}
 
-	static void TShopKnife(int client, const ShopItem* item)
+	static void TShopKnife(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_knife");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotKnifeHud");
@@ -63,7 +63,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotKnifeChat", name);
 	}
 
-	static void TShopTaser(int client, const ShopItem* item)
+	static void TShopTaser(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_taser");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotTaserHud");
@@ -72,7 +72,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotTaserChat", name);
 	}
 
-	static void TShopHealhshot(int client, const ShopItem* item)
+	static void TShopHealhshot(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_healthshot");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotHealthshotHud");
@@ -81,7 +81,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotHealthshotChat", name);
 	}
 
-	static void TShopHEGrenade(int client, const ShopItem* item)
+	static void TShopHEGrenade(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_hegrenade");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotHEGrenadeHud");
@@ -90,7 +90,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotHEGrenadeChat", name);
 	}
 
-	static void TShopFlashbang(int client, const ShopItem* item)
+	static void TShopFlashbang(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_flashbang");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotFlashbangHud");
@@ -99,7 +99,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotFlashbangChat", name);
 	}
 
-	static void TShopSmoke(int client, const ShopItem* item)
+	static void TShopSmoke(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_smokegrenade");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotSmokeHud");
@@ -108,7 +108,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotSmokeChat", name);
 	}
 
-	static void TShopMolotov(int client, const ShopItem* item)
+	static void TShopMolotov(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_molotov");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotMolotovHud");
@@ -117,7 +117,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotMolotovChat", name);
 	}
 
-	static void TShopTAGrenade(int client, const ShopItem* item)
+	static void TShopTAGrenade(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_tagrenade");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotTAGrenadeHud");
@@ -126,7 +126,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotTAGrenadeChat", name);
 	}
 
-	static void TShopKevlar(int client, const ShopItem* item)
+	static void TShopKevlar(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "item_kevlar");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotKevlarHud");
@@ -135,7 +135,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotKevlarChat", name);
 	}
 
-	static void TShopKevlarHelmet(int client, const ShopItem* item)
+	static void TShopKevlarHelmet(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "item_assaultsuit");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotKevlarHelmetHud");
@@ -144,7 +144,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotKevlarHelmetChat", name);
 	}
 
-	static void TShopBreachCharge(int client, const ShopItem* item)
+	static void TShopBreachCharge(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_breachcharge");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotBreachChargeHud");
@@ -153,7 +153,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotBreachChargeChat", name);
 	}
 
-	static void TShopDJump(int client, const ShopItem* item)
+	static void TShopDJump(int client, const ShopItem* item, void*)
 	{
 		DoubleJump::Enable(client);
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotDoubleJumpHud");
@@ -162,17 +162,17 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotDoubleJumpChat", name);
 	}
 
-	static void TShopFastwalk(int client, const ShopItem* item)
+	static void TShopFastwalk(int client, const ShopItem* item, void*)
 	{
 		FastWalk::Enable(client, item->GetDuration(), 1.5f);
 	}
 
-	static void TShopInvisibility(int client, const ShopItem* item)
+	static void TShopInvisibility(int client, const ShopItem* item, void*)
 	{
 		Invisibility::Enable(client, item->GetDuration());
 	}
 
-	static void TShopChangeskin(int client, const ShopItem* item)
+	static void TShopChangeskin(int client, const ShopItem* item, void*)
 	{
 		// TODO:
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotChangeSkinHud");
@@ -181,23 +181,40 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotChangeSkinChat", name);
 	}
 
-	static void TShopBlind(int client, const ShopItem* item)
+	static void TShopBlind(int client, const ShopItem* item, void*)
 	{
 		BlindAbility::Enable(item->GetDuration());
 	}
 
-	static void TShopOpen(int client, const ShopItem* item)
+	static void TShopOpen(int client, const ShopItem* item, void* param)
 	{
-		DoorManager::OpenCellDoors();
-		NotifyHud(client, sDefaultHoldTime, "%t", "GotOpenDoorsHud");
-		char name[MAX_NAME_LENGTH];
-		PublicManager::GetClientName(client, name, sizeof(name));
-		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotOpenDoorsChat", name);
+		bool open = false;
+		if (!param)
+			open = true;
+		else
+		{
+			float probability = reinterpret_cast<float&>(param);
+			float randFloat = PM::GetRandomFloat(0.0f, 1.0f);
+			open = randFloat <= probability;
+		}
+
+		if (open)
+		{
+			DoorManager::OpenCellDoors();
+			NotifyHud(client, sDefaultHoldTime, "%t", "GotOpenDoorsHud");
+			char name[MAX_NAME_LENGTH];
+			PublicManager::GetClientName(client, name, sizeof(name));
+			NotifyTeamChat(CS_TEAM_T, client, "%t", "GotOpenDoorsChat", name);
+		}
+		else
+		{
+			NotifyHud(client, sDefaultHoldTime, "You failed to open it lol");
+		}
 	}
 
-	static void TShopFortune(int client, const ShopItem* item);
+	static void TShopFortune(int client, const ShopItem* item, void*);
 
-	static void CTShopHelmet(int client, const ShopItem* item)
+	static void CTShopHelmet(int client, const ShopItem* item, void*)
 	{
 		PublicManager::SetEntData(client, Offset::m_bHasHelmet, true);
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotHelmetHud");
@@ -206,7 +223,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotHelmetChat", name);
 	}
 
-	static void CTShopTAGrenade(int client, const ShopItem* item)
+	static void CTShopTAGrenade(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_tagrenade");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotTAGrenadeHud");
@@ -215,7 +232,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotTAGrenadeChat", name);
 	}
 
-	static void CTShopHealthshot(int client, const ShopItem* item)
+	static void CTShopHealthshot(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_healthshot");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotHealthshotHud");
@@ -224,7 +241,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotHealtshotChat", name);
 	}
 
-	static void CTShopShield(int client, const ShopItem* item)
+	static void CTShopShield(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "weapon_shield");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotShieldHud");
@@ -233,7 +250,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotShieldChat", name);
 	}
 
-	static void CTShopDJump(int client, const ShopItem* item)
+	static void CTShopDJump(int client, const ShopItem* item, void*)
 	{
 		DoubleJump::Enable(client);
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotDoubleJumpHud");
@@ -242,7 +259,7 @@ public:
 		NotifyTeamChat(CS_TEAM_T, client, "%t", "GotDoubleJumpChat", name);
 	}
 
-	static void CTShopHeavySuit(int client, const ShopItem* item)
+	static void CTShopHeavySuit(int client, const ShopItem* item, void*)
 	{
 		PublicManager::GivePlayerItem(client, "item_heavyassaultsuit");
 		NotifyHud(client, sDefaultHoldTime, "%t", "GotHeavySuitHud");

@@ -43,8 +43,10 @@ public:
 	 */
 	static float GetRandomFloat(float fMin = 0.0, float fMax = 1.0)
 	{
-		// TODO:
-		return 0.0f;
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<float> dis(fMin, fMax);
+		return dis(gen);
 	}
 
 	/**
@@ -56,7 +58,10 @@ public:
 	 */
 	static int GetRandomInt(int nmin, int nmax)
 	{
-		return 0.0f;
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> dis(nmin, nmax);
+		return dis(gen);
 	}
 
 	/**

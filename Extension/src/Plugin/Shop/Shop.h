@@ -44,9 +44,9 @@ public:
 			menu.AddItem(item.GetName(client).c_str());
 	}
 
-	void Delete() const
+	void Delete()
 	{
-		for (const Menu& menu : m_Menus)
+		for (Menu& menu : m_Menus)
 			menu.Delete();
 	}
 
@@ -72,6 +72,7 @@ public:
 	}
 
 	const std::vector<ShopItem>& GetItems() const { return m_Items; }
+	std::vector<ShopItem>& GetItems() { return m_Items; }
 public:
 	static int GetPlayerPoints(int client) { return s_PlayerPoints[client - 1]; }
 	static void SetPlayerPoints(int client, int value) { s_PlayerPoints[client - 1] = value; }
