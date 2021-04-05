@@ -4,6 +4,7 @@
 
 #include "Plugin/Shop/ShopItemCallbacks.h"
 
+#include "Plugin/LastRequest/LastRequestManager.h"
 #include "Plugin/LastRequest/CloseFight.h"
 
 using P = PublicManager; // TODO: Remove, use PM namespace instead
@@ -129,6 +130,8 @@ void Plugin::OnPluginStart()
 	ctItems.emplace_back("heavy", 70, &ShopItemCallback::CTShopHeavySuit, VipMode::EXTRA_VIP);
 	m_CTShop = Shop("ctshop", ctItems);
 
+	LastRequestManager::Init();
+
 	for (int i = 1; i <= P::GetMaxClients(); ++i)
 		if (P::IsClientInGame(i))
 			OnClientPostAdminCheck(i);
@@ -140,6 +143,8 @@ void Plugin::OnPluginEnd()
 {
 	m_TShop.Delete();
 	m_CTShop.Delete();
+
+	LastRequestManager::Shutdown();
 }
 
 void Plugin::OnMapStart()
@@ -163,6 +168,8 @@ void Plugin::OnClientPostAdminCheck(int client)
 	PM::Format(ctshopName, sizeof(ctshopName), "%T", "ctshop", client);
 	m_TShop.RefreshMenusForClient(tshopName, client);
 	m_CTShop.RefreshMenusForClient(ctshopName, client);
+
+	LastRequestManager::RefreshLastRequestMainMenu(client);
 
 	PM::SDKHook(client, SDKHookType::SDKHook_SpawnPost, OnSpawnPost);
 	PM::SDKHook(client, SDKHookType::SDKHook_WeaponDrop, OnWeaponDrop);
@@ -435,17 +442,32 @@ Action Plugin::CMDShopCallback(int client, std::string& command, int argc)
 
 Action Plugin::CMDLastRequestCallback(int client, std::string& command, int argc)
 {
-	// TODO: Add checks, display menu etc...
-
-	PM::PrintToChatAll("LOL");
-
-	if (LastRequestManager::GetActiveLastRequest() == nullptr)
-		LastRequestManager::Set<CloseFightLastRequest>(client, client + 1);
-	else
+	LastRequestManager::DisplayLastRequestMainMenu(client, [](int client, LastRequest::Type type)
 	{
-		LastRequestManager::GetActiveLastRequest()->OnEnd(-1, -1);
-		LastRequestManager::Unset();
-	}
+			LastRequest* lastRequest = nullptr;
+			switch (type)
+			{
+			case LastRequest::Type::CloseFight:
+				lastRequest = new CloseFightLastRequest(client);
+			case LastRequest::Type::Shot4Shot:
+				break;
+			case LastRequest::Type::GunToss:
+				break;
+			case LastRequest::Type::ChickenFight:
+				break;
+			case LastRequest::Type::Noscope:
+				break;
+			case LastRequest::Type::HotPotato:
+				break;
+			case LastRequest::Type::DodgeBall:
+				break;
+			case LastRequest::Type::Rebel:
+				break;
+			}
+
+			if (lastRequest)
+				lastRequest->StartWithMenu(client);
+	});
 
 	return Plugin_Handled;
 }

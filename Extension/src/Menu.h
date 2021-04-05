@@ -7,27 +7,25 @@ using MenuFilterFunc = bool(*)(int client);
 class Menu
 {
 public:
-	using NewMenuHandler = int(*)(Menu menu, MenuAction action, int param1, int param2);
+	using NewMenuHandler = int(*)(Menu* menu, MenuAction action, int param1, int param2);
 public:
 	Menu() = default;
-	Menu(MenuHandler handler, MenuAction actions = MENU_ACTIONS_DEFAULT)
+	Menu(NewMenuHandler handler, MenuAction actions = MENU_ACTIONS_DEFAULT)
+		: mHandler(handler)
 	{
-		if (m_Handle != INVALID_HANDLE)
-			PM::CloseHandle(m_Handle);
-		m_Handle = PM::CreateMenu(handler, actions);
+		m_Handle = PM::CreateMenu(MenuHandlerStatic, actions);
+		sMenus[m_Handle] = this;
 	}
 
 	Menu(const Menu& other)
 	{
-		m_Handle = other.m_Handle;
-		m_Counter = other.m_Counter;
+		Copy(other);
 	}
 
 	Menu& operator=(const Menu& other)
 	{
 		Delete();
-		m_Handle = other.m_Handle;
-		m_Counter = other.m_Counter;
+		Copy(other);
 		return *this;
 	}
 
@@ -40,10 +38,13 @@ public:
 		}
 	}
 
+	void SetParam(void* param) { mParam = param; }
+	void* GetParam() const { return mParam; }
+
 	template<typename ... Args>
 	void SetTitle(const char* format, Args ... args) const
 	{
-		PM::SetMenuTitle(m_Handle, title, args...);
+		PM::SetMenuTitle(m_Handle, format, args...);
 	}
 
 	std::string GetTitle() const
@@ -54,10 +55,20 @@ public:
 		return title;
 	}
 
+	bool GetItem(int position, char* infoBuf, int infoBufLen, int& style = NULL_VALUE, char* dispBuf = "", int dispBufLen = 0, int client = 0) const
+	{
+		return PM::GetMenuItem(m_Handle, position, infoBuf, infoBufLen, style, dispBuf, dispBufLen, client);
+	}
+
 	bool AddItem(const char* displayStr, int style = 0) const
 	{
 		std::string infoStr = GetInfoStr();
 		return PM::AddMenuItem(m_Handle, infoStr.c_str(), displayStr, style);
+	}
+
+	bool AddItem(const char* infoStr, const char* displayStr, int style = 0) const
+	{
+		return PM::AddMenuItem(m_Handle, infoStr, displayStr, style);
 	}
 
 	bool InsertItem(int position, const char* displayStr, int style = 0) const
@@ -104,13 +115,24 @@ private:
 		return std::to_string(m_Counter);
 	}
 
+	void Copy(const Menu& other)
+	{
+		m_Handle = other.m_Handle;
+		m_Counter = other.m_Counter;
+		mHandler = other.mHandler;
+		sMenus[m_Handle] = this;
+	}
+
 	static int MenuHandlerStatic(MenuHandle handle, MenuAction action, int param1, int param2)
 	{
-		return Plugin_Continue;
+		Menu* menu = sMenus[handle];
+		return menu->mHandler(menu, action, param1, param2);
 	}
 private:
 	MenuHandle m_Handle = INVALID_HANDLE;
 	uint32_t m_Counter = 0;
+	NewMenuHandler mHandler = nullptr;
+	void* mParam;
 
-	static std::unordered_map<MenuHandle, Menu*> sMenuHandlers;
+	static std::unordered_map<MenuHandle, Menu*> sMenus;
 };

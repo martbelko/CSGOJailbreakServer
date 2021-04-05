@@ -77,16 +77,16 @@ public:
 	static int GetPlayerPoints(int client) { return s_PlayerPoints[client - 1]; }
 	static void SetPlayerPoints(int client, int value) { s_PlayerPoints[client - 1] = value; }
 private:
-	static int ShopMenuHandler(MenuHandle menuHandle, MenuAction action, int param1, int param2)
+	static int ShopMenuHandler(Menu* menu, MenuAction action, int param1, int param2)
 	{
 		if (action == MenuAction::MenuAction_Select)
 		{
 			int client = param1;
 			int itemIndex = param2;
-			Shop* shop = s_ShopHashmap[menuHandle];
+			Shop* shop = s_ShopHashmap[menu->GetHandle()];
 			if (!shop->m_Enabled)
 			{
-				PublicManager::PrintCenterText(client, "[URNA SHOP] Sorry, shop is disabled!");
+				PM::PrintCenterText(client, "[URNA SHOP] Sorry, shop is disabled!");
 			}
 			else
 			{
@@ -106,7 +106,7 @@ private:
 		{
 			int client = param1;
 			int itemIndex = param2;
-			Shop* shop = s_ShopHashmap[menuHandle];
+			Shop* shop = s_ShopHashmap[menu->GetHandle()];
 			ShopItem& item = shop->m_Items[itemIndex];
 			return item.CanBeUsedByClient(client) ? ITEMDRAW_DEFAULT : ITEMDRAW_DISABLED;
 		}
