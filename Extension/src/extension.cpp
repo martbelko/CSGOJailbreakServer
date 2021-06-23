@@ -2,9 +2,6 @@
 
 #include "NativeManager.h"
 
-JailbreakExtension g_Extension;
-SMEXT_LINK(&g_Extension);
-
 const sp_nativeinfo_t MyNatives[] =
 {
 	// USERMESSAGES.INC
@@ -120,13 +117,13 @@ const sp_nativeinfo_t MyNatives[] =
 	{ "native_CS_OnCSWeaponDrop", NativeManager::CS_OnCSWeaponDrop },
 	{ "native_CS_OnGetWeaponPrice", NativeManager::CS_OnGetWeaponPrice },
 	{ "native_CS_OnTerminateRound", NativeManager::CS_OnTerminateRound },
-	// Console.inc
+	// CONSOLE.inc
 	{ "native_OnClientSayCommand", NativeManager::OnClientSayCommand },
 	{ "native_OnClientSayCommand_Post", NativeManager::OnClientSayCommandPost },
 	{ "native_ConCmdCallback", NativeManager::ConCmdCallback },
 	{ "native_SrvCmdCallback", NativeManager::SrvCmdCallback },
 	{ "native_CmdListenerCallback", NativeManager::CmdListenerCallback },
-	// Client.inc
+	// CLIENT.inc
 	{ "native_OnClientConnect", NativeManager::OnClientConnect },
 	{ "native_OnClientConnected", NativeManager::OnClientConnected },
 	{ "native_OnClientPutInServer", NativeManager::OnClientPutInServer },
@@ -144,7 +141,7 @@ const sp_nativeinfo_t MyNatives[] =
 	{ NULL, NULL }
 };
 
-void JailbreakExtension::SDK_OnAllLoaded()
+void CSGOExtension::SDK_OnAllLoaded()
 {
 	sharesys->AddNatives(myself, MyNatives);
 }

@@ -2,7 +2,7 @@
 
 #include "smsdk_ext.h"
 
-class JailbreakExtension : public SDKExtension
+class CSGOExtension : public SDKExtension
 {
 public:
 	//virtual bool SDK_OnLoad(char *error, size_t maxlen, bool late);
