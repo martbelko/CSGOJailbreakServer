@@ -7,3 +7,6 @@
 [submodule "vendor/metamod"]
 	path = vendor/metamod
 	url = https://github.com/alliedmodders/metamod-source
+[submodule "vendor/json"]
+	path = vendor/json
+	url = https://github.com/taocpp/json
