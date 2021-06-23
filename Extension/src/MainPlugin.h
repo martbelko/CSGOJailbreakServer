@@ -6,7 +6,7 @@
 #include "PublicManager.h"
 #include "BasePlugin.h"
 
-using P = PublicManager;
+#include "Common/Logging/Log.h"
 
 extern BasePlugin* GetPlugin();
 
@@ -17,6 +17,8 @@ public:
 
 	static void OnPluginStart()
 	{
+		Log::Init();
+
 		s_Plugin = GetPlugin();
 		s_Plugin->OnPluginStart();
 	}
@@ -149,34 +151,6 @@ public:
 	{
 		return s_Plugin->OnLevelInit(mapName, mapEntities);
 	}
-	// callbacks
-
-	static void SDKHookCallback1(int client) { }
-	static Action SDKHookCallback2(int entity) { return Plugin_Continue; }
-	static Action SDKHookCallback3(int entity, int other) { return Plugin_Continue; }
-	static void SDKHookCallback4(int entity, int other) {}
-	static Action SDKHookCallback5(int entity, int& maxhealth) { return Plugin_Continue; }
-	static Action SDKHookCallback6(int victim, int& attacker, int& inflictor, float& damage, int& damagetype, int& weapon, float damageForce[3], float damagePosition[3], int damagecustom)
-		{ return Plugin_Continue; }
-	static void SDKHookCallback7(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3], int damagecustom)
-		{ }
-	static void SDKHookCallback8(int client, int shots, const char* weaponname) {}
-	static Action SDKHookCallback9(int victim, int& attacker, int& inflictor, float& damage, int& damagetype, int& ammotype, int hitbox, int hitgroup)
-	{
-		return Plugin_Continue;
-	}
-	static void SDKHookCallback10(int victim, int attacker, int inflictor, float damage, int damagetype, int ammotype, int hitbox, int hitgroup) {}
-	static bool SDKHookCallback11(int entity, int collisiongroup, int contentsmask, bool originalResult) { return true; }
-	static Action SDKHookCallback12(int entity, int activator, int caller, UseType type, float value) { return Plugin_Continue; }
-	static void SDKHookCallback13(int entity, int activator, int caller, UseType type, float value) { }
-	static void SDKHookCallback14(int weapon, bool bSuccessful) {  }
-	static bool SDKHookCallback15(int client, bool origRet) { return true; }
-
-	// DBI.INC
-
-	static void OnSQLTConnectCallbackBanlist(Handle owner, Handle hndl, const char* error, int data);
-	static void OnSQLTConnectCallbackDefault(Handle owner, Handle hndl, const char* error, int data);
-	static void OnSQLTQueryCallback(Handle owner, Handle hndl, const char* error, int data); // TODO: Unused
 
 	// CSTRIKE.INC
 
