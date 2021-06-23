@@ -11,7 +11,7 @@ public:
 	 */
 	static void CloseHandle(Handle handle)
 	{
-		ExecFunc(s_CloseHandleFunc, handle);
+		g_pHandleSys->FreeHandle(handle, nullptr);
 	}
 
 	/**
