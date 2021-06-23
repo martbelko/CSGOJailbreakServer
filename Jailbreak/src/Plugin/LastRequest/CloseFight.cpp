@@ -13,7 +13,7 @@ int CloseFightLastRequest::WeaponMenuHandler(Menu* menu, MenuAction action, int 
 		if (Utils::IsClientValid(client))
 		{
 			char infoBuf[32];
-			menu->GetMenuItem(param2, infoBuf, sizeof(infoBuf));
+			menu->GetItem(param2, infoBuf, sizeof(infoBuf));
 			std::string_view weaponName(infoBuf);
 
 			// TODO: Add debug macro here for this if

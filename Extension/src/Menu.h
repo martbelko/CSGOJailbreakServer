@@ -54,9 +54,9 @@ public:
 		return title;
 	}
 
-	bool GetItem(int position, char* infoBuf, int infoBufLen, int& style = NULL_VALUE, char* dispBuf = const_cast<char*>(""), int dispBufLen = 0, int client = 0) const
+	bool GetItem(int position, char* infoBuf, int infoBufLen, int& style = NULL_VALUE, char* dispBuf = const_cast<char*>(""), int dispBufLen = 0) const
 	{
-		return PM::GetMenuItem(m_Handle, position, infoBuf, infoBufLen, style, dispBuf, dispBufLen, client);
+		return PM::GetMenuItem(m_Handle, position, infoBuf, infoBufLen, style, dispBuf, dispBufLen);
 	}
 
 	bool AddItem(const char* displayStr, int style = 0)
@@ -87,11 +87,6 @@ public:
 	void RemoveAllItems() const
 	{
 		PM::RemoveAllMenuItems(m_Handle);
-	}
-
-	bool GetMenuItem(int position, char* infoBuf, int infoBufLen, int& style = NULL_VALUE, char* dispBuf = const_cast<char*>(""), int dispBufLen = 0, int client = 0) const
-	{
-		return PM::GetMenuItem(m_Handle, position, infoBuf, infoBufLen, style, dispBuf, dispBufLen, client);
 	}
 
 	bool DisplayToClient(int client, int time = 20) const
