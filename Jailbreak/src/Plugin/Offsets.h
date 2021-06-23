@@ -5,10 +5,12 @@
 class Offset
 {
 public:
+	Offset() = delete;
+
 	static void OnPluginStart()
 	{
-		m_bHasHelmet = PublicManager::FindSendPropInfo("CCSPlayer", "m_bHasHelmet");
-		m_hMyWeapons = PublicManager::FindSendPropInfo("CBasePlayer", "m_hMyWeapons");
+		m_bHasHelmet = PM::FindSendPropInfo("CCSPlayer", "m_bHasHelmet");
+		m_hMyWeapons = PM::FindSendPropInfo("CBasePlayer", "m_hMyWeapons");
 	}
 public:
 	static int m_bHasHelmet;

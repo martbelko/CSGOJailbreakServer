@@ -9,6 +9,8 @@
 class Utils
 {
 public:
+	Utils() = delete;
+
 	static void OnPluginStart()
 	{
 		s_FadeUserMsgId = PM::GetUserMessageId("Fade");
