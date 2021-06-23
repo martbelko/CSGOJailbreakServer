@@ -17,25 +17,25 @@ public:
 		sMenus[m_Handle] = this;
 	}
 
-	Menu(const Menu& other)
+	Menu(const Menu&) = delete;
+
+	Menu(Menu&& other) noexcept
 	{
-		Copy(other);
+		Move(std::move(other));
 	}
 
-	Menu& operator=(const Menu& other)
+	Menu& operator=(const Menu&) = delete;
+
+	Menu& operator=(Menu&& other) noexcept
 	{
-		Delete();
-		Copy(other);
+		Destroy();
+		Move(std::move(other));
 		return *this;
 	}
 
-	void Delete()
+	~Menu()
 	{
-		if (m_Handle != INVALID_HANDLE)
-		{
-			PM::CloseHandle(m_Handle);
-			m_Handle = INVALID_HANDLE;
-		}
+		Destroy();
 	}
 
 	void SetParam(void* param) { mParam = param; }
@@ -49,21 +49,23 @@ public:
 
 	std::string GetTitle() const
 	{
-		std::string title;
-		title.reserve(32);
-		PM::GetMenuTitle(m_Handle, title.data(), title.capacity());
+		char title[32];
+		PM::GetMenuTitle(m_Handle, title, sizeof(title));
 		return title;
 	}
 
-	bool GetItem(int position, char* infoBuf, int infoBufLen, int& style = NULL_VALUE, char* dispBuf = "", int dispBufLen = 0, int client = 0) const
+	bool GetItem(int position, char* infoBuf, int infoBufLen, int& style = NULL_VALUE, char* dispBuf = const_cast<char*>(""), int dispBufLen = 0, int client = 0) const
 	{
 		return PM::GetMenuItem(m_Handle, position, infoBuf, infoBufLen, style, dispBuf, dispBufLen, client);
 	}
 
-	bool AddItem(const char* displayStr, int style = 0) const
+	bool AddItem(const char* displayStr, int style = 0)
 	{
 		std::string infoStr = GetInfoStr();
-		return PM::AddMenuItem(m_Handle, infoStr.c_str(), displayStr, style);
+		bool result = PM::AddMenuItem(m_Handle, infoStr.c_str(), displayStr, style);
+		if (result)
+			++m_Counter;
+		return result;
 	}
 
 	bool AddItem(const char* infoStr, const char* displayStr, int style = 0) const
@@ -87,19 +89,19 @@ public:
 		PM::RemoveAllMenuItems(m_Handle);
 	}
 
-	bool GetMenuItem(int position, char* infoBuf, int infoBufLen, int& style = NULL_VALUE, char* dispBuf = "", int dispBufLen = 0, int client = 0) const
+	bool GetMenuItem(int position, char* infoBuf, int infoBufLen, int& style = NULL_VALUE, char* dispBuf = const_cast<char*>(""), int dispBufLen = 0, int client = 0) const
 	{
 		return PM::GetMenuItem(m_Handle, position, infoBuf, infoBufLen, style, dispBuf, dispBufLen, client);
 	}
 
-	bool DisplayToClient(int client, int time) const
+	bool DisplayToClient(int client, int time = 20) const
 	{
 		if (PM::IsClientInGame(client) && !PM::IsFakeClient(client) && !PM::IsClientSourceTV(client))
 			return PM::DisplayMenu(m_Handle, client, time);
 		return false;
 	}
 
-	void DisplayToAll(int time, MenuFilterFunc filter = [](int) { return true; }) const
+	void DisplayToAll(int time = 20, MenuFilterFunc filter = [](int) { return true; }) const
 	{
 		for (int i = 1; i <= PM::GetMaxClients(); ++i)
 		{
@@ -115,14 +117,25 @@ private:
 		return std::to_string(m_Counter);
 	}
 
-	void Copy(const Menu& other)
+	void Move(Menu&& other)
 	{
 		m_Handle = other.m_Handle;
 		m_Counter = other.m_Counter;
 		mHandler = other.mHandler;
 		sMenus[m_Handle] = this;
+
+		other.m_Handle = INVALID_HANDLE;
 	}
 
+	void Destroy()
+	{
+		if (m_Handle != INVALID_HANDLE)
+		{
+			PM::CloseHandle(m_Handle);
+			m_Handle = INVALID_HANDLE;
+		}
+	}
+private:
 	static int MenuHandlerStatic(MenuHandle handle, MenuAction action, int param1, int param2)
 	{
 		Menu* menu = sMenus[handle];
