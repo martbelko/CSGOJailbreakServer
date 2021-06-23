@@ -8,16 +8,21 @@
 Logger::Logger(const std::string& name, const std::string& logFilename)
 	: mName(name)
 {
-	mOutFile.open(logFilename);
+	std::string path = "./csgo/addons/sourcemod/logs/" + logFilename;
+	mOutFile.open(path, std::ios_base::app | std::ios_base::out);
 	if (mOutFile.is_open())
-		PM::PrintToChatAll("Opened!");
+		TraceConsole(__FILE__, __LINE__, "File ", name, " was successfully opened for logging!");
 	else
-		PM::PrintToChatAll("Could not open!");
+	{
+		CriticalConsole(__FILE__, __LINE__, "File ", name, " could not be opened for logging!");
+		PM::SetFailState("File (%s) could not be opened for logging!", name.c_str());
+	}
 }
 
 Logger::~Logger()
 {
-	mOutFile.close();
+	if (mOutFile.is_open())
+		mOutFile.close();
 }
 
 std::string Logger::FormatOutput(const char* file, uint32_t line, const std::string& text)
@@ -67,28 +72,33 @@ void Logger::TraceFileImpl(const char* file, uint32_t line, const std::string& t
 {
 	std::string finalText = "[TRACE] " + FormatOutput(file, line, text);
 	mOutFile << finalText << "\n\n";
+	mOutFile.flush();
 }
 
 void Logger::InfoFileImpl(const char* file, uint32_t line, const std::string& text)
 {
 	std::string finalText = "[INFO] " + FormatOutput(file, line, text);
 	mOutFile << finalText << "\n\n";
+	mOutFile.flush();
 }
 
 void Logger::WarnFileImpl(const char* file, uint32_t line, const std::string& text)
 {
 	std::string finalText = "[WARNING] " + FormatOutput(file, line, text);
 	mOutFile << finalText << "\n\n";
+	mOutFile.flush();
 }
 
 void Logger::ErrorFileImpl(const char* file, uint32_t line, const std::string& text)
 {
 	std::string finalText = "[ERROR] " + FormatOutput(file, line, text);
 	mOutFile << finalText << "\n\n";
+	mOutFile.flush();
 }
 
 void Logger::CriticalFileImpl(const char* file, uint32_t line, const std::string& text)
 {
 	std::string finalText = "[CRITICAL] " + FormatOutput(file, line, text);
 	mOutFile << finalText << "\n\n";
+	mOutFile.flush();
 }
