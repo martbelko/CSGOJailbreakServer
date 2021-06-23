@@ -14,6 +14,6 @@ public:
 
 	static bool HasFlags(int client, int flags)
 	{
-		return PM::GetUserFlagBits(client) & flags == flags;
+		return (PM::GetUserFlagBits(client) & flags) == flags;
 	}
 };
