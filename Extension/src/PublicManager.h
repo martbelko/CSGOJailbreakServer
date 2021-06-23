@@ -204,7 +204,7 @@ using MultiTargetFilterFunc = bool(*)(const char* pattern, Handle clients);
  * @return              Plugin_Continue to allow the sound to be played, Plugin_Stop to block it,
  *                      Plugin_Changed when any parameter has been modified.
  */
-using AmbientSHookFunc = Action(*)( char sample[PLATFORM_MAX_PATH], int& entity, float& volume,
+using AmbientSHookFunc = Action(*)(char sample[PLATFORM_MAX_PATH], int& entity, float& volume,
 	int& level, int& pitch, float pos[3], int& flags, float& delay);
 
 // Called when a sound is going to be emitted to one or more clients.
