@@ -118,7 +118,7 @@ public:
 	 * @error               Invalid Handle.
 	 */
 	static bool GetMenuItem(Handle menu, int position, char* infoBuf, int infoBufLen, int& style = NULL_VALUE,
-		char* dispBuf = "", int dispBufLen = 0, int client = 0)
+		char* dispBuf = const_cast<char*>(""), int dispBufLen = 0, int client = 0)
 	{
 		PushArg(s_GetMenuItemFunc, menu);
 		PushArg(s_GetMenuItemFunc, position);

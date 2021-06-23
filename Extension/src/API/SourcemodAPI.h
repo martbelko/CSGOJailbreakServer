@@ -367,7 +367,7 @@ public:
 	 *                      0 if the extension loaded but reported an error.
 	 *                      1 if the extension is running without error.
 	 */
-	static int GetExtensionFileStatus(const char* name, char* error = "", int maxlength = 0)
+	static int GetExtensionFileStatus(const char* name, char* error = const_cast<char*>(""), int maxlength = 0)
 	{
 		PushArg(s_GetExtensionFileStatusFunc, name);
 		PushArg(s_GetExtensionFileStatusFunc, error, maxlength);

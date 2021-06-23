@@ -613,7 +613,7 @@ public:
 	 * @param descLen       Command description buffer size.
 	 * @return              True on success, false if there are no more commands.
 	 */
-	static bool ReadCommandIterator(Handle iter, char* name, int nameLen, int& eflags = NULL_VALUE, char* desc = "", int descLen = 0)
+	static bool ReadCommandIterator(Handle iter, char* name, int nameLen, int& eflags = NULL_VALUE, char* desc = const_cast<char*>(""), int descLen = 0)
 	{
 		PushArg(s_ReadCommandIteratorFunc, iter);
 		PushArg(s_ReadCommandIteratorFunc, name, nameLen);
@@ -712,7 +712,7 @@ public:
 							On failure, INVALID_HANDLE is returned, and the
 							contents of outputs is undefined.
 	 */
-	static Handle FindFirstConCommand(char* buffer, int maxSize, bool& isCommand, int& flags = NULL_VALUE, char* description = "", int descrmaxSize = 0)
+	static Handle FindFirstConCommand(char* buffer, int maxSize, bool& isCommand, int& flags = NULL_VALUE, char* description = const_cast<char*>(""), int descrmaxSize = 0)
 	{
 		PushArg(s_FindFirstConCommandFunc, buffer, maxSize);
 		PushArg(s_FindFirstConCommandFunc, maxSize);
@@ -739,7 +739,7 @@ public:
 							If no more entries exist, false is returned, and the
 							contents of outputs is undefined.
 	 */
-	static bool FindNextConCommand(Handle search, char* buffer, int maxSize, bool& isCommand, int& flags = NULL_VALUE, char* description = "", int descrmaxSize = 0)
+	static bool FindNextConCommand(Handle search, char* buffer, int maxSize, bool& isCommand, int& flags = NULL_VALUE, char* description = const_cast<char*>(""), int descrmaxSize = 0)
 	{
 		PushArg(s_FindFirstConCommandFunc, search);
 		PushArg(s_FindFirstConCommandFunc, buffer, maxSize);

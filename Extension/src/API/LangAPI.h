@@ -65,7 +65,7 @@ public:
 	 * @param nameLen       Maximum length of the language name buffer.
 	 * @error               Invalid language number.
 	 */
-	static void GetLanguageInfo(int language, char* code = "", int codeLen = 0, char* name = "", int nameLen = 0)
+	static void GetLanguageInfo(int language, char* code = const_cast<char*>(""), int codeLen = 0, char* name = const_cast<char*>(""), int nameLen = 0)
 	{
 		PushArg(s_GetLanguageInfoFunc, language);
 		PushArg(s_GetLanguageInfoFunc, code, codeLen);
