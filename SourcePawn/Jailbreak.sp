@@ -1,9 +1,11 @@
 #include <cstrike>
 #include <sdkhooks>
 #include <sdktools>
+#include <datapack>
 
 // SDKHooks helpers
-static SDKHookCB s_SDKHookCallbacks[44];
+static DataPack s_SDKHookCallbacks;
+static DataPackPos s_SDKHookCallbacksIndices[44];
 // SDKHooks Native Callbacks
 native void native_SDKHooksPreThink(int client);
 native void native_SDKHooksPreThinkPost(int client);
@@ -408,50 +410,104 @@ public QueryCookie public_QueryClientConVar(int client, const char[] cvarName, i
 // SOURCEMOD.INC - Natives
 public void OnPluginStart()
 {
-	s_SDKHookCallbacks[SDKHook_EndTouch] = SDKHooksEndTouch;
-	s_SDKHookCallbacks[SDKHook_FireBulletsPost] = SDKHooksFireBulletsPost;
-	s_SDKHookCallbacks[SDKHook_OnTakeDamage] = SDKHooksOnTakeDamage;
-	s_SDKHookCallbacks[SDKHook_OnTakeDamagePost] = SDKHooksOnTakeDamagePost;
-	s_SDKHookCallbacks[SDKHook_PreThink] = SDKHooksPreThink;
-	s_SDKHookCallbacks[SDKHook_PostThink] = SDKHooksPostThink;
-	s_SDKHookCallbacks[SDKHook_SetTransmit] = SDKHooksSetTransmit;
-	s_SDKHookCallbacks[SDKHook_Spawn] = SDKHooksSpawn;
-	s_SDKHookCallbacks[SDKHook_StartTouch] = SDKHooksStartTouch;
-	s_SDKHookCallbacks[SDKHook_Think] = SDKHooksThink;
-	s_SDKHookCallbacks[SDKHook_Touch] = SDKHooksTouch;
-	s_SDKHookCallbacks[SDKHook_TraceAttack] = SDKHooksTraceAttack;
-	s_SDKHookCallbacks[SDKHook_TraceAttackPost] = SDKHooksTraceAttackPost;
-	s_SDKHookCallbacks[SDKHook_WeaponCanSwitchTo] = SDKHooksWeaponCanSwitchTo;
-	s_SDKHookCallbacks[SDKHook_WeaponCanUse] = SDKHooksWeaponCanUse;
-	s_SDKHookCallbacks[SDKHook_WeaponDrop] = SDKHooksWeaponDrop;
-	s_SDKHookCallbacks[SDKHook_WeaponEquip] = SDKHooksWeaponEquip;
-	s_SDKHookCallbacks[SDKHook_WeaponSwitch] = SDKHooksWeaponSwitch;
-	s_SDKHookCallbacks[SDKHook_ShouldCollide] = SDKHooksShouldCollide;
-	s_SDKHookCallbacks[SDKHook_PreThinkPost] = SDKHooksPreThinkPost;
-	s_SDKHookCallbacks[SDKHook_PostThinkPost] = SDKHooksPostThinkPost;
-	s_SDKHookCallbacks[SDKHook_ThinkPost] = SDKHooksThinkPost;
-	s_SDKHookCallbacks[SDKHook_EndTouchPost] = SDKHooksEndTouchPost;
-	s_SDKHookCallbacks[SDKHook_GroundEntChangedPost] = SDKHooksGroundEntChanged;
-	s_SDKHookCallbacks[SDKHook_SpawnPost] = SDKHooksSpawnPost;
-	s_SDKHookCallbacks[SDKHook_StartTouchPost] = SDKHooksStartTouchPost;
-	s_SDKHookCallbacks[SDKHook_TouchPost] = SDKHooksTouchPost;
-	s_SDKHookCallbacks[SDKHook_VPhysicsUpdate] = SDKHooksVPhysicsUpdate;
-	s_SDKHookCallbacks[SDKHook_VPhysicsUpdatePost] = SDKHooksVPhysicsUpdatePost;
-	s_SDKHookCallbacks[SDKHook_WeaponCanSwitchToPost] = SDKHooksWeaponCanSwitchToPost;
-	s_SDKHookCallbacks[SDKHook_WeaponCanUsePost] = SDKHooksWeaponCanUsePost;
-	s_SDKHookCallbacks[SDKHook_WeaponDropPost] = SDKHooksWeaponDropPost;
-	s_SDKHookCallbacks[SDKHook_WeaponEquipPost] = SDKHooksWeaponEquipPost;
-	s_SDKHookCallbacks[SDKHook_WeaponSwitchPost] = SDKHooksWeaponSwitchPost;
-	s_SDKHookCallbacks[SDKHook_Use] = SDKHooksUse;
-	s_SDKHookCallbacks[SDKHook_UsePost] = SDKHooksUsePost;
-	s_SDKHookCallbacks[SDKHook_Reload] = SDKHooksReload;
-	s_SDKHookCallbacks[SDKHook_ReloadPost] = SDKHooksReloadPost;
-	s_SDKHookCallbacks[SDKHook_GetMaxHealth] = SDKHooksGetMaxHealth;
-	s_SDKHookCallbacks[SDKHook_Blocked] = SDKHooksBlocked;
-	s_SDKHookCallbacks[SDKHook_BlockedPost] = SDKHooksBlockedPost;
-	s_SDKHookCallbacks[SDKHook_OnTakeDamageAlive] = SDKHooksOnTakeDamageAlive;
-	s_SDKHookCallbacks[SDKHook_OnTakeDamageAlivePost] = SDKHooksOnTakeDamageAlivePost;
-	s_SDKHookCallbacks[SDKHook_CanBeAutobalanced] = SDKHooksCanBeAutobalanced;
+	s_SDKHookCallbacks = new DataPack();
+	
+	s_SDKHookCallbacksIndices[SDKHook_EndTouch] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksEndTouch);
+	s_SDKHookCallbacksIndices[SDKHook_FireBulletsPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksFireBulletsPost);
+	s_SDKHookCallbacksIndices[SDKHook_OnTakeDamage] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksOnTakeDamage);
+	s_SDKHookCallbacksIndices[SDKHook_OnTakeDamagePost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksOnTakeDamagePost);
+	s_SDKHookCallbacksIndices[SDKHook_PreThink] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksPreThink);
+	
+	s_SDKHookCallbacksIndices[SDKHook_PostThink] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksPostThink);
+	s_SDKHookCallbacksIndices[SDKHook_SetTransmit] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksSetTransmit);
+	s_SDKHookCallbacksIndices[SDKHook_Spawn] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksSpawn);
+	s_SDKHookCallbacksIndices[SDKHook_StartTouch] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksStartTouch);
+	s_SDKHookCallbacksIndices[SDKHook_Think] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksThink);
+	
+	s_SDKHookCallbacksIndices[SDKHook_Touch] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksTouch);
+	s_SDKHookCallbacksIndices[SDKHook_TraceAttack] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksTraceAttack);
+	s_SDKHookCallbacksIndices[SDKHook_TraceAttackPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksTraceAttackPost);
+	s_SDKHookCallbacksIndices[SDKHook_WeaponCanSwitchTo] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksWeaponCanSwitchTo);
+	s_SDKHookCallbacksIndices[SDKHook_WeaponCanUse] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksWeaponCanUse);
+	
+	s_SDKHookCallbacksIndices[SDKHook_WeaponDrop] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksWeaponDrop);
+	s_SDKHookCallbacksIndices[SDKHook_WeaponEquip] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksWeaponEquip);
+	s_SDKHookCallbacksIndices[SDKHook_WeaponSwitch] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksWeaponSwitch);
+	s_SDKHookCallbacksIndices[SDKHook_ShouldCollide] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksShouldCollide);
+	s_SDKHookCallbacksIndices[SDKHook_PreThinkPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksPreThinkPost);
+	
+	s_SDKHookCallbacksIndices[SDKHook_PostThinkPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksPostThinkPost);
+	s_SDKHookCallbacksIndices[SDKHook_ThinkPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksThinkPost);
+	s_SDKHookCallbacksIndices[SDKHook_EndTouchPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksEndTouchPost);
+	s_SDKHookCallbacksIndices[SDKHook_GroundEntChangedPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksGroundEntChanged);
+	s_SDKHookCallbacksIndices[SDKHook_SpawnPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksSpawnPost);
+	
+	s_SDKHookCallbacksIndices[SDKHook_StartTouchPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksStartTouchPost);
+	s_SDKHookCallbacksIndices[SDKHook_TouchPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksTouchPost);
+	s_SDKHookCallbacksIndices[SDKHook_VPhysicsUpdate] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksVPhysicsUpdate);
+	s_SDKHookCallbacksIndices[SDKHook_VPhysicsUpdatePost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksVPhysicsUpdatePost);
+	s_SDKHookCallbacksIndices[SDKHook_WeaponCanSwitchToPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksWeaponCanSwitchToPost);
+	
+	s_SDKHookCallbacksIndices[SDKHook_WeaponCanUsePost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksWeaponCanUsePost);
+	s_SDKHookCallbacksIndices[SDKHook_WeaponDropPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksWeaponDropPost);
+	s_SDKHookCallbacksIndices[SDKHook_WeaponEquipPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksWeaponEquipPost);
+	s_SDKHookCallbacksIndices[SDKHook_WeaponSwitchPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksWeaponSwitchPost);
+	s_SDKHookCallbacksIndices[SDKHook_Use] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksUse);
+	
+	s_SDKHookCallbacksIndices[SDKHook_UsePost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksUsePost);
+	s_SDKHookCallbacksIndices[SDKHook_Reload] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksReload);
+	s_SDKHookCallbacksIndices[SDKHook_ReloadPost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksReloadPost);
+	s_SDKHookCallbacksIndices[SDKHook_GetMaxHealth] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksGetMaxHealth);
+	s_SDKHookCallbacksIndices[SDKHook_Blocked] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksBlocked);
+
+	s_SDKHookCallbacksIndices[SDKHook_Reload] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksBlockedPost);
+	s_SDKHookCallbacksIndices[SDKHook_OnTakeDamageAlive] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksOnTakeDamageAlive);
+	s_SDKHookCallbacksIndices[SDKHook_OnTakeDamageAlivePost] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksOnTakeDamageAlivePost);
+	s_SDKHookCallbacksIndices[SDKHook_CanBeAutobalanced] = s_SDKHookCallbacks.Position;
+	s_SDKHookCallbacks.WriteFunction(SDKHooksCanBeAutobalanced);
 	
 	native_OnPluginStart();
 }
@@ -722,18 +778,6 @@ public void public_TR_EnumerateEntities(const float pos[3], const float vec[3], 
 public void public_TR_EnumerateEntitiesHull(const float pos[3], const float vec[3], const float mins[3], const float maxs[3], int mask, int data)
 {
 	TR_EnumerateEntitiesHull(pos, vec, mins, maxs, mask, TraceEntityEnumeratorCallback, data);
-}
-public void public_TR_EnumerateEntitiesSphere(const float pos[3], float radius, int mask, int data)
-{
-	TR_EnumerateEntitiesSphere(pos, radius, mask, TraceEntityEnumeratorCallback, data);
-}
-public void public_TR_EnumerateEntitiesBox(const float mins[3], const float maxs[3], int mask, int data)
-{
-	TR_EnumerateEntitiesBox(mins, maxs, mask, TraceEntityEnumeratorCallback, data);
-}
-public void public_TR_EnumerateEntitiesPoint(const float pos[3], int mask, int data)
-{
-	TR_EnumerateEntitiesPoint(pos, mask, TraceEntityEnumeratorCallback, data);
 }
 public void public_TR_TraceRayFilter(const float pos[3], const float vec[3], int flags, RayType rtype, int data)
 {
@@ -1029,7 +1073,7 @@ public int public_ShowHudText(int client, int channel, const char[] message, any
 public int public_EntIndexToEntRef(int entity) { return EntIndexToEntRef(entity); }
 public int public_EntRefToEntIndex(int ref) { return EntRefToEntIndex(ref); }
 public int public_MakeCompatEntRef(int ref) { return MakeCompatEntRef(ref); }
-public int public_GetClientsInRange(const float origin[3], ClientRangeType rangeType, int[] clients, int size)
+public int public_GetClientsInRange(float origin[3], ClientRangeType rangeType, int[] clients, int size)
 {
 	return GetClientsInRange(origin, rangeType, clients, size);
 }
@@ -1138,7 +1182,8 @@ public void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float
 // Helper
 stock SDKHookCB ResolveCallback(SDKHookType type)
 {
-	return s_SDKHookCallbacks[type];
+	s_SDKHookCallbacks.Position = s_SDKHookCallbacksIndices[type];
+	return view_as<SDKHookCB>(s_SDKHookCallbacks.ReadFunction());
 }
 // SDKHOOKS.INC - Natives
 public void OnEntityCreated(int entity, const char[] classname) { native_OnEntityCreated(entity, classname); }
@@ -1166,10 +1211,8 @@ public bool public_AddMenuItem(Handle menu, const char[] info, const char[] disp
 public bool public_InsertMenuItem(Handle menu, int position, const char[] info, const char[] display, int style) { return InsertMenuItem(menu, position, info, display, style); }
 public bool public_RemoveMenuItem(Handle menu, int position) { return RemoveMenuItem(menu, position); }
 public void public_RemoveAllMenuItems(Handle menu) { RemoveAllMenuItems(menu); }
-public bool public_GetMenuItem(Handle menu, int position, char[] infoBuf, int infoBufLen, int &style, char[] dispBuf, int dispBufLen, int client)
-	{ return GetMenuItem(menu, position, infoBuf, infoBufLen, style, dispBuf, dispBufLen, client); }
-public void public_MenuShufflePerClient(Handle menu, int start, int stop) { MenuShufflePerClient(menu, start, stop); }
-public void public_MenuSetClientMapping(Handle menu, int client, int[] array, int length) { MenuSetClientMapping(menu, client, array, length); }
+public bool public_GetMenuItem(Handle menu, int position, char[] infoBuf, int infoBufLen, int &style, char[] dispBuf, int dispBufLen)
+	{ return GetMenuItem(menu, position, infoBuf, infoBufLen, style, dispBuf, dispBufLen); }
 public int public_GetMenuSelectionPosition() { return GetMenuSelectionPosition(); }
 public int public_GetMenuItemCount(Handle menu) { return GetMenuItemCount(menu); }
 public bool public_SetMenuPagination(Handle menu, int itemsPerPage) { return SetMenuPagination(menu, itemsPerPage); }
@@ -1284,8 +1327,8 @@ public void public_SetEventBroadcast(Handle event, bool dontBroadcast) { SetEven
 public Database public_SQL_Connect(const char[] confname, bool persistent, char[] error, int maxlength) { return SQL_Connect(confname, persistent, error, maxlength); }
 public Database public_SQL_ConnectCustom(Handle keyvalues, char[] error, int maxlength, bool persistent) { return SQL_ConnectCustom(keyvalues, error, maxlength, persistent); }
 public bool public_SQL_CheckConfig(const char[] name) { return SQL_CheckConfig(name); }
-public DBDriver public_SQL_GetDriver(const char[] name) { return SQL_GetDriver(name); }
-public DBDriver public_SQL_ReadDriver(Handle database, char[] ident, int ident_length) { return SQL_ReadDriver(database, ident, ident_length); }
+public Handle public_SQL_GetDriver(const char[] name) { return SQL_GetDriver(name); }
+public Handle public_SQL_ReadDriver(Handle database, char[] ident, int ident_length) { return SQL_ReadDriver(database, ident, ident_length); }
 public void public_SQL_GetDriverIdent(Handle driver, char[] ident, int maxlength) { SQL_GetDriverIdent(driver, ident, maxlength); }
 public void public_SQL_GetDriverProduct(Handle driver, char[] product, int maxlength) { SQL_GetDriverProduct(driver, product, maxlength); }
 public bool public_SQL_SetCharset(Handle database, const char[] charset) { return SQL_SetCharset(database, charset); }
