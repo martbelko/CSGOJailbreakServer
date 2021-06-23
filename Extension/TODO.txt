@@ -1,0 +1,7 @@
+L 06/21/2021 - 15:59:53: [SM] Exception reported: Invalid timer handle 44e024e (error 1)
+L 06/21/2021 - 15:59:53: [SM] Blaming: jailbreak.smx
+L 06/21/2021 - 15:59:53: [SM] Call stack trace:
+L 06/21/2021 - 15:59:53: [SM]   [0] KillTimer
+L 06/21/2021 - 15:59:53: [SM]   [1] Line 1044, D:\Programy\Steam\steamapps\common\Counter-Strike Global Offensive\csgo\addons\sourcemod\scripting\jailbreak.sp::public_KillTimer
+L 06/21/2021 - 15:59:53: [SM]   [3] native_EventHookCallbackPost
+L 06/21/2021 - 15:59:53: [SM]   [4] Line 253, D:\Programy\Steam\steamapps\common\Counter-Strike Global Offensive\csgo\addons\sourcemod\scripting\jailbreak.sp::EventHookCallbackPost
