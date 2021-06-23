@@ -16,6 +16,7 @@
 #include "Plugin/Abilities/Blind.h"
 
 #include "Plugin/Admin/Admin.h"
+#include "Plugin/Admin/AdminMenu.h"
 
 class Plugin : public BasePlugin
 {
@@ -57,6 +58,8 @@ private:
 
 	static Action CMDShopCallback(int client, std::string& command, int argc);
 	static Action CMDLastRequestCallback(int client, std::string& command, int argc);
+
+	static Action AdminTestCallback(int client, std::string& command, int argc);
 private:
 	Shop m_TShop;
 	Shop m_CTShop;
@@ -71,4 +74,6 @@ private:
 		int team;
 	};
 	std::vector<OrigOwnerWeapon> m_OriginalOwners;
+
+	AdminMenu* mAdminMenu;
 };

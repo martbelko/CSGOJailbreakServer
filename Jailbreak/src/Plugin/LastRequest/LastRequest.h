@@ -25,5 +25,5 @@ public:
 	virtual const char* GetName() const = 0;
 	virtual Type GetType() const = 0;
 protected:
-	virtual ~LastRequest() override;
+	virtual ~LastRequest() = default;
 };

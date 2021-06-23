@@ -7,15 +7,6 @@
 LastRequest* LastRequestManager::sActiveLastRequest = nullptr;
 Menu LastRequestManager::sLastRequestMainMenus[MAXPLAYERS];
 
-constexpr const char* const CloseFightInfoStr = "1";
-constexpr const char* const Shot4ShotInfoStr = "2";
-constexpr const char* const GunTossInfoStr = "3";
-constexpr const char* const ChickenFightInfoStr = "4";
-constexpr const char* const NoscopeInfoStr = "5";
-constexpr const char* const HotPotatoInfoStr = "6";
-constexpr const char* const DodgeBallInfoStr = "7";
-constexpr const char* const RebelInfoStr = "8";
-
 int LastRequestManager::LRHandler(Menu* menu, MenuAction action, int param1, int param2)
 {
 	if (action == MenuAction_Select)
@@ -24,21 +15,22 @@ int LastRequestManager::LRHandler(Menu* menu, MenuAction action, int param1, int
 		menu->GetItem(param2, info, sizeof(info));
 		LastRequest::Type type = LastRequest::Type::None;
 
-		if (!strcmp(info, CloseFightInfoStr))
+		// TODO: Rewrite with std::string_view and lambda function init
+		if (!strcmp(info, sCloseFightInfoStr))
 			type = LastRequest::Type::CloseFight;
-		else if (!strcmp(info, Shot4ShotInfoStr))
+		else if (!strcmp(info, sShot4ShotInfoStr))
 			type = LastRequest::Type::Shot4Shot;
-		else if (!strcmp(info, GunTossInfoStr))
+		else if (!strcmp(info, sGunTossInfoStr))
 			type = LastRequest::Type::GunToss;
-		else if (!strcmp(info, ChickenFightInfoStr))
+		else if (!strcmp(info, sChickenFightInfoStr))
 			type = LastRequest::Type::ChickenFight;
-		else if (!strcmp(info, NoscopeInfoStr))
+		else if (!strcmp(info, sNoscopeInfoStr))
 			type = LastRequest::Type::Noscope;
-		else if (!strcmp(info, HotPotatoInfoStr))
+		else if (!strcmp(info, sHotPotatoInfoStr))
 			type = LastRequest::Type::HotPotato;
-		else if (!strcmp(info, DodgeBallInfoStr))
+		else if (!strcmp(info, sDodgeBallInfoStr))
 			type = LastRequest::Type::DodgeBall;
-		else if (!strcmp(info, RebelInfoStr))
+		else if (!strcmp(info, sRebelInfoStr))
 			type = LastRequest::Type::Rebel;
 
 		LRCallbackFunc callback = reinterpret_cast<LRCallbackFunc>(menu->GetParam());
@@ -57,31 +49,25 @@ void LastRequestManager::Init()
 	}
 }
 
-void LastRequestManager::Shutdown()
-{
-	for (int i = 0; i < MAXPLAYERS; ++i)
-		sLastRequestMainMenus[i].Delete();
-}
-
 void LastRequestManager::Unset(int loser, int winner)
 {
 	delete sActiveLastRequest;
 	sActiveLastRequest = nullptr;
 }
 
-void LastRequestManager::RefreshLastRequestMainMenu(int client)
+void LastRequestManager::TranslateLastRequestMainMenu(int client)
 {
 	Menu& menu = sLastRequestMainMenus[client - 1];
 	menu.RemoveAllItems();
 	menu.SetTitle("Last Request");
-	menu.AddItem(CloseFightInfoStr, "CloseFight");
-	menu.AddItem(Shot4ShotInfoStr, "Shot4Shot");
-	menu.AddItem(GunTossInfoStr, "GunToss");
-	menu.AddItem(DodgeBallInfoStr, "DodgeBall");
-	menu.AddItem(NoscopeInfoStr, "NoscopeFight");
-	menu.AddItem(HotPotatoInfoStr, "HotPotato");
-	menu.AddItem(ChickenFightInfoStr, "ChickenFight");
-	menu.AddItem(RebelInfoStr, "RebelFight");
+	menu.AddItem(sCloseFightInfoStr, "CloseFight");
+	menu.AddItem(sShot4ShotInfoStr, "Shot4Shot");
+	menu.AddItem(sGunTossInfoStr, "GunToss");
+	menu.AddItem(sDodgeBallInfoStr, "DodgeBall");
+	menu.AddItem(sNoscopeInfoStr, "NoscopeFight");
+	menu.AddItem(sHotPotatoInfoStr, "HotPotato");
+	menu.AddItem(sChickenFightInfoStr, "ChickenFight");
+	menu.AddItem(sRebelInfoStr, "RebelFight");
 }
 
 void LastRequestManager::DisplayLastRequestMainMenu(int client, LRCallbackFunc callback)

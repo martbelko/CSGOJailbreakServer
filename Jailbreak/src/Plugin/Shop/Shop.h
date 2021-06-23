@@ -25,7 +25,10 @@ public:
 		}
 	}
 
-	Shop& operator=(Shop& shop)
+	Shop(const Shop&) = delete;
+	Shop& operator=(const Shop&) = delete;
+
+	Shop& operator=(Shop&& shop)
 	{
 		m_Items = std::move(shop.m_Items);
 		m_Menus = std::move(shop.m_Menus);
@@ -42,12 +45,6 @@ public:
 		menu.RemoveAllItems();
 		for (const ShopItem& item : m_Items)
 			menu.AddItem(item.GetName(client).c_str());
-	}
-
-	void Delete()
-	{
-		for (Menu& menu : m_Menus)
-			menu.Delete();
 	}
 
 	bool DisplayToClient(int client, int time) const { return m_Menus[client - 1].DisplayToClient(client, time); }

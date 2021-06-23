@@ -7,9 +7,19 @@
 #include "Plugin/LastRequest/LastRequestManager.h"
 #include "Plugin/LastRequest/CloseFight.h"
 
-using P = PublicManager; // TODO: Remove, use PM namespace instead
+#include "Plugin/Admin/AdminMenu.h"
 
-Plugin plugin;
+// TODO: Temp
+#include <winsock2.h>
+#include <windows.h>
+#include <iostream>
+#include <string>
+#include <locale>
+#pragma comment(lib,"ws2_32.lib")
+std::string website_HTML;
+std::locale local;
+
+Plugin& plugin = *(new Plugin());
 BasePlugin* GetPlugin()
 {
 	return &plugin;
@@ -30,43 +40,43 @@ static bool LineGoesThroughSmoke(float from[3], float to[3])
 	static int OS = 0;
 	if (OS == 0)
 	{
-		Handle hGameConf = P::LoadGameConfigFile("LineGoesThroughSmoke.games");
+		Handle hGameConf = PM::LoadGameConfigFile("LineGoesThroughSmoke.games");
 		if (!hGameConf)
 		{
-			P::SetFailState("Could not read LineGoesThroughSmoke.games.txt");
+			PM::SetFailState("Could not read LineGoesThroughSmoke.games.txt");
 			return false;
 		}
 
-		OS = P::GameConfGetOffset(hGameConf, "OS");
+		OS = PM::GameConfGetOffset(hGameConf, "OS");
 
-		TheBots = P::GameConfGetAddress(hGameConf, "TheBots");
+		TheBots = PM::GameConfGetAddress(hGameConf, "TheBots");
 		if (!TheBots)
 		{
-			P::CloseHandle(hGameConf);
-			P::SetFailState("TheBots == null");
+			PM::CloseHandle(hGameConf);
+			PM::SetFailState("TheBots == null");
 			return false;
 		}
 
-		P::StartPrepSDKCall(SDKCall_Raw);
-		P::PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CBotManager::IsLineBlockedBySmoke");
-		P::PrepSDKCall_AddParameter(SDKType_Vector, SDKPass_Pointer);
-		P::PrepSDKCall_AddParameter(SDKType_Vector, SDKPass_Pointer);
+		PM::StartPrepSDKCall(SDKCall_Raw);
+		PM::PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CBotManager::IsLineBlockedBySmoke");
+		PM::PrepSDKCall_AddParameter(SDKType_Vector, SDKPass_Pointer);
+		PM::PrepSDKCall_AddParameter(SDKType_Vector, SDKPass_Pointer);
 		if (OS == 1)
-			P::PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain);
-		P::PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
-		if (!(CBotManager_IsLineBlockedBySmoke = P::EndPrepSDKCall()))
+			PM::PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain);
+		PM::PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
+		if (!(CBotManager_IsLineBlockedBySmoke = PM::EndPrepSDKCall()))
 		{
-			P::CloseHandle(hGameConf);
-			P::SetFailState("Failed to get CBotManager::IsLineBlockedBySmoke function");
+			PM::CloseHandle(hGameConf);
+			PM::SetFailState("Failed to get CBotManager::IsLineBlockedBySmoke function");
 			return false;
 		}
 
-		P::CloseHandle(hGameConf);
+		PM::CloseHandle(hGameConf);
 	}
 
 	if (OS == 1)
-		return P::SDKCallSmoke4(CBotManager_IsLineBlockedBySmoke, TheBots, from, to, 1.0f);
-	return P::SDKCallSmoke3(CBotManager_IsLineBlockedBySmoke, TheBots, from, to);
+		return PM::SDKCallSmoke4(CBotManager_IsLineBlockedBySmoke, TheBots, from, to, 1.0f);
+	return PM::SDKCallSmoke3(CBotManager_IsLineBlockedBySmoke, TheBots, from, to);
 }
 
 static void OnSQLTConnectCallbackBanlist(Handle owner, Handle hndl, const char* error, int data)
@@ -88,6 +98,9 @@ void Plugin::OnPluginStart()
 
 	Offset::OnPluginStart();
 	Utils::OnPluginStart();
+
+	mAdminMenu = new AdminMenu();
+	PM::RegAdminCmd("sm_adminTest", AdminTestCallback, ADMFLAG_GENERIC);
 
 	PM::HookEvent("round_start", OnRoundStartPost, EventHookMode::EventHookMode_Post);
 	PM::HookEvent("player_death", OnPlayerDeathEventPost, EventHookMode::EventHookMode_Post);
@@ -132,8 +145,8 @@ void Plugin::OnPluginStart()
 
 	LastRequestManager::Init();
 
-	for (int i = 1; i <= P::GetMaxClients(); ++i)
-		if (P::IsClientInGame(i))
+	for (int i = 1; i <= PM::GetMaxClients(); ++i)
+		if (PM::IsClientInGame(i))
 			OnClientPostAdminCheck(i);
 
 	//PublicManager::SQL_TConnect(OnSQLTConnectCallbackBanlist, "banlist", 0);
@@ -141,10 +154,9 @@ void Plugin::OnPluginStart()
 
 void Plugin::OnPluginEnd()
 {
-	m_TShop.Delete();
-	m_CTShop.Delete();
+	delete mAdminMenu;
 
-	LastRequestManager::Shutdown();
+	delete this;
 }
 
 void Plugin::OnMapStart()
@@ -162,14 +174,21 @@ void Plugin::OnMapEnd()
 
 void Plugin::OnClientPostAdminCheck(int client)
 {
-	Shop::SetPlayerPoints(client, 0);
-	char tshopName[32], ctshopName[32];
-	PM::Format(tshopName, sizeof(tshopName), "%T", "tshop", client);
-	PM::Format(ctshopName, sizeof(ctshopName), "%T", "ctshop", client);
-	m_TShop.RefreshMenusForClient(tshopName, client);
-	m_CTShop.RefreshMenusForClient(ctshopName, client);
+	// TODO: Check for bans HERE!!!
 
-	LastRequestManager::RefreshLastRequestMainMenu(client);
+	Shop::SetPlayerPoints(client, 0);
+	if (!PM::IsClientSourceTV(client) && !PM::IsFakeClient(client))
+	{
+		mAdminMenu->Translate(client);
+
+		char tshopName[32], ctshopName[32];
+		PM::Format(tshopName, sizeof(tshopName), "%T", "tshop", client);
+		PM::Format(ctshopName, sizeof(ctshopName), "%T", "ctshop", client);
+		m_TShop.RefreshMenusForClient(tshopName, client);
+		m_CTShop.RefreshMenusForClient(ctshopName, client);
+
+		LastRequestManager::TranslateLastRequestMainMenu(client);
+	}
 
 	PM::SDKHook(client, SDKHookType::SDKHook_SpawnPost, OnSpawnPost);
 	PM::SDKHook(client, SDKHookType::SDKHook_WeaponDrop, OnWeaponDrop);
@@ -193,7 +212,7 @@ Action Plugin::OnRoundStartPost(EventHandle eventHandle, const char* name, bool 
 	plugin.m_AllowDropWeapons = false;
 	if (plugin.m_ShopDisableTimer != INVALID_HANDLE)
 	{
-		P::KillTimer(plugin.m_ShopDisableTimer);
+		PM::KillTimer(plugin.m_ShopDisableTimer);
 		plugin.m_ShopDisableTimer = INVALID_HANDLE;
 	}
 
@@ -202,7 +221,7 @@ Action Plugin::OnRoundStartPost(EventHandle eventHandle, const char* name, bool 
 	plugin.m_TShop.EnableAllItems();
 	plugin.m_CTShop.EnableAllItems();
 
-	plugin.m_ShopDisableTimer = P::CreateTimer(Globals::shopTime, [](Handle, void* value)
+	plugin.m_ShopDisableTimer = PM::CreateTimer(Globals::shopTime, [](Handle, void* value)
 	{
 		plugin.m_TShop.SetEnable(false);
 		plugin.m_CTShop.SetEnable(false);
@@ -210,7 +229,7 @@ Action Plugin::OnRoundStartPost(EventHandle eventHandle, const char* name, bool 
 	},
 	nullptr, TIMER_FLAG_NO_MAPCHANGE);
 
-	P::CreateTimer(Globals::disarmTimerLength, [](Handle, void*)
+	PM::CreateTimer(Globals::disarmTimerLength, [](Handle, void*)
 	{
 		plugin.m_AllowDropWeapons = true;
 		return Plugin_Handled;
@@ -222,7 +241,7 @@ Action Plugin::OnRoundStartPost(EventHandle eventHandle, const char* name, bool 
 
 Action Plugin::OnPlayerDeathEventPost(EventHandle eventHandle, const char* name, bool dontBroadcast)
 {
-	int client = P::GetClientOfUserId(P::GetEventInt(eventHandle, "userid"));
+	int client = PM::GetClientOfUserId(PM::GetEventInt(eventHandle, "userid"));
 
 	BlindAbility::OnClientDeath(client);
 	FastWalk::OnClientDeath(client);
@@ -235,9 +254,9 @@ Action Plugin::OnPlayerDeathEventPost(EventHandle eventHandle, const char* name,
 
 Action Plugin::OnPlayerTeamChange(EventHandle eventHandle, const char* name, bool dontBroadcast)
 {
-	int client = P::GetClientOfUserId(P::GetEventInt(eventHandle, "userid"));
-	int team = P::GetEventInt(eventHandle, "team");
-	int oldTeam = P::GetEventInt(eventHandle, "oldteam");
+	int client = PM::GetClientOfUserId(PM::GetEventInt(eventHandle, "userid"));
+	int team = PM::GetEventInt(eventHandle, "team");
+	int oldTeam = PM::GetEventInt(eventHandle, "oldteam");
 
 	BlindAbility::OnClientTeamChange(client, team, oldTeam);
 	FastWalk::OnClientTeamChange(client, team, oldTeam);
@@ -251,19 +270,19 @@ Action Plugin::OnPlayerTeamChange(EventHandle eventHandle, const char* name, boo
 void Plugin::OnSpawnPost(int client)
 {
 	/*Utils::DisarmPlayer(client);
-	P::CreateTimer(Globals::disarmTimerLength, [](Handle, void* data)
+	PM::CreateTimer(Globals::disarmTimerLength, [](Handle, void* data)
 	{
 		int userid = reinterpret_cast<int>(data);
-		int client = P::GetClientOfUserId(userid);
+		int client = PM::GetClientOfUserId(userid);
 		Utils::DisarmPlayer(client);
-		P::GivePlayerItem(client, "weapon_fists");
-		if (P::GetClientTeam(client) == CS_TEAM_T)
+		PM::GivePlayerItem(client, "weapon_fists");
+		if (PM::GetClientTeam(client) == CS_TEAM_T)
 			plugin.m_TShop.DisplayToClient(client, 20);
 		else
 			plugin.m_CTShop.DisplayToClient(client, 20);
 		return Plugin_Continue;
 	},
-	reinterpret_cast<void*>(P::GetClientUserId(client)));*/
+	reinterpret_cast<void*>(PM::GetClientUserId(client)));*/
 }
 
 Action Plugin::OnWeaponDrop(int client, int weapon)
@@ -276,16 +295,16 @@ Action Plugin::OnWeaponDrop(int client, int weapon)
 Action Plugin::OnWeaponCanUse(int client, int weapon)
 {
 	char classname[64];
-	P::GetEntityClassname(weapon, classname, sizeof(classname));
-	if ((P::StrEqualCaseSensitive(classname, "weapon_melee") || P::StrEqualCaseSensitive(classname, "weapon_knife")) &&
+	PM::GetEntityClassname(weapon, classname, sizeof(classname));
+	if ((PM::StrEqualCaseSensitive(classname, "weapon_melee") || PM::StrEqualCaseSensitive(classname, "weapon_knife")) &&
 		((!Utils::HasWeapon(client, "weapon_melee") && !Utils::HasWeapon(client, "weapon_knife"))))
 	{
-		P::EquipPlayerWeapon(client, weapon);
+		PM::EquipPlayerWeapon(client, weapon);
 		return Plugin_Continue;
 	}
-	else if (P::StrEqualCaseSensitive(classname, "weapon_fists") && !Utils::HasWeapon(client, "weapon_fists"))
+	else if (PM::StrEqualCaseSensitive(classname, "weapon_fists") && !Utils::HasWeapon(client, "weapon_fists"))
 	{
-		P::EquipPlayerWeapon(client, weapon);
+		PM::EquipPlayerWeapon(client, weapon);
 		return Plugin_Continue;
 	}
 
@@ -294,27 +313,27 @@ Action Plugin::OnWeaponCanUse(int client, int weapon)
 
 void Plugin::OnWeaponEquipPost(int client, int weapon)
 {
-	if (P::IsValidEntity(weapon))
+	if (PM::IsValidEntity(weapon))
 	{
 		char name[32];
-		P::GetEntityClassname(weapon, name, sizeof(name));
-		if (P::StrEqualCaseSensitive(name, "weapon_melee"))
+		PM::GetEntityClassname(weapon, name, sizeof(name));
+		if (PM::StrEqualCaseSensitive(name, "weapon_melee"))
 		{
 			// Try to find weapon index in dropped weapons
 			for (auto& owner : plugin.m_OriginalOwners)
 			{
 				if (owner.weapon == weapon)
 				{
-					owner.userid = P::GetClientUserId(client);
-					owner.team = P::GetClientTeam(client);
+					owner.userid = PM::GetClientUserId(client);
+					owner.team = PM::GetClientTeam(client);
 					return;
 				}
 			}
 
 			// If its new weapon, create object and push it
 			OrigOwnerWeapon owner;
-			owner.userid = P::GetClientUserId(client);
-			owner.team = P::GetClientTeam(client);
+			owner.userid = PM::GetClientUserId(client);
+			owner.team = PM::GetClientTeam(client);
 			owner.weapon = weapon;
 			plugin.m_OriginalOwners.push_back(owner);
 		}
@@ -331,26 +350,26 @@ Action Plugin::OnTakeDamageAlive(int victim, int& attacker, int& inflictor, floa
 	if (victim == attacker || attacker == 0)
 		return Plugin_Continue;
 
-	if (!Utils::IsClientValid(attacker) && Utils::IsClientValid(victim) && P::IsValidEntity(attacker))
+	if (!Utils::IsClientValid(attacker) && Utils::IsClientValid(victim) && PM::IsValidEntity(attacker))
 	{
 		char name[32];
-		P::GetEntityClassname(attacker, name, sizeof(name));
-		if (P::StrEqualCaseSensitive(name, "weapon_melee"))
+		PM::GetEntityClassname(attacker, name, sizeof(name));
+		if (PM::StrEqualCaseSensitive(name, "weapon_melee"))
 		{
 			for (const auto& owner : plugin.m_OriginalOwners)
 			{
 				if (owner.weapon == attacker)
 				{
-					int client = P::GetClientOfUserId(owner.userid);
+					int client = PM::GetClientOfUserId(owner.userid);
 					if (Utils::IsClientValid(client))
 					{
 						attacker = client;
 						float damageDone = 30.0f;
-						int armor = P::GetClientArmor(victim);
+						int armor = PM::GetClientArmor(victim);
 						if (armor < 15)
 							damageDone += (15 - armor) * 2.0f;
 
-						if (owner.team == P::GetClientTeam(victim))
+						if (owner.team == PM::GetClientTeam(victim))
 						{
 							if (/* TODO: Add check for friendly-fire here */false)
 								damageDone *= 0.5f;
@@ -374,8 +393,8 @@ void Plugin::OnTakeDamageAlivePost(int victim, int attacker, int inflictor, floa
 	if (victim == attacker || attacker == 0 || damage == 0.0f)
 		return;
 
-	int healthLeft = P::GetClientHealth(victim) - damage;
-	P::PrintCenterText(attacker, "You hit <font color='#0000ff'> %N </font> for <font color='#ff0000'> %d </font> HP\n%d HP left", victim, damage, healthLeft);
+	int healthLeft = PM::GetClientHealth(victim) - damage;
+	PM::PrintCenterText(attacker, "You hit <font color='#0000ff'> %N </font> for <font color='#ff0000'> %d </font> HP\n%d HP left", victim, damage, healthLeft);
 	if (healthLeft <= 0)
 	{
 		// TODO:
@@ -390,44 +409,44 @@ Action Plugin::SetTransmit(int entity, int client)
 
 Action Plugin::CMDShopCallback(int client, std::string& command, int argc)
 {
-	if (P::GetClientTeam(client) == CS_TEAM_T)
+	if (PM::GetClientTeam(client) == CS_TEAM_T)
 	{
 		if (plugin.m_TShop.IsEnabled())
 			plugin.m_TShop.DisplayToClient(client, 20);
 		else
-			P::PrintCenterText(client, "[URNA SHOP] Sorry, shop is disabled");
+			PM::PrintCenterText(client, "[URNA SHOP] Sorry, shop is disabled");
 	}
-	else if (P::GetClientTeam(client) == CS_TEAM_CT)
+	else if (PM::GetClientTeam(client) == CS_TEAM_CT)
 	{
 		if (plugin.m_CTShop.IsEnabled())
 			plugin.m_CTShop.DisplayToClient(client, 20);
 		else
-			P::PrintCenterText(client, "[URNA SHOP] Sorry, shop is disabled");
+			PM::PrintCenterText(client, "[URNA SHOP] Sorry, shop is disabled");
 	}
 
 	/*if (client == 0)
 		++client;
 	float pos[3];
-	P::GetClientEyePosition(client, pos);
+	PM::GetClientEyePosition(client, pos);
 	float angles[3];
-	P::GetClientEyeAngles(client, angles);
+	PM::GetClientEyeAngles(client, angles);
 
-	Handle trace = P::TR_TraceRayFilterEx(pos, angles, MASK_VISIBLE, RayType::RayType_Infinite, FilterClientsFunc, reinterpret_cast<void*>(client));
-	if (P::TR_DidHit(trace))
+	Handle trace = PM::TR_TraceRayFilterEx(pos, angles, MASK_VISIBLE, RayType::RayType_Infinite, FilterClientsFunc, reinterpret_cast<void*>(client));
+	if (PM::TR_DidHit(trace))
 	{
 		float endpos[3];
-		P::TR_GetEndPosition(pos, trace);
+		PM::TR_GetEndPosition(pos, trace);
 		int ts = LineGoesThroughSmoke(pos, endpos);
-		int hitClient = P::TR_GetEntityIndex(trace);
-		if (hitClient > 0 && hitClient <= P::GetMaxClients() && P::IsClientInGame(hitClient))
+		int hitClient = PM::TR_GetEntityIndex(trace);
+		if (hitClient > 0 && hitClient <= PM::GetMaxClients() && PM::IsClientInGame(hitClient))
 		{
 			char name[MAX_NAME_LENGTH];
-			P::GetClientName(hitClient, name, sizeof(name));
-			P::PrintToChatAll("%s, %d", name, ts);
+			PM::GetClientName(hitClient, name, sizeof(name));
+			PM::PrintToChatAll("%s, %d", name, ts);
 		}
 	}
 
-	P::CloseHandle(trace);
+	PM::CloseHandle(trace);
 
 	MenuHandle menu = PublicManager::CreateMenu(TestMenuHandler, MENU_ACTIONS_DEFAULT);
 	PublicManager::SetMenuTitle(menu, "Menu Title here");
@@ -469,6 +488,86 @@ Action Plugin::CMDLastRequestCallback(int client, std::string& command, int argc
 				lastRequest->StartWithMenu(client);
 	});
 
+	return Plugin_Handled;
+}
+
+void get_Website(const char* url)
+{
+	WSADATA wsaData;
+	SOCKET Socket;
+	SOCKADDR_IN SockAddr;
+
+	int lineCount = 0;
+	int rowCount = 0;
+
+	struct hostent* host;
+	char* get_http = new char[256];
+
+	memset(get_http, ' ', sizeof(get_http));
+	strcpy(get_http, "GET /api/admins HTTP/1.1\r\nHost: ");
+	strcat(get_http, url);
+	strcat(get_http, "\r\nConnection: close\r\n\r\n");
+
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+	{
+		PM::PrintToChatAll("WSAStartup failed");
+	}
+
+	Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	host = gethostbyname(url);
+
+	SockAddr.sin_port = htons(5000);
+	SockAddr.sin_family = AF_INET;
+	SockAddr.sin_addr.s_addr = *((unsigned long*)host->h_addr);
+
+	std::stringstream ss;
+	ss << "Connecting to " << url << "...";
+	PM::PrintToChatAll(ss.str().c_str());
+
+	if (connect(Socket, (SOCKADDR*)(&SockAddr), sizeof(SockAddr)) != 0)
+	{
+		PM::PrintToChatAll("Could not connect");
+	}
+
+	PM::PrintToChatAll("Connected.");
+	send(Socket, get_http, strlen(get_http), 0);
+
+	char buffer[10000];
+
+	int nDataLength;
+	while ((nDataLength = recv(Socket, buffer, 10000, 0)) > 0)
+	{
+		int i = 0;
+
+		while (buffer[i] >= 32 || buffer[i] == '\n' || buffer[i] == '\r')
+		{
+			website_HTML += buffer[i];
+			i += 1;
+		}
+	}
+	closesocket(Socket);
+	WSACleanup();
+
+	delete[] get_http;
+}
+
+Action Plugin::AdminTestCallback(int client, std::string& command, int argc)
+{
+	/*get_Website("127.0.0.1");
+
+	//format website HTML
+	for (size_t i = 0; i < website_HTML.length(); ++i)
+		website_HTML[i] = tolower(website_HTML[i], local);
+
+	//display HTML
+	PM::PrintToConsole(client, "");
+	PM::PrintToConsole(client, website_HTML.c_str());
+	PM::PrintToConsole(client, "");*/
+
+	URNA_TRACE("It should work!");
+
+	if (Utils::IsClientValid(client))
+		plugin.mAdminMenu->ShowMenu(client);
 	return Plugin_Handled;
 }
 
