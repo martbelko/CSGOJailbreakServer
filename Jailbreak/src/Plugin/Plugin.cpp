@@ -9,6 +9,9 @@
 
 #include "Plugin/Admin/AdminMenu.h"
 
+#include <tao/json.hpp>
+#include <tao/json/contrib/traits.hpp>
+
 // TODO: Temp
 #include <winsock2.h>
 #include <windows.h>
@@ -264,7 +267,6 @@ Action Plugin::OnPlayerTeamChange(EventHandle eventHandle, const char* name, boo
 	DoubleJump::OnClientTeamChange(client, team, oldTeam);
 
 	return Plugin_Continue;
-
 }
 
 void Plugin::OnSpawnPost(int client)
@@ -538,7 +540,6 @@ void get_Website(const char* url)
 	while ((nDataLength = recv(Socket, buffer, 10000, 0)) > 0)
 	{
 		int i = 0;
-
 		while (buffer[i] >= 32 || buffer[i] == '\n' || buffer[i] == '\r')
 		{
 			website_HTML += buffer[i];
@@ -564,7 +565,16 @@ Action Plugin::AdminTestCallback(int client, std::string& command, int argc)
 	PM::PrintToConsole(client, website_HTML.c_str());
 	PM::PrintToConsole(client, "");*/
 
-	URNA_TRACE("It should work!");
+	const tao::json::value v = tao::json::from_string("{ \"a\": 1.0, \"b\": 2.0 }");
+	float val = v.at("a").as<float>();
+
+	URNA_WARN(val);
+
+	URNA_TRACE("This is my trace!");
+	URNA_INFO("This is my info!");
+	URNA_WARN("This is my warning!");
+	URNA_ERROR("This is my error!");
+	URNA_CRITICAL("This is critical!");
 
 	if (Utils::IsClientValid(client))
 		plugin.mAdminMenu->ShowMenu(client);
