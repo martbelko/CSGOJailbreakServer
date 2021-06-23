@@ -84,7 +84,7 @@ public:
 	 *                      string to return the default driver.
 	 * @return              Driver Handle, or INVALID_HANDLE on failure.
 	 */
-	static DBDriver SQL_GetDriver(const char* name)
+	static Handle SQL_GetDriver(const char* name)
 	{
 		return ExecFunc(s_SQL_GetDriverFunc, name);
 	}
@@ -97,7 +97,7 @@ public:
 	 * @param identLength   Maximum length of the buffer.
 	 * @return              Driver Handle.
 	 */
-	static DBDriver SQL_ReadDriver(Handle database, char* ident, int identLength)
+	static Handle SQL_ReadDriver(Handle database, char* ident, int identLength)
 	{
 		PushArg(s_SQL_ReadDriverFunc, database);
 		PushArg(s_SQL_ReadDriverFunc, ident, identLength);

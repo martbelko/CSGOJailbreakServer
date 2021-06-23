@@ -113,12 +113,11 @@ public:
 	 * @param style         By-reference variable to store drawing flags.
 	 * @param dispBuf       Display buffer.
 	 * @param dispBufLen    Maximum length of the display buffer.
-	 * @param client		Client index. Must be specified if menu is per-client random shuffled, -1 to ignore.
 	 * @return              True on success, false if position is invalid.
 	 * @error               Invalid Handle.
 	 */
 	static bool GetMenuItem(Handle menu, int position, char* infoBuf, int infoBufLen, int& style = NULL_VALUE,
-		char* dispBuf = const_cast<char*>(""), int dispBufLen = 0, int client = 0)
+		char* dispBuf = const_cast<char*>(""), int dispBufLen = 0)
 	{
 		PushArg(s_GetMenuItemFunc, menu);
 		PushArg(s_GetMenuItemFunc, position);
@@ -127,37 +126,7 @@ public:
 		PushArgRef(s_GetMenuItemFunc, style);
 		PushArg(s_GetMenuItemFunc, dispBuf, dispBufLen);
 		PushArg(s_GetMenuItemFunc, dispBufLen);
-		PushArg(s_GetMenuItemFunc, client);
 		return ExecFunc(s_GetMenuItemFunc);
-	}
-
-	/**
-	 * @brief Generates a per-client random mapping for the current vote options.
-	 *
-	 * @param menu          Menu Handle.
-	 * @param start         Menu item index to start randomizing from.
-	 * @param stop          Menu item index to stop randomizing at. -1 = infinite
-	 */
-	static void MenuShufflePerClient(Handle menu, int start = 0, int stop = -1)
-	{
-		ExecFunc(s_MenuShufflePerClientFunc, menu, start, stop);
-	}
-
-	/*
-	 * @brief Fills the client vote option mapping with user supplied values.
-	 *
-	 * @param menu          Menu Handle.
-	 * @param client		Client index.
-	 * @param array			Integer array with mapping.
-	 * @param length		Length of array.
-	 */
-	static void MenuSetClientMapping(Handle menu, int client, int arr[], int length)
-	{
-		PushArg(s_MenuSetClientMappingFunc, menu);
-		PushArg(s_MenuSetClientMappingFunc, client);
-		PushArg(s_MenuSetClientMappingFunc, arr, length);
-		PushArg(s_MenuSetClientMappingFunc, length);
-		ExecFunc(s_MenuSetClientMappingFunc);
 	}
 
 	/**

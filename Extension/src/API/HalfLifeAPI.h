@@ -770,7 +770,7 @@ public:
 	 * @param size          Maximum size of clients array.
 	 * @return              Number of client indexes written to clients array.
 	 */
-	static int GetClientsInRange(const float origin[3], ClientRangeType rangeType, int* clients, int size)
+	static int GetClientsInRange(float origin[3], ClientRangeType rangeType, int* clients, int size)
 	{
 		PushArg(s_GetClientsInRangeFunc, origin, 3);
 		PushArg(s_GetClientsInRangeFunc, rangeType);
