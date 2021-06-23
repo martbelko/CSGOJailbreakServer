@@ -516,7 +516,6 @@ enum DBPriority
 using database_t = int;
 using transaction_t = int;
 using DBResultSet = int;
-using DBDriver = int;
 using DBStatement = int;
 using KeyValuesHandle = int;
 
