@@ -32,6 +32,8 @@
 #ifndef _INCLUDE_SOURCEMOD_EXTENSION_BASESDK_H_
 #define _INCLUDE_SOURCEMOD_EXTENSION_BASESDK_H_
 
+#define SMEXT_ENABLE_HANDLESYS
+
 /**
  * @file smsdk_ext.h
  * @brief Contains wrappers for making Extensions easier to write.
