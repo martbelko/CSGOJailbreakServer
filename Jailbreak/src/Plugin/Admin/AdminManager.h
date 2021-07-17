@@ -2,10 +2,10 @@
 
 #include <CSGOExtension.h>
 
-class Admin
+class AdminManager
 {
 public:
-	Admin() = delete;
+	AdminManager() = delete;
 
 	static bool IsClientAdmin(int client)
 	{

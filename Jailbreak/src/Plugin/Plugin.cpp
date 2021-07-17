@@ -9,18 +9,10 @@
 
 #include "Plugin/Admin/AdminMenu.h"
 
+#include <CSGOExtension.h>
+
 #include <tao/json.hpp>
 #include <tao/json/contrib/traits.hpp>
-
-// TODO: Temp
-#include <winsock2.h>
-#include <windows.h>
-#include <iostream>
-#include <string>
-#include <locale>
-#pragma comment(lib,"ws2_32.lib")
-std::string website_HTML;
-std::locale local;
 
 Plugin& plugin = *(new Plugin());
 BasePlugin* GetPlugin()
@@ -101,6 +93,13 @@ void Plugin::OnPluginStart()
 
 	Offset::OnPluginStart();
 	Utils::OnPluginStart();
+
+	mThreadTimer = Timer(ThreadTimerRate, [](Timer* timer, void* data) -> Action
+	{
+		Server::Run();
+		return Plugin_Continue;
+	},
+	nullptr, TIMER_REPEAT);
 
 	mAdminMenu = new AdminMenu();
 	PM::RegAdminCmd("sm_adminTest", AdminTestCallback, ADMFLAG_GENERIC);
@@ -290,7 +289,7 @@ void Plugin::OnSpawnPost(int client)
 Action Plugin::OnWeaponDrop(int client, int weapon)
 {
 	if (!plugin.m_AllowDropWeapons)
-		return Plugin_Handled;
+		return Plugin_Stop;
 	return Plugin_Continue;
 }
 
@@ -493,88 +492,22 @@ Action Plugin::CMDLastRequestCallback(int client, std::string& command, int argc
 	return Plugin_Handled;
 }
 
-void get_Website(const char* url)
-{
-	WSADATA wsaData;
-	SOCKET Socket;
-	SOCKADDR_IN SockAddr;
-
-	int lineCount = 0;
-	int rowCount = 0;
-
-	struct hostent* host;
-	char* get_http = new char[256];
-
-	memset(get_http, ' ', sizeof(get_http));
-	strcpy(get_http, "GET /api/admins HTTP/1.1\r\nHost: ");
-	strcat(get_http, url);
-	strcat(get_http, "\r\nConnection: close\r\n\r\n");
-
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-	{
-		PM::PrintToChatAll("WSAStartup failed");
-	}
-
-	Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	host = gethostbyname(url);
-
-	SockAddr.sin_port = htons(5000);
-	SockAddr.sin_family = AF_INET;
-	SockAddr.sin_addr.s_addr = *((unsigned long*)host->h_addr);
-
-	std::stringstream ss;
-	ss << "Connecting to " << url << "...";
-	PM::PrintToChatAll(ss.str().c_str());
-
-	if (connect(Socket, (SOCKADDR*)(&SockAddr), sizeof(SockAddr)) != 0)
-	{
-		PM::PrintToChatAll("Could not connect");
-	}
-
-	PM::PrintToChatAll("Connected.");
-	send(Socket, get_http, strlen(get_http), 0);
-
-	char buffer[10000];
-
-	int nDataLength;
-	while ((nDataLength = recv(Socket, buffer, 10000, 0)) > 0)
-	{
-		int i = 0;
-		while (buffer[i] >= 32 || buffer[i] == '\n' || buffer[i] == '\r')
-		{
-			website_HTML += buffer[i];
-			i += 1;
-		}
-	}
-	closesocket(Socket);
-	WSACleanup();
-
-	delete[] get_http;
-}
+#include <limits>
+#undef max
 
 Action Plugin::AdminTestCallback(int client, std::string& command, int argc)
 {
-	/*get_Website("127.0.0.1");
+	Server::GetAllBansAsync([](std::vector<Ban>& bans)
+	{
+		for (Ban& ban : bans)
+			PM::PrintToChatAll("%s", std::to_string(ban.length));
+	});
 
-	//format website HTML
-	for (size_t i = 0; i < website_HTML.length(); ++i)
-		website_HTML[i] = tolower(website_HTML[i], local);
-
-	//display HTML
-	PM::PrintToConsole(client, "");
-	PM::PrintToConsole(client, website_HTML.c_str());
-	PM::PrintToConsole(client, "");*/
-
-	const tao::json::value v = tao::json::from_string("{ \"a\": 1.0, \"b\": 2.0 }");
-	float val = v.at("a").as<float>();
-
-	URNA_WARN(val);
-
-	URNA_TRACE("This is my trace!");
-	URNA_INFO("This is my info!");
-	URNA_WARN("This is my warning!");
-	URNA_ERROR("This is my error!");
-	URNA_CRITICAL("This is critical!");
+	/*Server::GetAllAdminsAsync([](std::vector<Admin>& admins)
+	{
+		for (const Admin& admin : admins)
+			rootconsole->ConsolePrint(admin.steamID.c_str());
+	});*/
 
 	if (Utils::IsClientValid(client))
 		plugin.mAdminMenu->ShowMenu(client);

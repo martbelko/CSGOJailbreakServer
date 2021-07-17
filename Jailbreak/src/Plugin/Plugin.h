@@ -15,7 +15,6 @@
 #include "Plugin/Abilities/Invisibility.h"
 #include "Plugin/Abilities/Blind.h"
 
-#include "Plugin/Admin/Admin.h"
 #include "Plugin/Admin/AdminMenu.h"
 
 class Plugin : public BasePlugin
@@ -76,4 +75,8 @@ private:
 	std::vector<OrigOwnerWeapon> m_OriginalOwners;
 
 	AdminMenu* mAdminMenu;
+
+	Timer mThreadTimer; // Used for callbacks of async threads into main thread
+private:
+	static constexpr float ThreadTimerRate = 0.1f;
 };

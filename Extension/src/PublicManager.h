@@ -428,6 +428,7 @@ private:
 	static void PushArg(IPluginFunction* func, int arg) { func->PushCell(arg); }
 	static void PushArg(IPluginFunction* func, float arg) { func->PushFloat(arg); }
 	static void PushArg(IPluginFunction* func, const char* arg) { func->PushString(arg); }
+	static void PushArg(IPluginFunction* func, std::string_view arg) { func->PushString(arg.data()); }
 	static void PushArg(IPluginFunction* func, char* arg, unsigned int len) { func->PushStringEx(arg, len, 0, 1); }
 	static void PushArg(IPluginFunction* func, float arg[3]) { func->PushArray((int*)arg, 3, 1); } // TODO: Remove
 	static void PushArg(IPluginFunction* func, const float arg[3]) { func->PushArray((int*)arg, 3, 0); } // TODO: Remove
@@ -437,8 +438,10 @@ private:
 	static void PushArg(IPluginFunction* func, const int* arg, unsigned int len) { func->PushArray(const_cast<int*>(arg), len, 0); }
 
 	static void PushArgRef(IPluginFunction* func, int& arg) { func->PushCellByRef(&arg); }
+	static void PushArgRef(IPluginFunction* func, uint32_t& arg) { func->PushCellByRef(reinterpret_cast<int*>(&arg)); }
 	static void PushArgRef(IPluginFunction* func, float& arg) { func->PushFloatByRef(&arg); }
 	static void PushArgRef(IPluginFunction* func, const char* arg) { func->PushString(arg); }
+	static void PushArgRef(IPluginFunction* func, std::string_view arg) { func->PushString(arg.data()); }
 
 	static int ExecAndReturn(IPluginFunction* func)
 	{

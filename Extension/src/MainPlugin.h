@@ -7,6 +7,7 @@
 #include "BasePlugin.h"
 
 #include "Common/Logging/Log.h"
+#include "Common/Server/Server.h"
 
 extern BasePlugin* GetPlugin();
 
@@ -18,6 +19,7 @@ public:
 	static void OnPluginStart()
 	{
 		Log::Init();
+		Server::Init("127.0.0.1", 5000);
 
 		s_Plugin = GetPlugin();
 		s_Plugin->OnPluginStart();

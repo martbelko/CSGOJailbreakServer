@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 class Logger
 {
@@ -85,8 +86,9 @@ private:
 	}
 
 	template<typename T, typename... Args>
-	static std::string Format(T&& arg, Args&&... args)
+	static std::string Format(const T& arg, Args&&... args)
 	{
+		const char* x = "a";
 		std::stringstream ss;
 		ss << arg;
 		return ss.str() + Format(std::forward<Args>(args)...);

@@ -19,18 +19,37 @@ public:
 		sTimers[mTimer] = this;
 	}
 
-	Timer(const Timer& other)
+	Timer(const Timer& other) = delete;
+	Timer(Timer&& other)
+		:
+		mTimer(std::move(other.mTimer)),
+		mInterval(other.mInterval),
+		mCallback(other.mCallback),
+		mData(other.mData),
+		mElapsedTime(other.mElapsedTime),
+		mDeleteData(other.mDeleteData)
 	{
-		Copy(other);
+		sTimers[mTimer] = this;
 	}
 
-	Timer& operator=(const Timer& other)
+	Timer& operator=(const Timer& other) = delete;
+	Timer& operator=(Timer&& other)
 	{
 		if (this == &other)
 			return *this;
-		Copy(other);
+
+		mTimer = std::move(other.mTimer);
+		mInterval = std::move(other.mInterval);
+		mCallback = std::move(other.mCallback);
+		mData = std::move(other.mData);
+		mElapsedTime = std::move(other.mElapsedTime);
+		mDeleteData = std::move(other.mDeleteData);
+		sTimers[mTimer] = this;
+
 		return *this;
 	}
+
+	~Timer() = default;
 
 	void Kill(bool autoClose = false, bool deleteData = false)
 	{
@@ -62,17 +81,6 @@ public:
 		}
 
 		return res;
-	}
-private:
-	void Copy(const Timer& other)
-	{
-		mTimer = other.mTimer;
-		mInterval = other.mInterval;
-		mCallback = other.mCallback;
-		mData = other.mData;
-		mElapsedTime = other.mElapsedTime;
-		mDeleteData = other.mDeleteData;
-		sTimers[mTimer] = this;
 	}
 private:
 	Handle mTimer;

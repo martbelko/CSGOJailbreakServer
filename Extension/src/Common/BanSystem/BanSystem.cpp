@@ -1,8 +1,8 @@
 #include "BanSystem.h"
 
-#include "Common/Database.h"
+#include "PublicManager.h"
 
-#include <CSGOExtension.h>
+#include "Common/BanSystem/Ban.h"
 
 void BanSystem::BanClient(int target, uint64_t adminID, Ban::Type type, const std::string& reason, uint64_t lengthInSeconds)
 {
@@ -27,8 +27,7 @@ void BanSystem::Unban(const Ban::PlayerInfo& playerInfo)
 Ban::PlayerInfo BanSystem::GetPlayerInfo(int client)
 {
 	Ban::PlayerInfo playerInfo;
-	char name[MAX_PLAYER_NAME_LENGTH], steamID[32], steam3ID[32], steamID64[32], ip[32];
-	PM::GetClientName(client, name, sizeof(name));
+	char steamID[32], steam3ID[32], steamID64[32], ip[32];
 	PM::GetClientAuthId(client, AuthId_Steam2, steamID, sizeof(steamID));
 	PM::GetClientAuthId(client, AuthId_Steam3, steam3ID, sizeof(steam3ID));
 	PM::GetClientAuthId(client, AuthId_SteamID64, steamID64, sizeof(steamID64));
@@ -37,7 +36,6 @@ Ban::PlayerInfo BanSystem::GetPlayerInfo(int client)
 	playerInfo.steamID = steamID;
 	playerInfo.steam3ID = steam3ID;
 	playerInfo.steamID64 = steamID64;
-	playerInfo.name = name;
 	playerInfo.ip = ip;
 
 	return playerInfo;
