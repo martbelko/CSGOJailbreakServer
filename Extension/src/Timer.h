@@ -20,20 +20,20 @@ public:
 	}
 
 	Timer(const Timer& other) = delete;
-	Timer(Timer&& other)
+	Timer(Timer&& other) noexcept
 		:
 		mTimer(std::move(other.mTimer)),
-		mInterval(other.mInterval),
-		mCallback(other.mCallback),
-		mData(other.mData),
-		mElapsedTime(other.mElapsedTime),
-		mDeleteData(other.mDeleteData)
+		mInterval(std::move(other.mInterval)),
+		mCallback(std::move(other.mCallback)),
+		mData(std::move(other.mData)),
+		mElapsedTime(std::move(other.mElapsedTime)),
+		mDeleteData(std::move(other.mDeleteData))
 	{
 		sTimers[mTimer] = this;
 	}
 
 	Timer& operator=(const Timer& other) = delete;
-	Timer& operator=(Timer&& other)
+	Timer& operator=(Timer&& other) noexcept
 	{
 		if (this == &other)
 			return *this;

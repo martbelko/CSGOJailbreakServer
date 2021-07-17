@@ -18,18 +18,31 @@ public:
 	}
 
 	Menu(const Menu&) = delete;
-
 	Menu(Menu&& other) noexcept
+		:
+		m_Handle(std::move(other.m_Handle)),
+		m_Counter(std::move(other.m_Counter)),
+		mHandler(std::move(other.mHandler))
 	{
-		Move(std::move(other));
+		sMenus[m_Handle] = this;
+		other.m_Handle = INVALID_HANDLE;
 	}
 
 	Menu& operator=(const Menu&) = delete;
-
 	Menu& operator=(Menu&& other) noexcept
 	{
-		Destroy();
-		Move(std::move(other));
+		if (this != &other)
+		{
+			Destroy();
+
+			m_Handle = std::move(other.m_Handle);
+			m_Counter = std::move(other.m_Counter);
+			mHandler = std::move(other.mHandler);
+			sMenus[m_Handle] = this;
+
+			other.m_Handle = INVALID_HANDLE;
+		}
+
 		return *this;
 	}
 
